@@ -293,7 +293,43 @@ fn cmd_scan(args: ScanArgs) -> i32 {
     let raw_deps = all_deps.into_inner().unwrap();
     let errors = parse_errors.into_inner().unwrap();
 
-    let merged = merge_deps(raw_deps);
+    let mut merged = merge_deps(raw_deps);
+
+    // Apply --only category filter
+    if let Some(ref only) = args.only {
+        let allowed: Vec<looper::types::Category> = only
+            .iter()
+            .filter_map(|s| looper::types::Category::from_filter_name(s))
+            .collect();
+        if !allowed.is_empty() {
+            merged.retain(|d| allowed.contains(&d.category));
+        }
+    }
+
+    // Apply --exclude category filter
+    if let Some(ref exclude) = args.exclude {
+        let excluded: Vec<looper::types::Category> = exclude
+            .iter()
+            .filter_map(|s| looper::types::Category::from_filter_name(s))
+            .collect();
+        merged.retain(|d| !excluded.contains(&d.category));
+    }
+
+    // Apply --min-confidence filter
+    if let Some(min) = looper::types::Confidence::parse(&args.min_confidence) {
+        merged.retain(|d| d.confidence >= min);
+    }
+
+    // Apply --baseline filter
+    if let Some(ref baseline_path) = args.baseline {
+        if let Ok(content) = std::fs::read_to_string(baseline_path) {
+            if let Ok(baseline) = serde_json::from_str::<looper::types::ScanManifest>(&content) {
+                let baseline_ids: std::collections::HashSet<String> =
+                    baseline.deps.iter().map(|d| d.id.clone()).collect();
+                merged.retain(|d| !baseline_ids.contains(&d.id));
+            }
+        }
+    }
 
     if args.verbose && !errors.is_empty() {
         eprintln!();

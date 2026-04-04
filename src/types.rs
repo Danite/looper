@@ -96,6 +96,10 @@ impl Category {
         }
     }
 
+    pub fn from_filter_name(name: &str) -> Option<Category> {
+        Self::all().iter().find(|c| c.filter_name() == name).copied()
+    }
+
     pub fn all() -> &'static [Category] {
         &[
             Self::EnvVar,
@@ -129,6 +133,17 @@ pub enum Confidence {
     Low,
     Medium,
     High,
+}
+
+impl Confidence {
+    pub fn parse(s: &str) -> Option<Confidence> {
+        match s {
+            "low" => Some(Self::Low),
+            "medium" => Some(Self::Medium),
+            "high" => Some(Self::High),
+            _ => None,
+        }
+    }
 }
 
 impl fmt::Display for Confidence {
