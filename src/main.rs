@@ -328,6 +328,19 @@ fn cmd_scan(args: ScanArgs) -> i32 {
                 return 1;
             }
         }
+        "html" => {
+            let manifest =
+                looper::output::build_manifest(&root, file_count, duration_ms, merged);
+            let content = looper::output::html::format_html(&manifest)
+                .map_err(|e| format!("HTML generation failed: {e}"));
+            if let Err(e) = content.and_then(|s| {
+                looper::output::write_output(&s, args.output.as_deref())
+                    .map_err(|e| e.to_string())
+            }) {
+                eprintln!("{} {e}", "error:".red());
+                return 1;
+            }
+        }
         _ => {
             let output = if args.quiet {
                 looper::output::terminal::format_summary(&merged, file_count, duration_ms)
