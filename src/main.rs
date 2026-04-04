@@ -373,8 +373,163 @@ fn merge_deps(deps: Vec<ShadowDep>) -> Vec<ShadowDep> {
     result
 }
 
-fn cmd_check(_args: CheckArgs) -> i32 {
-    eprintln!("looper: check not yet implemented");
+struct ScanResult {
+    deps: Vec<ShadowDep>,
+    file_count: usize,
+    duration_ms: u64,
+    root: String,
+}
+
+fn run_scan(
+    paths: &[PathBuf],
+    no_gitignore: bool,
+    extra_ignores: Vec<String>,
+    verbose: bool,
+    config_path: Option<&std::path::Path>,
+) -> Result<ScanResult, i32> {
+    let config = looper::config::load_config(config_path);
+
+    let mut ignores = extra_ignores;
+    if let Some(ref cfg) = config {
+        ignores.extend(cfg.exclude.iter().cloned());
+    }
+
+    let opts = WalkOptions {
+        no_gitignore,
+        extra_ignore_patterns: ignores,
+        follow_symlinks: true,
+    };
+
+    let start = Instant::now();
+
+    let walk_result = match discover_files(paths, &opts) {
+        Ok(r) => r,
+        Err(WalkError::NoFilesFound) => {
+            eprintln!("{}", "error: no JavaScript/TypeScript files found".red());
+            return Err(2);
+        }
+        Err(WalkError::Config(msg)) => {
+            eprintln!("{} {msg}", "error:".red());
+            return Err(2);
+        }
+    };
+
+    let file_count = walk_result.files.len();
+    let registry = default_registry();
+    let all_deps: Mutex<Vec<ShadowDep>> = Mutex::new(Vec::new());
+
+    walk_result.files.par_iter().for_each(|path| {
+        let source = match std::fs::read_to_string(path) {
+            Ok(s) => s,
+            Err(e) => {
+                if verbose {
+                    eprintln!("  {} read error: {e}", path.display());
+                }
+                return;
+            }
+        };
+
+        if source.is_empty() {
+            return;
+        }
+
+        let allocator = Allocator::new();
+        let source_leaked: &str = allocator.alloc_str(&source);
+        let result = parse_file(&allocator, path, source_leaked);
+
+        if verbose {
+            eprintln!("  {} {}", "scan".dimmed(), path.display());
+        }
+
+        if result.panicked {
+            return;
+        }
+
+        let bindings = resolve_bindings(&result.program);
+        let ctx = DetectorContext {
+            program: &result.program,
+            source_text: result.source_text,
+            file_path: &result.file_path,
+            bindings: &bindings,
+        };
+
+        let deps = registry.run_all(&ctx);
+        if !deps.is_empty() {
+            all_deps.lock().unwrap().extend(deps);
+        }
+    });
+
+    let duration_ms = start.elapsed().as_millis() as u64;
+    let raw_deps = all_deps.into_inner().unwrap();
+    let deps = merge_deps(raw_deps);
+
+    let root = paths
+        .first()
+        .map(|p| p.to_string_lossy().into_owned())
+        .unwrap_or_else(|| ".".into());
+
+    Ok(ScanResult {
+        deps,
+        file_count,
+        duration_ms,
+        root,
+    })
+}
+
+fn cmd_check(args: CheckArgs) -> i32 {
+    let manifest = match looper::check::load_manifest(&args.manifest) {
+        Ok(m) => m,
+        Err(e) => {
+            eprintln!("{} {e}", "error:".red());
+            return 2;
+        }
+    };
+
+    let scan = match run_scan(
+        &[PathBuf::from(".")],
+        false,
+        Vec::new(),
+        args.verbose,
+        args.config.as_deref(),
+    ) {
+        Ok(s) => s,
+        Err(code) => return code,
+    };
+
+    if args.update {
+        let new_manifest =
+            looper::output::build_manifest(&scan.root, scan.file_count, scan.duration_ms, scan.deps);
+        match looper::output::json::format_json(&new_manifest) {
+            Ok(json) => {
+                if let Err(e) = std::fs::write(&args.manifest, &json) {
+                    eprintln!("{} failed to write manifest: {e}", "error:".red());
+                    return 1;
+                }
+                eprintln!(
+                    "  {} {} ({} deps)",
+                    "updated".green(),
+                    args.manifest.display(),
+                    new_manifest.deps.len()
+                );
+            }
+            Err(e) => {
+                eprintln!("{} JSON serialization failed: {e}", "error:".red());
+                return 1;
+            }
+        }
+        return 0;
+    }
+
+    let result = looper::check::check_against_manifest(&scan.deps, &manifest);
+    looper::check::print_check_report(&result);
+
+    if !result.added.is_empty() && args.fail_on_new {
+        return 1;
+    }
+    if !result.removed.is_empty() && args.fail_on_removed {
+        return 1;
+    }
+
     0
 }
 
