@@ -1,5 +1,6 @@
 pub mod env_vars;
 pub mod filesystem;
+pub mod network;
 
 use crate::resolver::BindingMap;
 use crate::types::ShadowDep;
