@@ -71,7 +71,7 @@ bd close <id>         # Complete work
 **CRITICAL RULES:**
 - Don't commit or push the changes I will do that myself
 - Double check that our code is correct and follow the best practices
-- Don't include self explanatory comments, only if it's necessary
+- Don't include self explanatory comments, only if it's really necessary
 <!-- END BEADS INTEGRATION -->
 
 # Project Spec
