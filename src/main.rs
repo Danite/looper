@@ -3,7 +3,7 @@ use colored::Colorize;
 use looper::detectors::{default_registry, DetectorContext};
 use looper::parser::parse_file;
 use looper::resolver::resolve_bindings;
-use looper::types::{Category, ShadowDep};
+use looper::types::ShadowDep;
 use looper::walker::{discover_files, WalkError, WalkOptions};
 use oxc_allocator::Allocator;
 use rayon::prelude::*;
@@ -321,11 +321,12 @@ fn cmd_scan(args: ScanArgs) -> i32 {
             }
         }
         _ => {
-            if args.quiet {
-                print_summary_only(&merged, file_count, duration_ms);
+            let output = if args.quiet {
+                looper::output::terminal::format_summary(&merged, file_count, duration_ms)
             } else {
-                print_terminal(&merged, file_count, duration_ms);
-            }
+                looper::output::terminal::format_terminal(&merged, file_count, duration_ms)
+            };
+            print!("{output}");
         }
     }
 
@@ -343,86 +344,6 @@ fn merge_deps(deps: Vec<ShadowDep>) -> Vec<ShadowDep> {
     let mut result: Vec<ShadowDep> = map.into_values().collect();
     result.sort_by(|a, b| a.category.label().cmp(b.category.label()).then(a.name.cmp(&b.name)));
     result
-}
-
-fn print_terminal(deps: &[ShadowDep], file_count: usize, duration_ms: u64) {
-    println!(
-        "{} {} — scanned {} files in {}ms",
-        "looper".bold(),
-        format!("v{}", env!("CARGO_PKG_VERSION")).dimmed(),
-        file_count,
-        duration_ms,
-    );
-
-    if deps.is_empty() {
-        println!("\n  {}", "No shadow dependencies found.".dimmed());
-        return;
-    }
-
-    let mut by_category: HashMap<Category, Vec<&ShadowDep>> = HashMap::new();
-    for dep in deps {
-        by_category.entry(dep.category).or_default().push(dep);
-    }
-
-    let mut total = 0;
-    let mut categories_with_findings = 0;
-
-    for category in Category::all() {
-        let Some(cat_deps) = by_category.get(category) else {
-            continue;
-        };
-        categories_with_findings += 1;
-        total += cat_deps.len();
-
-        println!(
-            "\n {} ({} found)",
-            category.label().bold(),
-            cat_deps.len()
-        );
-        println!(" {}", "──────────────────────────────────────────────────".dimmed());
-
-        for dep in cat_deps {
-            let loc = dep
-                .locations
-                .first()
-                .map(|l| format!("{}:{}", l.file, l.line))
-                .unwrap_or_default();
-            let conf = match dep.confidence {
-                looper::types::Confidence::High => "high".green(),
-                looper::types::Confidence::Medium => "medium".yellow(),
-                looper::types::Confidence::Low => "low".red(),
-            };
-            println!("  {:<20} {:<25} {}", dep.name, loc.dimmed(), conf);
-        }
-    }
-
-    println!(
-        "\n {} {} shadow deps across {} {}",
-        "Summary:".bold(),
-        total,
-        categories_with_findings,
-        if categories_with_findings == 1 {
-            "category"
-        } else {
-            "categories"
-        },
-    );
-}
-
-fn print_summary_only(deps: &[ShadowDep], file_count: usize, duration_ms: u64) {
-    let mut by_category: HashMap<Category, usize> = HashMap::new();
-    for dep in deps {
-        *by_category.entry(dep.category).or_default() += 1;
-    }
-
-    println!(
-        "looper v{} — {} files, {}ms — {} shadow deps across {} categories",
-        env!("CARGO_PKG_VERSION"),
-        file_count,
-        duration_ms,
-        deps.len(),
-        by_category.len(),
-    );
 }
 
 fn cmd_check(_args: CheckArgs) -> i32 {

@@ -1,4 +1,5 @@
 pub mod json;
+pub mod terminal;
 
 use crate::types::ScanManifest;
 use std::io::{self, Write};
