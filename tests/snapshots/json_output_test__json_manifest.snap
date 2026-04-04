@@ -1,0 +1,66 @@
+---
+source: tests/json_output_test.rs
+expression: parsed
+---
+{
+  "deps": [
+    {
+      "category": "env_var",
+      "confidence": "high",
+      "id": "env_var::DATABASE_URL",
+      "locations": [
+        {
+          "col": 5,
+          "file": "src/db.ts",
+          "line": 12
+        }
+      ],
+      "metadata": {
+        "required": true,
+        "source_pattern": "direct_access"
+      },
+      "name": "DATABASE_URL"
+    },
+    {
+      "category": "env_var",
+      "confidence": "high",
+      "id": "env_var::PORT",
+      "locations": [
+        {
+          "col": 3,
+          "file": "src/server.ts",
+          "line": 5
+        }
+      ],
+      "metadata": {
+        "default_value": "3000",
+        "required": false,
+        "source_pattern": "direct_access"
+      },
+      "name": "PORT"
+    },
+    {
+      "category": "network",
+      "confidence": "high",
+      "id": "network::api.stripe.com",
+      "locations": [
+        {
+          "col": 3,
+          "file": "src/billing.ts",
+          "line": 22
+        }
+      ],
+      "metadata": {
+        "path_pattern": "/v1/charges",
+        "protocol": "https"
+      },
+      "name": "api.stripe.com"
+    }
+  ],
+  "files_scanned": 142,
+  "root": ".",
+  "scan_duration_ms": 48,
+  "scanned_at": "[timestamp]",
+  "schema_version": "1",
+  "tool_version": "0.1.0"
+}

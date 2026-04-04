@@ -295,10 +295,38 @@ fn cmd_scan(args: ScanArgs) -> i32 {
         }
     }
 
-    if args.quiet {
-        print_summary_only(&merged, file_count, duration_ms);
-    } else {
-        print_terminal(&merged, file_count, duration_ms);
+    let root = args
+        .paths
+        .first()
+        .map(|p| p.to_string_lossy().into_owned())
+        .unwrap_or_else(|| ".".into());
+
+    match args.format.as_str() {
+        "json" => {
+            let manifest =
+                looper::output::build_manifest(&root, file_count, duration_ms, merged);
+            match looper::output::json::format_json(&manifest) {
+                Ok(json_str) => {
+                    if let Err(e) =
+                        looper::output::write_output(&json_str, args.output.as_deref())
+                    {
+                        eprintln!("{} {e}", "error:".red());
+                        return 1;
+                    }
+                }
+                Err(e) => {
+                    eprintln!("{} JSON serialization failed: {e}", "error:".red());
+                    return 1;
+                }
+            }
+        }
+        _ => {
+            if args.quiet {
+                print_summary_only(&merged, file_count, duration_ms);
+            } else {
+                print_terminal(&merged, file_count, duration_ms);
+            }
+        }
     }
 
     0
