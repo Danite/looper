@@ -1,0 +1,142 @@
+---
+source: tests/sarif_output_test.rs
+expression: parsed
+---
+{
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "results": [
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/db.ts"
+                },
+                "region": {
+                  "startColumn": 5,
+                  "startLine": 12
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "ENV VARS: DATABASE_URL"
+          },
+          "properties": {
+            "confidence": "high",
+            "metadata": {
+              "required": true
+            },
+            "shadowDepId": "env_var::DATABASE_URL"
+          },
+          "ruleId": "env_var"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/billing.ts"
+                },
+                "region": {
+                  "startColumn": 3,
+                  "startLine": 22
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "NETWORK: api.stripe.com"
+          },
+          "properties": {
+            "confidence": "high",
+            "metadata": {},
+            "shadowDepId": "network::api.stripe.com"
+          },
+          "ruleId": "network"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/video.ts"
+                },
+                "region": {
+                  "startColumn": 5,
+                  "startLine": 15
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "BINARIES: ffmpeg"
+          },
+          "properties": {
+            "confidence": "medium",
+            "metadata": {},
+            "shadowDepId": "binary::ffmpeg"
+          },
+          "ruleId": "binary"
+        }
+      ],
+      "tool": {
+        "driver": {
+          "informationUri": "https://github.com/user/looper",
+          "name": "looper",
+          "rules": [
+            {
+              "id": "env_var",
+              "name": "ENV VARS",
+              "shortDescription": {
+                "text": "ENV VARS shadow dependency"
+              }
+            },
+            {
+              "id": "filesystem",
+              "name": "FILESYSTEM",
+              "shortDescription": {
+                "text": "FILESYSTEM shadow dependency"
+              }
+            },
+            {
+              "id": "network",
+              "name": "NETWORK",
+              "shortDescription": {
+                "text": "NETWORK shadow dependency"
+              }
+            },
+            {
+              "id": "binary",
+              "name": "BINARIES",
+              "shortDescription": {
+                "text": "BINARIES shadow dependency"
+              }
+            },
+            {
+              "id": "port",
+              "name": "PORTS",
+              "shortDescription": {
+                "text": "PORTS shadow dependency"
+              }
+            },
+            {
+              "id": "platform",
+              "name": "PLATFORM",
+              "shortDescription": {
+                "text": "PLATFORM shadow dependency"
+              }
+            }
+          ],
+          "version": "0.1.0"
+        }
+      }
+    }
+  ],
+  "version": "2.1.0"
+}

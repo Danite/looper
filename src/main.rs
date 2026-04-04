@@ -305,19 +305,27 @@ fn cmd_scan(args: ScanArgs) -> i32 {
         "json" => {
             let manifest =
                 looper::output::build_manifest(&root, file_count, duration_ms, merged);
-            match looper::output::json::format_json(&manifest) {
-                Ok(json_str) => {
-                    if let Err(e) =
-                        looper::output::write_output(&json_str, args.output.as_deref())
-                    {
-                        eprintln!("{} {e}", "error:".red());
-                        return 1;
-                    }
-                }
-                Err(e) => {
-                    eprintln!("{} JSON serialization failed: {e}", "error:".red());
-                    return 1;
-                }
+            let content = looper::output::json::format_json(&manifest)
+                .map_err(|e| format!("JSON serialization failed: {e}"));
+            if let Err(e) = content.and_then(|s| {
+                looper::output::write_output(&s, args.output.as_deref())
+                    .map_err(|e| e.to_string())
+            }) {
+                eprintln!("{} {e}", "error:".red());
+                return 1;
+            }
+        }
+        "sarif" => {
+            let manifest =
+                looper::output::build_manifest(&root, file_count, duration_ms, merged);
+            let content = looper::output::sarif::format_sarif(&manifest)
+                .map_err(|e| format!("SARIF serialization failed: {e}"));
+            if let Err(e) = content.and_then(|s| {
+                looper::output::write_output(&s, args.output.as_deref())
+                    .map_err(|e| e.to_string())
+            }) {
+                eprintln!("{} {e}", "error:".red());
+                return 1;
             }
         }
         _ => {
