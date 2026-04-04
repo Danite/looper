@@ -479,6 +479,95 @@ Update the manifest:  looper check --update
 
 ---
 
+## Infrastructure Drift Detection
+
+The `drift` subcommand compares what the **source code needs** (from scanning) against what the **infrastructure provides** (from docker-compose, .env, Dockerfile), surfacing gaps that cause deployment failures.
+
+No other tool bridges this gap. Config-level tools (like segspec) read infrastructure files but don't analyze source code. Looper reads source code but now also reads infrastructure configs, enabling cross-layer drift detection.
+
+### Category Mapping
+
+| Code needs (from scan) | Infra provides (from config) | Comparison |
+|---|---|---|
+| env_var: `DATABASE_URL` | `.env`, `.env.example`, compose `environment` | String match on var name |
+| binary: `ffmpeg` | Dockerfile `RUN apt-get install` | Package-to-binary mapping |
+| port (connect): `:6379` | Compose services (redis image -> 6379) | Port + protocol match |
+| port (listen): `:3000` | Compose `ports`, Dockerfile `EXPOSE` | Port number match |
+| network: `cache.internal` | Compose service names, `extra_hosts` | Internal hosts only |
+| network: `api.stripe.com` | N/A (external) | Classified as external |
+| filesystem: `./config.json` | Dockerfile `COPY`/`ADD`, compose volumes | Path prefix match |
+| platform | Skipped (no infra counterpart) | -- |
+
+### Infra File Precedence
+
+- **`.env`** checked first (authoritative but gitignored), **`.env.example`** as fallback (committed)
+- **`docker-compose.yml`** and **`docker-compose.yaml`** auto-detected
+- **`Dockerfile`** auto-detected in project root
+
+### External vs Internal Network Hosts
+
+Network deps are classified as **external** (not infrastructure-managed) if the host contains a known TLD (`.com`, `.io`, `.org`, `.net`, `.dev`) or matches well-known API patterns (`api.*`, `*.amazonaws.com`). Bare hostnames without dots (e.g., `redis`, `cache`) are treated as internal docker-compose service names.
+
+External hosts are shown in a separate section rather than flagged as "missing from infrastructure."
+
+### CLI
+
+```
+looper drift [OPTIONS]
+
+OPTIONS:
+    --compose <FILE>       Path to docker-compose.yml (default: auto-detect)
+    --env <FILE>           Path to .env file (default: auto-detect .env then .env.example)
+    --dockerfile <FILE>    Path to Dockerfile (default: auto-detect)
+    --fail-on-missing      Exit 1 if code needs something infra doesn't provide (CI gate)
+    -f, --format <FMT>     Output format: terminal (default), json
+    -o, --output <FILE>    Write to file
+    --scan-paths <PATHS>   Override scan paths (default: from config or '.')
+```
+
+Exit codes: 0 = no missing items (or `--fail-on-missing` not set), 1 = missing items found (with flag), 2 = no infrastructure files found.
+
+### Terminal Output
+
+```
+looper drift — comparing code vs infrastructure
+
+ MISSING FROM INFRASTRUCTURE (code needs, infra doesn't provide):
+ ──────────────────────────────────────────────────
+  env_var   STRIPE_SECRET_KEY      not in .env or docker-compose
+  env_var   JWT_SECRET             not in .env or docker-compose
+  binary    ffmpeg                 not in Dockerfile (apt-get/apk)
+  port      :6379 (connect)       no redis service in docker-compose
+
+ EXTERNAL (not infrastructure-managed):
+ ──────────────────────────────────────────────────
+  network   api.stripe.com         external API
+  network   sentry.io              external API
+
+ UNUSED IN INFRASTRUCTURE (infra provides, code doesn't use):
+ ──────────────────────────────────────────────────
+  env_var   OLD_API_KEY            in .env but not referenced in code
+  port      :5432 (connect)       postgres in docker-compose but no code connects
+
+ COVERED (code needs, infra provides):
+ ──────────────────────────────────────────────────
+  env_var   DATABASE_URL           .env line 3
+  port      :3000 (listen)        docker-compose ports: "3000:3000"
+  binary    node                  Dockerfile FROM node:20
+
+ Summary: 4 missing, 2 external, 2 unused, 3 covered
+```
+
+### CI Integration
+
+```yaml
+# .github/workflows/shadow-deps.yml
+- name: Check infrastructure drift
+  run: looper drift --fail-on-missing
+```
+
+---
+
 ## Project Structure
 
 ```
@@ -510,7 +599,13 @@ looper/
 │   │   ├── sarif.rs         # SARIF output for CI systems
 │   │   └── html.rs          # Self-contained HTML report
 │   ├── check.rs             # CI check: diff scan vs manifest
-│   └── diff.rs              # Diff two manifest files
+│   ├── diff.rs              # Diff two manifest files
+│   ├── drift.rs             # Infrastructure drift engine
+│   └── infra/
+│       ├── mod.rs           # InfraManifest type, auto-detection
+│       ├── envfile.rs       # .env / .env.example parser
+│       ├── compose.rs       # docker-compose.yml parser
+│       └── dockerfile.rs    # Dockerfile parser
 ├── templates/
 │   └── report.html          # HTML report template
 └── tests/
@@ -554,10 +649,18 @@ regex = "1"                 # Pattern matching for connection strings
 insta = { version = "1", features = ["json", "redactions"] }  # Snapshot testing
 ```
 
+Phase 5 additions (infrastructure drift):
+
+```toml
+serde_yaml = "0.9"                          # YAML parsing for docker-compose
+docker-compose-types = "0.23"               # Typed docker-compose parsing
+dockerfile-parser = "0.12"                  # Dockerfile instruction parsing
+```
+
 Future additions as needed:
 
 ```toml
-oxc_semantic = "0.123"      # Scope analysis for deeper binding resolution (Phase 2+)
+oxc_semantic = "0.123"      # Scope analysis for deeper binding resolution
 ```
 
 ---
@@ -608,14 +711,37 @@ oxc_semantic = "0.123"      # Scope analysis for deeper binding resolution (Phas
 
 **Milestone:** Full CI-ready tool. `looper check` gates PRs. `looper diff` enables manifest review.
 
+### Phase 5 — Infrastructure Drift Detection
+- Infra parsers (`infra/envfile.rs`) — `.env` / `.env.example` parser with precedence
+- Infra parsers (`infra/compose.rs`) — docker-compose.yml parser (services, ports, environment, image, volumes)
+- Infra parsers (`infra/dockerfile.rs`) — Dockerfile parser (FROM, RUN install, EXPOSE, COPY/ADD)
+- Auto-detection of infra files in project root
+- Drift engine (`drift.rs`) — compare ScanManifest vs InfraManifest
+- Image-to-service mapping (redis image -> provides redis:6379)
+- Package-to-binary mapping (imagemagick -> convert, mogrify)
+- External host heuristic (`.com`/`.io` = external, bare names = internal)
+- Skip Platform category in drift (no infra counterpart)
+- `drift` subcommand with `--fail-on-missing` for CI gating
+- Terminal and JSON output for drift report (missing/external/unused/covered)
+- Exit codes: 0 = clean, 1 = missing (with flag), 2 = no infra files
+
+**Milestone:** `looper drift --fail-on-missing` gates PRs for infrastructure completeness. Cross-layer drift detection between code and infra.
+
 ---
 
-## Expansion Roadmap (post-v1)
+## Expansion Roadmap (post-v2)
 
-These items should influence architectural decisions now but are implemented after the core tool ships.
+### `looper doctor`
+Runtime verification command that actually checks shadow deps: is the env var set? Is the binary installed? Is the port available? Is the host reachable? Turns the static manifest into a runnable health check for onboarding and debugging. The killer onboarding tool: new developer clones repo, runs `looper doctor`, fixes everything red.
+
+### `looper generate`
+Auto-generate infrastructure files from scan results:
+- `looper generate env` -- `.env.example` with all discovered vars, types inferred from naming
+- `looper generate compose` -- `docker-compose.yml` with required services (Redis, Postgres, etc.)
+- `looper generate dockerfile` -- `Dockerfile` with required system binaries
 
 ### Multi-Language Support
-Python (`os.environ`, `subprocess.run`, `open()`), Go (`os.Getenv`, `exec.Command`, `http.ListenAndServe`), Ruby (`ENV[]`, `system()`, `File.read`). The detection patterns are nearly identical across languages; only the parser differs. The `Detector` trait should output a common `ShadowDep` type with language-specific AST traversal encapsulated per-language:
+Python (`os.environ`, `subprocess.run`, `open()`), Go (`os.Getenv`, `exec.Command`, `http.ListenAndServe`), Ruby (`ENV[]`, `system()`, `File.read`). The `Detector` trait already outputs a language-agnostic `Vec<ShadowDep>`. Add language backends:
 
 ```
 Detector (language-agnostic output: Vec<ShadowDep>)
@@ -624,17 +750,17 @@ Detector (language-agnostic output: Vec<ShadowDep>)
   └── GoDetector (tree-sitter AST, future)
 ```
 
+### Kubernetes Support
+Extend infra parsers to read Kubernetes manifests (Deployment, Service, ConfigMap, Secret) for drift detection against k8s-native projects.
+
 ### VS Code / LSP Extension
 Show shadow deps inline as editor decorations. The JSON manifest already has file + line + col, which maps directly to VS Code diagnostic locations.
-
-### `looper doctor`
-Runtime verification command that actually checks shadow deps: is the env var set? Is the binary installed? Is the port available? Is the host reachable? Turns the static manifest into a runnable health check for onboarding and debugging.
 
 ### Dependency Relationship Graph
 Some shadow deps are connected: an env var feeds a connection string which implies a host + port. Capturing `DATABASE_URL -> postgres://host:5432` as a directed relationship makes the HTML graph much more useful and enables impact analysis.
 
 ### Incremental Scanning
-File hash cache (`.looper-cache`) that tracks `file_path -> content_hash -> findings`. Only re-scan files whose hash changed. `--no-cache` flag to force full scan. The walker should be designed to emit `(path, content_hash)` tuples from Phase 1 to support this.
+File hash cache (`.looper-cache`) that tracks `file_path -> content_hash -> findings`. Only re-scan files whose hash changed. `--no-cache` flag to force full scan.
 
 ### Monorepo Support
 Per-package manifests, `looper scan packages/api/` scoping, workspace-level rollup report that aggregates findings across packages.
