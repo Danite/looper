@@ -1,7 +1,8 @@
-pub mod types;
-pub mod walker;
-pub mod parser;
-pub mod resolver;
+pub mod check;
+pub mod config;
 pub mod detectors;
 pub mod output;
-pub mod check;
+pub mod parser;
+pub mod resolver;
+pub mod types;
+pub mod walker;

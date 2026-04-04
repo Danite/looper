@@ -199,9 +199,16 @@ fn cmd_scan(args: ScanArgs) -> i32 {
             .ok();
     }
 
+    let config = looper::config::load_config(args.config.as_deref());
+
+    let mut extra_ignores = args.ignore.unwrap_or_default();
+    if let Some(ref cfg) = config {
+        extra_ignores.extend(cfg.exclude.iter().cloned());
+    }
+
     let opts = WalkOptions {
         no_gitignore: args.no_gitignore,
-        extra_ignore_patterns: args.ignore.unwrap_or_default(),
+        extra_ignore_patterns: extra_ignores,
         follow_symlinks: true,
     };
 
@@ -373,7 +380,32 @@ fn cmd_check(_args: CheckArgs) -> i32 {
 }
 
 fn cmd_init() -> i32 {
-    eprintln!("looper: init not yet implemented");
+    let cwd = match std::env::current_dir() {
+        Ok(d) => d,
+        Err(e) => {
+            eprintln!("{} could not determine current directory: {e}", "error:".red());
+            return 1;
+        }
+    };
+
+    let config_path = cwd.join("looper.config.json");
+    if config_path.exists() {
+        eprintln!(
+            "{} looper.config.json already exists",
+            "warning:".yellow()
+        );
+    } else {
+        match looper::config::write_default_config(&cwd) {
+            Ok(path) => {
+                eprintln!("  {} {}", "created".green(), path.display());
+            }
+            Err(e) => {
+                eprintln!("{} failed to write config: {e}", "error:".red());
+                return 1;
+            }
+        }
+    }
+
     0
 }
 
