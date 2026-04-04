@@ -66,10 +66,11 @@ bd close <id>         # Complete work
 2. **Run quality gates** (if code changed) - Tests, linters, builds
 3. **Update issue status** - Close finished work, update in-progress items
 4. **Clean up** - Clear stashes, prune remote branches
-5. **Hand off** - Provide context for next session
+5. **Hand off** - Provide context for next session, and suggest a commit message
 
 **CRITICAL RULES:**
 - Don't commit or push the changes I will do that myself
+- Double check that our code is correct and follow the best practices
 <!-- END BEADS INTEGRATION -->
 
 # Project Spec
