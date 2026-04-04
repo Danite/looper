@@ -2,6 +2,8 @@ use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 use std::process;
 
+const SUBCOMMANDS: &[&str] = &["scan", "check", "init", "diff", "help"];
+
 #[derive(Parser)]
 #[command(
     name = "looper",
@@ -83,6 +85,26 @@ struct ScanArgs {
     config: Option<PathBuf>,
 }
 
+impl Default for ScanArgs {
+    fn default() -> Self {
+        Self {
+            paths: vec![PathBuf::from(".")],
+            format: "terminal".into(),
+            output: None,
+            only: None,
+            exclude: None,
+            min_confidence: "low".into(),
+            baseline: None,
+            ignore: None,
+            no_gitignore: false,
+            quiet: false,
+            verbose: false,
+            threads: None,
+            config: None,
+        }
+    }
+}
+
 #[derive(Parser)]
 struct CheckArgs {
     /// Path to declared manifest
@@ -124,34 +146,38 @@ struct DiffArgs {
 }
 
 fn main() {
-    let cli = Cli::parse();
+    let cli = Cli::parse_from(implicit_scan_subcommand());
 
     let exit_code = match cli.command {
         Some(Command::Scan(args)) => cmd_scan(args),
         Some(Command::Check(args)) => cmd_check(args),
         Some(Command::Init) => cmd_init(),
         Some(Command::Diff(args)) => cmd_diff(args),
-        None => {
-            // Default to scan with current directory
-            cmd_scan(ScanArgs {
-                paths: vec![PathBuf::from(".")],
-                format: "terminal".into(),
-                output: None,
-                only: None,
-                exclude: None,
-                min_confidence: "low".into(),
-                baseline: None,
-                ignore: None,
-                no_gitignore: false,
-                quiet: false,
-                verbose: false,
-                threads: None,
-                config: None,
-            })
-        }
+        None => cmd_scan(ScanArgs::default()),
     };
 
     process::exit(exit_code);
+}
+
+/// When the first positional arg isn't a known subcommand, insert "scan"
+/// so that `looper .` and `looper src/ lib/` work as shorthand.
+fn implicit_scan_subcommand() -> Vec<String> {
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() <= 1 {
+        return args;
+    }
+
+    let first_positional = args[1..].iter().find(|a| !a.starts_with('-'));
+
+    if let Some(arg) = first_positional {
+        if !SUBCOMMANDS.contains(&arg.as_str()) {
+            let mut new_args = vec![args[0].clone(), "scan".into()];
+            new_args.extend_from_slice(&args[1..]);
+            return new_args;
+        }
+    }
+
+    args
 }
 
 fn cmd_scan(_args: ScanArgs) -> i32 {
