@@ -1,6 +1,7 @@
 pub mod check;
 pub mod config;
 pub mod detectors;
+pub mod diff;
 pub mod output;
 pub mod parser;
 pub mod resolver;
