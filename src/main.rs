@@ -344,54 +344,17 @@ fn cmd_scan(args: ScanArgs) -> i32 {
         .map(|p| p.to_string_lossy().into_owned())
         .unwrap_or_else(|| ".".into());
 
-    match args.format.as_str() {
-        "json" => {
-            let manifest =
-                looper::output::build_manifest(&root, file_count, duration_ms, merged);
-            let content = looper::output::json::format_json(&manifest)
-                .map_err(|e| format!("JSON serialization failed: {e}"));
-            if let Err(e) = content.and_then(|s| {
-                looper::output::write_output(&s, args.output.as_deref())
-                    .map_err(|e| e.to_string())
-            }) {
-                eprintln!("{} {e}", "error:".red());
-                return 1;
-            }
-        }
-        "sarif" => {
-            let manifest =
-                looper::output::build_manifest(&root, file_count, duration_ms, merged);
-            let content = looper::output::sarif::format_sarif(&manifest)
-                .map_err(|e| format!("SARIF serialization failed: {e}"));
-            if let Err(e) = content.and_then(|s| {
-                looper::output::write_output(&s, args.output.as_deref())
-                    .map_err(|e| e.to_string())
-            }) {
-                eprintln!("{} {e}", "error:".red());
-                return 1;
-            }
-        }
-        "html" => {
-            let manifest =
-                looper::output::build_manifest(&root, file_count, duration_ms, merged);
-            let content = looper::output::html::format_html(&manifest)
-                .map_err(|e| format!("HTML generation failed: {e}"));
-            if let Err(e) = content.and_then(|s| {
-                looper::output::write_output(&s, args.output.as_deref())
-                    .map_err(|e| e.to_string())
-            }) {
-                eprintln!("{} {e}", "error:".red());
-                return 1;
-            }
-        }
-        _ => {
-            let output = if args.quiet {
-                looper::output::terminal::format_summary(&merged, file_count, duration_ms)
-            } else {
-                looper::output::terminal::format_terminal(&merged, file_count, duration_ms)
-            };
-            print!("{output}");
-        }
+    if let Err(e) = looper::output::format_and_write(
+        &args.format,
+        args.quiet,
+        args.output.as_deref(),
+        &root,
+        file_count,
+        duration_ms,
+        merged,
+    ) {
+        eprintln!("{} {e}", "error:".red());
+        return 1;
     }
 
     0
