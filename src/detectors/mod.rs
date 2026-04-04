@@ -70,5 +70,10 @@ impl Default for DetectorRegistry {
 pub fn default_registry() -> DetectorRegistry {
     let mut registry = DetectorRegistry::new();
     registry.register(Box::new(env_vars::EnvVarsDetector));
+    registry.register(Box::new(filesystem::FilesystemDetector));
+    registry.register(Box::new(network::NetworkDetector));
+    registry.register(Box::new(shell::ShellDetector));
+    registry.register(Box::new(ports::PortsDetector));
+    registry.register(Box::new(platform::PlatformDetector));
     registry
 }
