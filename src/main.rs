@@ -1,6 +1,17 @@
 use clap::{Parser, Subcommand};
+use colored::Colorize;
+use looper::detectors::{default_registry, DetectorContext};
+use looper::parser::parse_file;
+use looper::resolver::resolve_bindings;
+use looper::types::{Category, ShadowDep};
+use looper::walker::{discover_files, WalkError, WalkOptions};
+use oxc_allocator::Allocator;
+use rayon::prelude::*;
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::process;
+use std::sync::Mutex;
+use std::time::Instant;
 
 const SUBCOMMANDS: &[&str] = &["scan", "check", "init", "diff", "help"];
 
@@ -180,9 +191,210 @@ fn implicit_scan_subcommand() -> Vec<String> {
     args
 }
 
-fn cmd_scan(_args: ScanArgs) -> i32 {
-    eprintln!("looper: scan not yet implemented");
+fn cmd_scan(args: ScanArgs) -> i32 {
+    if let Some(n) = args.threads {
+        rayon::ThreadPoolBuilder::new()
+            .num_threads(n)
+            .build_global()
+            .ok();
+    }
+
+    let opts = WalkOptions {
+        no_gitignore: args.no_gitignore,
+        extra_ignore_patterns: args.ignore.unwrap_or_default(),
+        follow_symlinks: true,
+    };
+
+    let start = Instant::now();
+
+    let walk_result = match discover_files(&args.paths, &opts) {
+        Ok(r) => r,
+        Err(WalkError::NoFilesFound) => {
+            eprintln!("{}", "error: no JavaScript/TypeScript files found".red());
+            return 2;
+        }
+        Err(WalkError::Config(msg)) => {
+            eprintln!("{} {msg}", "error:".red());
+            return 2;
+        }
+    };
+
+    let file_count = walk_result.files.len();
+    let registry = default_registry();
+    let all_deps: Mutex<Vec<ShadowDep>> = Mutex::new(Vec::new());
+    let parse_errors: Mutex<Vec<String>> = Mutex::new(Vec::new());
+
+    walk_result.files.par_iter().for_each(|path| {
+        let source = match std::fs::read_to_string(path) {
+            Ok(s) => s,
+            Err(e) => {
+                if args.verbose {
+                    eprintln!("  {} read error: {e}", path.display());
+                }
+                return;
+            }
+        };
+
+        if source.is_empty() {
+            return;
+        }
+
+        let allocator = Allocator::new();
+        let source_leaked: &str = allocator.alloc_str(&source);
+
+        let result = parse_file(&allocator, path, source_leaked);
+
+        if args.verbose {
+            eprintln!("  {} {}", "scan".dimmed(), path.display());
+        }
+
+        if result.panicked {
+            parse_errors
+                .lock()
+                .unwrap()
+                .push(format!("{}: parser panicked", path.display()));
+            return;
+        }
+
+        if result.has_errors() {
+            for err in &result.errors {
+                parse_errors
+                    .lock()
+                    .unwrap()
+                    .push(format!("{}: {err}", path.display()));
+            }
+        }
+
+        let bindings = resolve_bindings(&result.program);
+
+        let ctx = DetectorContext {
+            program: &result.program,
+            source_text: result.source_text,
+            file_path: &result.file_path,
+            bindings: &bindings,
+        };
+
+        let deps = registry.run_all(&ctx);
+        if !deps.is_empty() {
+            all_deps.lock().unwrap().extend(deps);
+        }
+    });
+
+    let duration = start.elapsed();
+    let duration_ms = duration.as_millis() as u64;
+
+    let raw_deps = all_deps.into_inner().unwrap();
+    let errors = parse_errors.into_inner().unwrap();
+
+    let merged = merge_deps(raw_deps);
+
+    if args.verbose && !errors.is_empty() {
+        eprintln!();
+        for err in &errors {
+            eprintln!("  {} {err}", "warning:".yellow());
+        }
+    }
+
+    if args.quiet {
+        print_summary_only(&merged, file_count, duration_ms);
+    } else {
+        print_terminal(&merged, file_count, duration_ms);
+    }
+
     0
+}
+
+/// Deduplicate deps by id, merging locations.
+fn merge_deps(deps: Vec<ShadowDep>) -> Vec<ShadowDep> {
+    let mut map: HashMap<String, ShadowDep> = HashMap::new();
+    for dep in deps {
+        map.entry(dep.id.clone())
+            .and_modify(|existing| existing.merge_locations(&dep))
+            .or_insert(dep);
+    }
+    let mut result: Vec<ShadowDep> = map.into_values().collect();
+    result.sort_by(|a, b| a.category.label().cmp(b.category.label()).then(a.name.cmp(&b.name)));
+    result
+}
+
+fn print_terminal(deps: &[ShadowDep], file_count: usize, duration_ms: u64) {
+    println!(
+        "{} {} — scanned {} files in {}ms",
+        "looper".bold(),
+        format!("v{}", env!("CARGO_PKG_VERSION")).dimmed(),
+        file_count,
+        duration_ms,
+    );
+
+    if deps.is_empty() {
+        println!("\n  {}", "No shadow dependencies found.".dimmed());
+        return;
+    }
+
+    let mut by_category: HashMap<Category, Vec<&ShadowDep>> = HashMap::new();
+    for dep in deps {
+        by_category.entry(dep.category).or_default().push(dep);
+    }
+
+    let mut total = 0;
+    let mut categories_with_findings = 0;
+
+    for category in Category::all() {
+        let Some(cat_deps) = by_category.get(category) else {
+            continue;
+        };
+        categories_with_findings += 1;
+        total += cat_deps.len();
+
+        println!(
+            "\n {} ({} found)",
+            category.label().bold(),
+            cat_deps.len()
+        );
+        println!(" {}", "──────────────────────────────────────────────────".dimmed());
+
+        for dep in cat_deps {
+            let loc = dep
+                .locations
+                .first()
+                .map(|l| format!("{}:{}", l.file, l.line))
+                .unwrap_or_default();
+            let conf = match dep.confidence {
+                looper::types::Confidence::High => "high".green(),
+                looper::types::Confidence::Medium => "medium".yellow(),
+                looper::types::Confidence::Low => "low".red(),
+            };
+            println!("  {:<20} {:<25} {}", dep.name, loc.dimmed(), conf);
+        }
+    }
+
+    println!(
+        "\n {} {} shadow deps across {} {}",
+        "Summary:".bold(),
+        total,
+        categories_with_findings,
+        if categories_with_findings == 1 {
+            "category"
+        } else {
+            "categories"
+        },
+    );
+}
+
+fn print_summary_only(deps: &[ShadowDep], file_count: usize, duration_ms: u64) {
+    let mut by_category: HashMap<Category, usize> = HashMap::new();
+    for dep in deps {
+        *by_category.entry(dep.category).or_default() += 1;
+    }
+
+    println!(
+        "looper v{} — {} files, {}ms — {} shadow deps across {} categories",
+        env!("CARGO_PKG_VERSION"),
+        file_count,
+        duration_ms,
+        deps.len(),
+        by_category.len(),
+    );
 }
 
 fn cmd_check(_args: CheckArgs) -> i32 {
