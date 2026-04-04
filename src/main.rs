@@ -331,7 +331,9 @@ fn cmd_scan(args: ScanArgs) -> i32 {
         }
     }
 
-    if args.verbose && !errors.is_empty() {
+    let has_errors = !errors.is_empty();
+
+    if args.verbose && has_errors {
         eprintln!();
         for err in &errors {
             eprintln!("  {} {err}", "warning:".yellow());
@@ -357,7 +359,7 @@ fn cmd_scan(args: ScanArgs) -> i32 {
         return 1;
     }
 
-    0
+    if has_errors { 1 } else { 0 }
 }
 
 /// Deduplicate deps by id, merging locations.
