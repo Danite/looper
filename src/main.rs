@@ -13,7 +13,7 @@ use std::process;
 use std::sync::Mutex;
 use std::time::Instant;
 
-const SUBCOMMANDS: &[&str] = &["scan", "check", "init", "diff", "drift", "help"];
+const SUBCOMMANDS: &[&str] = &["scan", "check", "init", "diff", "doctor", "drift", "help"];
 
 #[derive(Parser)]
 #[command(
@@ -39,6 +39,9 @@ enum Command {
 
     /// Compare two manifest files
     Diff(DiffArgs),
+
+    /// Runtime health check — verify shadow deps are satisfied
+    Doctor(DoctorArgs),
 
     /// Compare code needs vs infrastructure provides
     Drift(DriftArgs),
@@ -198,6 +201,41 @@ struct DriftArgs {
     config: Option<PathBuf>,
 }
 
+#[derive(Parser)]
+struct DoctorArgs {
+    /// Use pre-scanned manifest instead of live scan
+    #[arg(long)]
+    manifest: Option<PathBuf>,
+
+    /// Timeout for network/port checks in milliseconds
+    #[arg(long, default_value_t = 2000)]
+    timeout: u64,
+
+    /// Exit 1 if any check fails
+    #[arg(long)]
+    fail_on_error: bool,
+
+    /// Output format: terminal, json
+    #[arg(short, long, default_value = "terminal")]
+    format: String,
+
+    /// Write output to file
+    #[arg(short, long)]
+    output: Option<PathBuf>,
+
+    /// Override scan paths
+    #[arg(long, value_delimiter = ',')]
+    scan_paths: Option<Vec<PathBuf>>,
+
+    /// Show detailed check output
+    #[arg(short, long)]
+    verbose: bool,
+
+    /// Path to config file
+    #[arg(long)]
+    config: Option<PathBuf>,
+}
+
 fn main() {
     let cli = Cli::parse_from(implicit_scan_subcommand());
 
@@ -206,6 +244,7 @@ fn main() {
         Some(Command::Check(args)) => cmd_check(args),
         Some(Command::Init) => cmd_init(),
         Some(Command::Diff(args)) => cmd_diff(args),
+        Some(Command::Doctor(args)) => cmd_doctor(args),
         Some(Command::Drift(args)) => cmd_drift(args),
         None => cmd_scan(ScanArgs::default()),
     };
@@ -606,6 +645,115 @@ fn cmd_init() -> i32 {
     }
 
     0
+}
+
+fn cmd_doctor(args: DoctorArgs) -> i32 {
+    let deps = if let Some(ref manifest_path) = args.manifest {
+        match looper::check::load_manifest(manifest_path) {
+            Ok(m) => m.deps,
+            Err(e) => {
+                eprintln!("{} {e}", "error:".red());
+                return 2;
+            }
+        }
+    } else {
+        let scan_paths = args
+            .scan_paths
+            .unwrap_or_else(|| vec![PathBuf::from(".")]);
+        match run_scan(&scan_paths, false, Vec::new(), args.verbose, args.config.as_deref()) {
+            Ok(s) => s.deps,
+            Err(code) => return code,
+        }
+    };
+
+    if deps.is_empty() {
+        eprintln!("{}", "No shadow dependencies found to check.".dimmed());
+        return 2;
+    }
+
+    let scan_root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    let report = looper::doctor::run_doctor(&deps, args.timeout, &scan_root);
+
+    match args.format.as_str() {
+        "json" => {
+            let json = match serde_json::to_string_pretty(&report) {
+                Ok(j) => j,
+                Err(e) => {
+                    eprintln!("{} JSON serialization failed: {e}", "error:".red());
+                    return 1;
+                }
+            };
+            if let Err(e) = looper::output::write_output(&json, args.output.as_deref()) {
+                eprintln!("{} {e}", "error:".red());
+                return 1;
+            }
+        }
+        _ => {
+            print!("{}", format_doctor_terminal(&report));
+        }
+    }
+
+    if args.fail_on_error && !report.all_passed() {
+        return 1;
+    }
+
+    0
+}
+
+fn format_doctor_terminal(report: &looper::doctor::DoctorReport) -> String {
+    use std::fmt::Write;
+    let mut out = String::new();
+
+    writeln!(out, "{}", "looper doctor — runtime health check".bold()).unwrap();
+
+    let mut current_category = String::new();
+    for check in &report.checks {
+        if check.category != current_category {
+            current_category = check.category.clone();
+            let label = match current_category.as_str() {
+                "env_var" => "ENV VARS",
+                "binary" => "BINARIES",
+                "port" => "PORTS",
+                "network" => "NETWORK",
+                "filesystem" => "FILESYSTEM",
+                _ => &current_category,
+            };
+            writeln!(out, "\n {}", label.bold()).unwrap();
+        }
+
+        let icon = if check.passed {
+            "✓".green().to_string()
+        } else {
+            "✗".red().to_string()
+        };
+
+        let detail = if check.passed {
+            check.detail.dimmed().to_string()
+        } else {
+            check.detail.red().to_string()
+        };
+
+        let mut line = format!("  {icon} {:<20} {detail}", check.name);
+
+        if let Some(ref suggestion) = check.suggestion {
+            if !check.passed {
+                line.push_str(&format!(" — {}", suggestion.dimmed()));
+            }
+        }
+
+        writeln!(out, "{line}").unwrap();
+    }
+
+    writeln!(
+        out,
+        "\n {} {} passed, {} failed",
+        "Summary:".bold(),
+        report.passed_count().to_string().green(),
+        report.failed_count().to_string().red(),
+    )
+    .unwrap();
+
+    out
 }
 
 fn cmd_drift(args: DriftArgs) -> i32 {
