@@ -10,6 +10,7 @@ pub struct ComposeService {
     pub ports: Vec<PortMapping>,
     pub environment: HashSet<String>,
     pub volumes: Vec<String>,
+    pub env_files: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -44,6 +45,7 @@ pub fn parse_compose_file(path: &Path) -> Result<ComposeResult, String> {
                 ports: parse_ports(&svc.ports.unwrap_or_default()),
                 environment: parse_environment(&svc.environment),
                 volumes: parse_volumes(&svc.volumes.unwrap_or_default()),
+                env_files: parse_env_file_directive(&svc.env_file),
             });
         }
     }
@@ -82,6 +84,14 @@ struct RawService {
     ports: Option<Vec<String>>,
     environment: Option<RawEnvironment>,
     volumes: Option<Vec<String>>,
+    env_file: Option<RawEnvFile>,
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum RawEnvFile {
+    Single(String),
+    List(Vec<String>),
 }
 
 #[derive(Deserialize)]
@@ -128,6 +138,14 @@ fn parse_environment(raw: &Option<RawEnvironment>) -> HashSet<String> {
             })
             .collect(),
         None => HashSet::new(),
+    }
+}
+
+fn parse_env_file_directive(raw: &Option<RawEnvFile>) -> Vec<String> {
+    match raw {
+        Some(RawEnvFile::Single(s)) => vec![s.clone()],
+        Some(RawEnvFile::List(list)) => list.clone(),
+        None => Vec::new(),
     }
 }
 

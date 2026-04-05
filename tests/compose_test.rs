@@ -169,3 +169,41 @@ fn source_file_tracked() {
     let result = parse_compose_file(Path::new("tests/fixtures/infra/docker-compose.yml")).unwrap();
     assert!(result.source_file.unwrap().contains("docker-compose.yml"));
 }
+
+#[test]
+fn env_file_single_string() {
+    let dir = tempfile::TempDir::new().unwrap();
+    let compose = r#"
+services:
+  app:
+    image: node:20
+    env_file: .env.app
+"#;
+    std::fs::write(dir.path().join("docker-compose.yml"), compose).unwrap();
+    let result = parse_compose_file(&dir.path().join("docker-compose.yml")).unwrap();
+    assert_eq!(result.services[0].env_files, vec![".env.app"]);
+}
+
+#[test]
+fn env_file_list() {
+    let dir = tempfile::TempDir::new().unwrap();
+    let compose = r#"
+services:
+  app:
+    image: node:20
+    env_file:
+      - .env
+      - .env.local
+"#;
+    std::fs::write(dir.path().join("docker-compose.yml"), compose).unwrap();
+    let result = parse_compose_file(&dir.path().join("docker-compose.yml")).unwrap();
+    assert_eq!(result.services[0].env_files, vec![".env", ".env.local"]);
+}
+
+#[test]
+fn env_file_not_present() {
+    let result = parse_compose_file(Path::new("tests/fixtures/infra/docker-compose.yml")).unwrap();
+    for svc in &result.services {
+        assert!(svc.env_files.is_empty(), "fixture compose has no env_file directives");
+    }
+}

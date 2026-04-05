@@ -3,7 +3,7 @@ pub mod dockerfile;
 pub mod envfile;
 
 use std::collections::{HashMap, HashSet};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 /// Image name prefix -> (protocol hint, default port).
 const KNOWN_IMAGES: &[(&str, &str, u16)] = &[
@@ -116,6 +116,22 @@ pub fn build_infra_manifest(project_root: &Path) -> InfraManifest {
                 manifest
                     .env_vars
                     .insert(env_name.clone(), format!("{compose_source} service {}", svc.name));
+            }
+        }
+
+        // Merge env vars from compose env_file directives
+        for env_file_path in &svc.env_files {
+            let resolved = if Path::new(env_file_path).is_absolute() {
+                PathBuf::from(env_file_path)
+            } else {
+                project_root.join(env_file_path)
+            };
+            if let Ok(result) = envfile::parse_env_file(&resolved) {
+                for (name, entry) in result.entries {
+                    manifest.env_vars.entry(name).or_insert_with(|| {
+                        format!("{} line {} (via env_file in {})", entry.source_file, entry.line, svc.name)
+                    });
+                }
             }
         }
 
