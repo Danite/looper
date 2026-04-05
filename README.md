@@ -65,6 +65,8 @@ looper [OPTIONS] [PATHS]...          Scan (default command)
 looper check [OPTIONS]               Compare scan against manifest
 looper init                          Generate config and manifest
 looper diff <OLD> <NEW>              Compare two manifests
+looper drift [OPTIONS]               Compare code needs vs infrastructure
+looper doctor [OPTIONS]              Runtime health check
 ```
 
 ### Scan options
@@ -118,6 +120,8 @@ jobs:
         run: cargo install looper
       - name: Check for undeclared shadow deps
         run: looper check --manifest shadow-deps.json
+      - name: Check infrastructure drift
+        run: looper drift --fail-on-missing
 ```
 
 When a PR introduces `process.env.NEW_KEY` without updating the manifest:
@@ -174,6 +178,70 @@ looper diff old-manifest.json new-manifest.json
 looper diff old.json new.json --format json
 ```
 
+## Infrastructure Drift
+
+Compare what your code needs against what your docker-compose, .env, and Dockerfile provide:
+
+```bash
+# Auto-detect infra files in current directory
+looper drift
+
+# Explicit infra files
+looper drift --compose docker-compose.yml --env .env --dockerfile Dockerfile
+
+# CI gate: fail if code needs something infra doesn't provide
+looper drift --fail-on-missing
+```
+
+Output shows missing, external, unused, and covered deps:
+
+```
+MISSING FROM INFRASTRUCTURE (4):
+  env_var   STRIPE_SECRET_KEY      not in .env or docker-compose
+  binary    ffmpeg                 not in Dockerfile
+
+EXTERNAL (2):
+  network   api.stripe.com         external API
+
+COVERED (5):
+  env_var   DATABASE_URL           .env line 3
+  port      :6379                  docker-compose service redis
+```
+
+## Runtime Health Check
+
+Verify your development environment is fully set up:
+
+```bash
+# Check all shadow deps are satisfied
+looper doctor
+
+# Use pre-scanned manifest (faster)
+looper doctor --manifest shadow-deps.json
+
+# CI gate: fail if anything is missing
+looper doctor --fail-on-error
+```
+
+Output:
+
+```
+looper doctor — runtime health check
+
+ ENV VARS
+  ✓ DATABASE_URL         set
+  ✗ STRIPE_SECRET_KEY    missing — export STRIPE_SECRET_KEY=<value>
+  ✓ PORT                 optional (default: 3000)
+
+ BINARIES
+  ✓ git                  /usr/bin/git
+  ✗ ffmpeg               not found — install: apt-get install ffmpeg
+
+ Summary: 3 passed, 2 failed
+```
+
+The killer onboarding workflow: clone repo, run `looper doctor`, fix everything red.
+
 ## Exit Codes
 
 | Command | 0 | 1 | 2 |
@@ -182,6 +250,8 @@ looper diff old.json new.json --format json
 | `check` | Clean | Undeclared deps found | Manifest not found |
 | `diff` | Always | -- | -- |
 | `init` | Success | Write error | -- |
+| `drift` | No missing (or flag not set) | Missing items (with `--fail-on-missing`) | No infra files |
+| `doctor` | All pass (or flag not set) | Checks failed (with `--fail-on-error`) | No deps found |
 
 ## Performance
 
