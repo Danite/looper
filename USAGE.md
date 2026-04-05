@@ -1,0 +1,190 @@
+# Usage Guide
+
+Detailed workflows and reference for looper. For a quick overview, see [README.md](README.md). For command flags, run `looper --help` or `looper <command> --help`.
+
+## Exit Codes
+
+| Command | 0 | 1 | 2 |
+|---------|---|---|---|
+| `scan` | Success | Parse errors present | No files found |
+| `check` | Clean | Undeclared deps found | Manifest not found |
+| `diff` | Always | -- | -- |
+| `init` | Success | Write error | -- |
+| `drift` | No missing (or flag not set) | Missing items (with `--fail-on-missing`) | No infra files |
+| `doctor` | All pass (or flag not set) | Checks failed (with `--fail-on-error`) | No deps found |
+| `generate` | Success | Error (invalid target, write failure) | No deps found |
+
+## Configuration
+
+`looper init` creates `looper.config.json`:
+
+```json
+{
+  "include": ["src/**", "lib/**"],
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/node_modules/**",
+    "**/dist/**"
+  ],
+  "categories": {
+    "env_var": { "ignore": ["NODE_ENV", "CI"] },
+    "network": { "ignore": ["localhost", "127.0.0.1"] }
+  },
+  "min_confidence": "low",
+  "manifest": "shadow-deps.json"
+}
+```
+
+The tool auto-detects `looper.config.json` in the project root. Override with `--config <path>`.
+
+## JSON Manifest Schema
+
+`looper . --format json` produces a manifest like this:
+
+```json
+{
+  "schema_version": "1",
+  "tool_version": "0.1.0",
+  "scanned_at": "2026-04-04T12:00:00Z",
+  "root": ".",
+  "files_scanned": 142,
+  "scan_duration_ms": 48,
+  "deps": [
+    {
+      "id": "env_var::DATABASE_URL",
+      "category": "env_var",
+      "name": "DATABASE_URL",
+      "confidence": "high",
+      "metadata": {
+        "required": true,
+        "source_pattern": "direct_access"
+      },
+      "locations": [
+        { "file": "src/db.ts", "line": 12, "col": 5 }
+      ]
+    }
+  ]
+}
+```
+
+Each dependency has a deterministic `id` (`category::name`) for stable diffing, a `confidence` level, and a `metadata` object with category-specific fields. `schema_version` is separate from `tool_version` so the manifest format can evolve independently.
+
+## Incremental Adoption
+
+For large codebases, use `--baseline` to suppress existing findings and only flag new ones:
+
+```bash
+# Generate baseline from current state
+looper . --format json -o baseline.json
+
+# In CI, only fail on new shadow deps
+looper . --baseline baseline.json
+```
+
+## Comparing Manifests
+
+```bash
+# See what changed between two versions
+looper diff old-manifest.json new-manifest.json
+
+# Machine-readable diff
+looper diff old.json new.json --format json
+```
+
+## Infrastructure Drift
+
+Compare what your code needs against what your docker-compose, .env, and Dockerfile provide:
+
+```bash
+looper drift                                                        # auto-detect infra files
+looper drift --compose docker-compose.yml --env .env --dockerfile Dockerfile  # explicit paths
+looper drift --fail-on-missing                                      # CI gate
+```
+
+Output:
+
+```
+looper drift — comparing code vs infrastructure
+
+ MISSING FROM INFRASTRUCTURE (4):
+  env_var   STRIPE_SECRET_KEY      not in .env or docker-compose
+  binary    ffmpeg                 not in Dockerfile
+
+ EXTERNAL (2):
+  network   api.stripe.com         external API
+
+ UNUSED IN INFRASTRUCTURE (2):
+  env_var   OLD_API_KEY            in .env but not referenced in code
+
+ COVERED (5):
+  env_var   DATABASE_URL           .env line 3
+  port      :6379                  docker-compose service redis
+```
+
+## Runtime Health Check
+
+```bash
+looper doctor                               # live scan + check
+looper doctor --manifest shadow-deps.json   # from pre-scanned manifest
+looper doctor --fail-on-error               # CI gate
+```
+
+Output:
+
+```
+looper doctor — runtime health check
+
+ ENV VARS
+  ✓ DATABASE_URL         set
+  ✗ STRIPE_SECRET_KEY    missing — export STRIPE_SECRET_KEY=<value>
+  ✓ PORT                 optional (default: 3000)
+
+ BINARIES
+  ✓ git                  /usr/bin/git
+  ✗ ffmpeg               not found — install: apt-get install ffmpeg
+
+ PORTS
+  ✓ :5432 (connect)      reachable
+  ✗ :6379 (connect)      connection refused
+  ✓ :3000 (listen)       available
+
+ NETWORK
+  ✓ api.stripe.com       reachable (45ms)
+  ✗ internal.service     DNS resolution failed
+
+ FILESYSTEM
+  ✓ ./config.json        exists
+  ✗ /tmp/cache/          missing
+
+ Summary: 9 passed, 3 failed
+```
+
+## Generate Infrastructure Files
+
+Generate infra files directly from scan results:
+
+```bash
+looper generate env -o .env.example               # .env.example with placeholders
+looper generate compose -o docker-compose.yml      # compose with detected services
+looper generate dockerfile -o Dockerfile           # Dockerfile with required binaries
+looper generate readme -o REQUIREMENTS.md          # markdown requirements table
+looper generate all --force                        # all of the above
+```
+
+Example `.env.example` output:
+
+```bash
+# Generated by looper
+# ── Required ─────────────────────────────────────
+# Used in: src/db.ts:12
+DATABASE_URL=https://
+# Used in: src/billing.ts:8
+STRIPE_SECRET_KEY=changeme
+
+# ── Optional (have defaults) ─────────────────────
+# Used in: src/server.ts:5
+PORT=3000
+```
+
+Targets: `env`, `compose`, `dockerfile`, `readme`, `all`. Default confidence filter is `medium` (override with `--min-confidence low`).

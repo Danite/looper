@@ -1,40 +1,42 @@
 # looper
 
-**Static analysis tool that discovers implicit "shadow dependencies" in JavaScript/TypeScript codebases.**
+Find the dependencies your package manager doesn't track.
 
-Your code depends on more than what's in `package.json`. It reads env vars, assumes files exist on disk, reaches out to network hosts, shells out to system binaries, and binds to ports -- none of which are tracked by any package manager. `looper` finds all of them.
+`looper` statically analyzes JavaScript/TypeScript code and extracts every implicit dependency: env vars, filesystem paths, network hosts, system binaries, ports, and platform assumptions. Results are output as a structured manifest that can be tracked in version control, diffed between releases, and gated in CI.
 
-## Problem
+```
+$ looper .
 
-A project's `package.json` declares explicit dependencies. But code also depends on:
+looper v0.1.0 — scanned 142 files in 48ms
 
-- `DATABASE_URL` being set in the environment
-- `ffmpeg` being installed on the host
-- `https://api.stripe.com` being reachable
-- `./config/settings.json` existing on disk
-- Port `5432` being available
+ ENV VARS (7 found)
+ ──────────────────────────────────────────────────
+  DATABASE_URL        src/db.ts:12         high
+  STRIPE_SECRET_KEY   src/billing.ts:8     high
+  PORT                src/server.ts:5      high
 
-These **shadow dependencies** cause "works on my machine" failures, broken CI, mysterious production crashes, and painful onboarding.
+ NETWORK (3 found)
+ ──────────────────────────────────────────────────
+  api.stripe.com      src/billing.ts:22    high
+  sentry.io           src/errors.ts:5      high
 
-## Quick Start
+ BINARIES (1 found)
+ ──────────────────────────────────────────────────
+  ffmpeg              src/video.ts:15      high
+
+ Summary: 15 shadow deps across 6 categories
+```
+
+## Install
 
 ```bash
 cargo install looper
-
-# Scan current directory
-looper .
-
-# Generate a JSON manifest
-looper . --format json -o shadow-deps.json
-
-# Initialize config for your project
-looper init
 ```
 
-## What It Detects
+## What It Finds
 
-| Category | Example | Pattern |
-|----------|---------|---------|
+| Category | Example | Patterns |
+|----------|---------|----------|
 | **Env vars** | `process.env.DATABASE_URL` | `process.env`, `import.meta.env`, `Deno.env.get`, `Bun.env` |
 | **Filesystem** | `fs.readFileSync("./config.json")` | `fs.*`, `path.join`, `Deno.readTextFile`, `Bun.file` |
 | **Network** | `fetch("https://api.stripe.com")` | `fetch`, `axios`, `http.request`, `new URL`, `WebSocket` |
@@ -42,90 +44,45 @@ looper init
 | **Ports** | `app.listen(3000)` | `.listen()`, `net.createConnection`, connection strings |
 | **Platform** | `process.platform === "darwin"` | Unix paths, Windows commands, `os.*`, `path.sep` |
 
-## Output Formats
+Each finding includes a confidence level (`high`, `medium`, `low`) for filtering by reliability.
+
+## Usage
 
 ```bash
-# Colored terminal output (default)
-looper .
+looper .                                    # scan current directory
+looper src/ lib/                            # scan specific paths
+looper . --format json -o shadow-deps.json  # JSON manifest
+looper . --format sarif -o report.sarif     # SARIF for GitHub Code Scanning
+looper . --format html -o report.html       # self-contained HTML report
 
-# JSON manifest for machines
-looper . --format json -o shadow-deps.json
-
-# SARIF for GitHub Code Scanning
-looper . --format sarif -o report.sarif
-
-# Interactive HTML report
-looper . --format html -o report.html
+looper check                                # compare scan against committed manifest
+looper check --update                       # update the manifest with current scan
+looper diff old.json new.json               # diff two manifests
+looper drift --fail-on-missing              # fail if code needs something infra doesn't provide
+looper doctor                               # runtime check: are env vars set? binaries installed?
+looper generate env -o .env.example         # generate infra files from scan results
+looper init                                 # create config file and initial manifest
 ```
 
-## CLI Reference
+Run `looper --help` or `looper <command> --help` for full option reference.
 
-```
-looper [OPTIONS] [PATHS]...          Scan (default command)
-looper check [OPTIONS]               Compare scan against manifest
-looper init                          Generate config and manifest
-looper diff <OLD> <NEW>              Compare two manifests
-looper drift [OPTIONS]               Compare code needs vs infrastructure
-looper doctor [OPTIONS]              Runtime health check
-looper generate <TARGET> [OPTIONS]   Auto-generate infra files from scan
-```
-
-### Scan options
-
-```
--f, --format <FMT>         terminal | json | sarif | html
--o, --output <FILE>        Write to file instead of stdout
---only <CATEGORIES>         Filter: env,fs,network,shell,ports,platform
---exclude <CATEGORIES>      Exclude categories
---min-confidence <LEVEL>    Filter: low | medium | high
---baseline <FILE>           Suppress findings in baseline manifest
---ignore <PATTERNS>         Additional glob patterns to ignore
---no-gitignore              Don't respect .gitignore
--q, --quiet                 One-line summary
--v, --verbose               Show per-file progress
--j, --threads <N>           Parallel threads (default: auto)
---config <FILE>             Path to config file
-```
-
-### Check options
-
-```
--m, --manifest <FILE>       Manifest path (default: shadow-deps.json)
---fail-on-new               Exit 1 on new deps (default: true)
---fail-on-removed           Exit 1 on removed deps
---update                    Update manifest with current scan
-```
-
-## CI Integration
-
-### Step 1: Generate initial manifest
-
-```bash
-looper . --format json -o shadow-deps.json
-git add shadow-deps.json
-git commit -m "chore: add shadow dependency manifest"
-```
-
-### Step 2: Add CI check
+## CI
 
 ```yaml
 # .github/workflows/shadow-deps.yml
-name: Shadow Deps Check
+name: Shadow Deps
 on: [pull_request]
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install looper
-        run: cargo install looper
-      - name: Check for undeclared shadow deps
-        run: looper check --manifest shadow-deps.json
-      - name: Check infrastructure drift
-        run: looper drift --fail-on-missing
+      - run: cargo install looper
+      - run: looper check
+      - run: looper drift --fail-on-missing
 ```
 
-When a PR introduces `process.env.NEW_KEY` without updating the manifest:
+When a PR adds `process.env.NEW_KEY` without updating the manifest, the check fails:
 
 ```
 ERROR: 1 undeclared shadow dependency found
@@ -137,170 +94,7 @@ Update the manifest:  looper check --update
 
 ## Configuration
 
-`looper init` creates `looper.config.json`:
-
-```json
-{
-  "include": ["src/**", "lib/**"],
-  "exclude": [
-    "**/*.test.ts",
-    "**/*.spec.ts",
-    "**/node_modules/**",
-    "**/dist/**"
-  ],
-  "categories": {
-    "env_var": { "ignore": ["NODE_ENV", "CI"] },
-    "network": { "ignore": ["localhost", "127.0.0.1"] }
-  },
-  "min_confidence": "low",
-  "manifest": "shadow-deps.json"
-}
-```
-
-## Incremental Adoption
-
-For large codebases, use `--baseline` to suppress existing findings and only flag new ones:
-
-```bash
-# Generate baseline from current state
-looper . --format json -o baseline.json
-
-# In CI, only fail on NEW shadow deps
-looper . --baseline baseline.json
-```
-
-## Comparing Manifests
-
-```bash
-# See what changed between two versions
-looper diff old-manifest.json new-manifest.json
-
-# Machine-readable diff
-looper diff old.json new.json --format json
-```
-
-## Infrastructure Drift
-
-Compare what your code needs against what your docker-compose, .env, and Dockerfile provide:
-
-```bash
-# Auto-detect infra files in current directory
-looper drift
-
-# Explicit infra files
-looper drift --compose docker-compose.yml --env .env --dockerfile Dockerfile
-
-# CI gate: fail if code needs something infra doesn't provide
-looper drift --fail-on-missing
-```
-
-Output shows missing, external, unused, and covered deps:
-
-```
-MISSING FROM INFRASTRUCTURE (4):
-  env_var   STRIPE_SECRET_KEY      not in .env or docker-compose
-  binary    ffmpeg                 not in Dockerfile
-
-EXTERNAL (2):
-  network   api.stripe.com         external API
-
-COVERED (5):
-  env_var   DATABASE_URL           .env line 3
-  port      :6379                  docker-compose service redis
-```
-
-## Runtime Health Check
-
-Verify your development environment is fully set up:
-
-```bash
-# Check all shadow deps are satisfied
-looper doctor
-
-# Use pre-scanned manifest (faster)
-looper doctor --manifest shadow-deps.json
-
-# CI gate: fail if anything is missing
-looper doctor --fail-on-error
-```
-
-Output:
-
-```
-looper doctor — runtime health check
-
- ENV VARS
-  ✓ DATABASE_URL         set
-  ✗ STRIPE_SECRET_KEY    missing — export STRIPE_SECRET_KEY=<value>
-  ✓ PORT                 optional (default: 3000)
-
- BINARIES
-  ✓ git                  /usr/bin/git
-  ✗ ffmpeg               not found — install: apt-get install ffmpeg
-
- Summary: 3 passed, 2 failed
-```
-
-The killer onboarding workflow: clone repo, run `looper doctor`, fix everything red.
-
-## Generate Infrastructure Files
-
-Auto-generate infrastructure files from scan results — close the loop from detection to fix:
-
-```bash
-# Preview .env.example to stdout
-looper generate env
-
-# Write to file
-looper generate env -o .env.example
-
-# Generate docker-compose.yml with detected services
-looper generate compose -o docker-compose.yml
-
-# Generate Dockerfile with required system binaries
-looper generate dockerfile -o Dockerfile
-
-# Generate markdown requirements section
-looper generate readme -o REQUIREMENTS.md
-
-# Generate all files at once (writes to default filenames)
-looper generate all --force
-```
-
-Example `.env.example` output:
-
-```bash
-# Generated by looper
-# ── Required ─────────────────────────────────────
-# Used in: src/db.ts:12
-DATABASE_URL=https://
-# Used in: src/billing.ts:8
-STRIPE_SECRET_KEY=changeme
-
-# ── Optional (have defaults) ─────────────────────
-# Used in: src/server.ts:5
-PORT=3000
-```
-
-Targets: `env`, `compose`, `dockerfile`, `readme`, `all`. Default confidence filter is `medium` (override with `--min-confidence low`).
-
-## Exit Codes
-
-| Command | 0 | 1 | 2 |
-|---------|---|---|---|
-| `scan` | Success | Parse errors present | No files found |
-| `check` | Clean | Undeclared deps found | Manifest not found |
-| `diff` | Always | -- | -- |
-| `init` | Success | Write error | -- |
-| `drift` | No missing (or flag not set) | Missing items (with `--fail-on-missing`) | No infra files |
-| `doctor` | All pass (or flag not set) | Checks failed (with `--fail-on-error`) | No deps found |
-| `generate` | Success | Error (invalid target, write failure) | No deps found |
-
-## Performance
-
-- Parallel file scanning via rayon
-- oxc parser (3x faster than swc)
-- 6,889 files scanned in ~1.5 seconds
+`looper init` generates a `looper.config.json` in your project root. It controls include/exclude paths, ignored values per category, and the default confidence threshold. See `looper init --help` and [USAGE.md](USAGE.md) for details.
 
 ## License
 
