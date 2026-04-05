@@ -6,7 +6,7 @@ use oxc_ast_visit::{walk, Visit};
 use oxc_span::GetSpan;
 use serde_json::json;
 
-const FS_MODULES: &[&str] = &["fs", "fs/promises", "node:fs", "node:fs/promises"];
+const FS_MODULES: &[&str] = &["fs", "fs/promises", "node:fs", "node:fs/promises", "fs-extra", "graceful-fs"];
 const PATH_MODULES: &[&str] = &["path", "node:path", "path/posix", "path/win32"];
 
 const FS_READ_METHODS: &[&str] = &[

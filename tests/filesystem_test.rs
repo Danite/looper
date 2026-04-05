@@ -252,3 +252,24 @@ fn multiple_fs_calls() {
     assert_eq!(deps.len(), 3);
     assert_eq!(names(&deps), vec!["./a.json", "./b.json", "./c"]);
 }
+
+#[test]
+fn fs_extra_detected() {
+    let deps = detect_fs(r#"
+        import fs from 'fs-extra';
+        fs.readFileSync('./config.json');
+        fs.copySync('./src', './dist');
+    "#);
+    assert!(!deps.is_empty(), "fs-extra should be detected as filesystem module");
+    assert!(deps.iter().any(|d| d.name == "./config.json"));
+}
+
+#[test]
+fn graceful_fs_detected() {
+    let deps = detect_fs(r#"
+        import fs from 'graceful-fs';
+        fs.readFileSync('./settings.yaml');
+    "#);
+    assert_eq!(deps.len(), 1);
+    assert_eq!(deps[0].name, "./settings.yaml");
+}
