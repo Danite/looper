@@ -500,6 +500,16 @@ struct ScanResult {
     file_count: usize,
     duration_ms: u64,
     root: String,
+    errors: Vec<String>,
+}
+
+fn log_scan_errors(errors: &[String], verbose: bool) {
+    if verbose && !errors.is_empty() {
+        eprintln!();
+        for err in errors {
+            eprintln!("  {} {err}", "warning:".yellow());
+        }
+    }
 }
 
 fn run_scan(
@@ -539,14 +549,16 @@ fn run_scan(
     let file_count = walk_result.files.len();
     let registry = default_registry();
     let all_deps: Mutex<Vec<ShadowDep>> = Mutex::new(Vec::new());
+    let parse_errors: Mutex<Vec<String>> = Mutex::new(Vec::new());
 
     walk_result.files.par_iter().for_each(|path| {
         let source = match std::fs::read_to_string(path) {
             Ok(s) => s,
             Err(e) => {
-                if verbose {
-                    eprintln!("  {} read error: {e}", path.display());
-                }
+                parse_errors
+                    .lock()
+                    .unwrap()
+                    .push(format!("{}: read error: {e}", path.display()));
                 return;
             }
         };
@@ -564,7 +576,20 @@ fn run_scan(
         }
 
         if result.panicked {
+            parse_errors
+                .lock()
+                .unwrap()
+                .push(format!("{}: parser panicked", path.display()));
             return;
+        }
+
+        if result.has_errors() {
+            for err in &result.errors {
+                parse_errors
+                    .lock()
+                    .unwrap()
+                    .push(format!("{}: {err}", path.display()));
+            }
         }
 
         let bindings = resolve_bindings(&result.program);
@@ -583,6 +608,7 @@ fn run_scan(
 
     let duration_ms = start.elapsed().as_millis() as u64;
     let raw_deps = all_deps.into_inner().unwrap();
+    let errors = parse_errors.into_inner().unwrap();
     let deps = merge_deps(raw_deps);
 
     let root = paths
@@ -595,6 +621,7 @@ fn run_scan(
         file_count,
         duration_ms,
         root,
+        errors,
     })
 }
 
@@ -617,6 +644,7 @@ fn cmd_check(args: CheckArgs) -> i32 {
         Ok(s) => s,
         Err(code) => return code,
     };
+    log_scan_errors(&scan.errors, args.verbose);
 
     if args.update {
         let new_manifest =
@@ -699,7 +727,10 @@ fn cmd_doctor(args: DoctorArgs) -> i32 {
             .scan_paths
             .unwrap_or_else(|| vec![PathBuf::from(".")]);
         match run_scan(&scan_paths, false, Vec::new(), args.verbose, args.config.as_deref()) {
-            Ok(s) => s.deps,
+            Ok(s) => {
+                log_scan_errors(&s.errors, args.verbose);
+                s.deps
+            }
             Err(code) => return code,
         }
     };
@@ -817,6 +848,7 @@ fn cmd_drift(args: DriftArgs) -> i32 {
         Ok(s) => s,
         Err(code) => return code,
     };
+    log_scan_errors(&scan.errors, args.verbose);
 
     let mut infra = looper::infra::build_infra_manifest(&project_root);
 
