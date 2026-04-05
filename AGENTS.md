@@ -85,6 +85,23 @@ cargo clippy         # no warnings
 cargo fmt -- --check # formatting check
 ```
 
+## Project Conventions
+
+### Architecture
+- Single crate: binary (`main.rs`, `cli.rs`, `commands/`, `scan.rs`) + library (everything else)
+- Pipeline: walk -> parse -> resolve -> detect -> merge -> output
+- Detectors: `Detector` trait + registry pattern; each is a ZST struct + private `*Collector` using `oxc_ast_visit::Visit`
+- Output formatters: free functions per format, dispatched by string match in `format_and_write`
+
+### Coding Standards
+- No `anyhow`/`thiserror` -- errors are `String` or `i32` exit codes; commands (`cmd_*`) use `eprintln!` + `colored`
+- Exit codes: 0 = success, 1 = findings/errors, 2 = fatal (no files, no infra)
+
+### Testing
+- Integration tests: `tests/*_test.rs` (one per area)
+- Fixtures: `tests/fixtures/` (TypeScript samples + infra files)
+- Snapshots: `insta` (`tests/snapshots/`); update with `cargo insta review`
+
 # Project Spec
 
 Reference the SPEC.md for project guidance
