@@ -11,13 +11,24 @@ const PATH_MODULES: &[&str] = &["path", "node:path", "path/posix", "path/win32"]
 
 const FS_READ_METHODS: &[&str] = &[
     "readFileSync", "readFile", "readdir", "readdirSync",
+    "readlink", "readlinkSync", "realpath", "realpathSync",
 ];
 const FS_WRITE_METHODS: &[&str] = &[
     "writeFileSync", "writeFile", "appendFileSync", "appendFile",
+    "copyFile", "copyFileSync", "rename", "renameSync",
+    "chmod", "chmodSync", "chown", "chownSync",
+    "symlink", "symlinkSync", "link", "linkSync",
 ];
-const FS_EXISTS_METHODS: &[&str] = &["existsSync", "accessSync", "access", "statSync", "stat"];
+const FS_EXISTS_METHODS: &[&str] = &[
+    "existsSync", "accessSync", "access", "statSync", "stat",
+    "lstatSync", "lstat",
+];
 const FS_MKDIR_METHODS: &[&str] = &["mkdirSync", "mkdir", "mkdtempSync", "mkdtemp"];
 const FS_OPEN_METHODS: &[&str] = &["openSync", "open", "createReadStream", "createWriteStream"];
+const FS_DELETE_METHODS: &[&str] = &[
+    "unlink", "unlinkSync", "rm", "rmSync", "rmdir", "rmdirSync",
+];
+const FS_WATCH_METHODS: &[&str] = &["watch", "watchFile", "unwatchFile"];
 
 pub struct FilesystemDetector;
 
@@ -105,6 +116,12 @@ impl FsCollector<'_> {
         }
         if FS_OPEN_METHODS.contains(&method) {
             return Some("open");
+        }
+        if FS_DELETE_METHODS.contains(&method) {
+            return Some("delete");
+        }
+        if FS_WATCH_METHODS.contains(&method) {
+            return Some("watch");
         }
         None
     }

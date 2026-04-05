@@ -273,3 +273,86 @@ fn graceful_fs_detected() {
     assert_eq!(deps.len(), 1);
     assert_eq!(deps[0].name, "./settings.yaml");
 }
+
+#[test]
+fn copy_file_detected() {
+    let deps = detect_fs(r#"
+        import fs from 'fs';
+        fs.copyFileSync('./src.txt', './dest.txt');
+    "#);
+    assert_eq!(deps.len(), 1);
+    assert_eq!(deps[0].name, "./src.txt");
+    assert_eq!(deps[0].metadata.get_str("operation"), Some("write"));
+}
+
+#[test]
+fn rename_detected() {
+    let deps = detect_fs(r#"
+        import fs from 'fs';
+        fs.renameSync('./old.json', './new.json');
+    "#);
+    assert_eq!(deps.len(), 1);
+    assert_eq!(deps[0].metadata.get_str("operation"), Some("write"));
+}
+
+#[test]
+fn unlink_detected() {
+    let deps = detect_fs(r#"
+        import fs from 'fs';
+        fs.unlinkSync('./temp.lock');
+    "#);
+    assert_eq!(deps.len(), 1);
+    assert_eq!(deps[0].name, "./temp.lock");
+    assert_eq!(deps[0].metadata.get_str("operation"), Some("delete"));
+}
+
+#[test]
+fn rm_detected() {
+    let deps = detect_fs(r#"
+        import fs from 'fs';
+        fs.rmSync('./cache');
+    "#);
+    assert_eq!(deps.len(), 1);
+    assert_eq!(deps[0].metadata.get_str("operation"), Some("delete"));
+}
+
+#[test]
+fn watch_detected() {
+    let deps = detect_fs(r#"
+        import fs from 'fs';
+        fs.watch('./src');
+    "#);
+    assert_eq!(deps.len(), 1);
+    assert_eq!(deps[0].name, "./src");
+    assert_eq!(deps[0].metadata.get_str("operation"), Some("watch"));
+}
+
+#[test]
+fn chmod_detected() {
+    let deps = detect_fs(r#"
+        import fs from 'fs';
+        fs.chmodSync('./script.sh', 0o755);
+    "#);
+    assert_eq!(deps.len(), 1);
+    assert_eq!(deps[0].metadata.get_str("operation"), Some("write"));
+}
+
+#[test]
+fn realpath_detected() {
+    let deps = detect_fs(r#"
+        import fs from 'fs';
+        fs.realpathSync('./link');
+    "#);
+    assert_eq!(deps.len(), 1);
+    assert_eq!(deps[0].metadata.get_str("operation"), Some("read"));
+}
+
+#[test]
+fn lstat_detected() {
+    let deps = detect_fs(r#"
+        import fs from 'fs';
+        fs.lstatSync('./maybe-symlink');
+    "#);
+    assert_eq!(deps.len(), 1);
+    assert_eq!(deps[0].metadata.get_str("operation"), Some("exists"));
+}
