@@ -74,6 +74,17 @@ bd close <id>         # Complete work
 - Don't include self explanatory comments, only if it's really necessary
 <!-- END BEADS INTEGRATION -->
 
+## Quality Gates
+
+Run before finishing work:
+
+```bash
+cargo build          # must compile clean
+cargo test           # all tests pass
+cargo clippy         # no warnings
+cargo fmt -- --check # formatting check
+```
+
 # Project Spec
 
 Reference the SPEC.md for project guidance

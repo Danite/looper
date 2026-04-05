@@ -7,7 +7,7 @@ use crate::scan::{log_scan_errors, run_scan};
 pub(crate) fn cmd_generate(args: GenerateArgs) -> i32 {
     let targets = match args.target.as_str() {
         "all" => looper::generate::GenerateTarget::all().to_vec(),
-        other => match looper::generate::GenerateTarget::from_str(other) {
+        other => match looper::generate::GenerateTarget::parse(other) {
             Some(t) => vec![t],
             None => {
                 eprintln!(

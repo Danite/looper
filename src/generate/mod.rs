@@ -15,7 +15,7 @@ pub enum GenerateTarget {
 }
 
 impl GenerateTarget {
-    pub fn from_str(s: &str) -> Option<Self> {
+    pub fn parse(s: &str) -> Option<Self> {
         match s {
             "env" => Some(Self::Env),
             "compose" => Some(Self::Compose),
