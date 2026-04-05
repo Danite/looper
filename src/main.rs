@@ -338,6 +338,12 @@ fn cmd_scan(args: ScanArgs) -> i32 {
         }
     };
 
+    if args.verbose && !walk_result.errors.is_empty() {
+        for err in &walk_result.errors {
+            eprintln!("  {} walk: {err}", "warning:".yellow());
+        }
+    }
+
     let file_count = walk_result.files.len();
     let registry = default_registry();
     let all_deps: Mutex<Vec<ShadowDep>> = Mutex::new(Vec::new());
@@ -559,6 +565,11 @@ fn run_scan(
     let file_count = walk_result.files.len();
     let registry = default_registry();
     let all_deps: Mutex<Vec<ShadowDep>> = Mutex::new(Vec::new());
+    let mut walk_errs: Vec<String> = walk_result
+        .errors
+        .iter()
+        .map(|e| format!("walk: {e}"))
+        .collect();
     let parse_errors: Mutex<Vec<String>> = Mutex::new(Vec::new());
 
     walk_result.files.par_iter().for_each(|path| {
@@ -624,7 +635,8 @@ fn run_scan(
 
     let duration_ms = start.elapsed().as_millis() as u64;
     let raw_deps = all_deps.into_inner().unwrap_or_else(|e| e.into_inner());
-    let errors = parse_errors.into_inner().unwrap_or_else(|e| e.into_inner());
+    let mut errors = parse_errors.into_inner().unwrap_or_else(|e| e.into_inner());
+    errors.append(&mut walk_errs);
     let deps = merge_deps(raw_deps);
 
     let root = paths
