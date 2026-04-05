@@ -237,14 +237,18 @@ fn network_nonexistent_host_fails() {
 }
 
 #[test]
-fn network_localhost_resolves() {
+fn network_localhost_dns_resolves() {
     let deps = vec![network_dep("localhost")];
     let report = run_doctor(&deps, 500, Path::new("."));
 
     assert_eq!(report.checks[0].category, "network");
-    // localhost DNS always resolves; TCP may or may not connect on :443
-    // Either way, doctor marks it as passed (reachable or DNS resolves)
-    assert!(report.checks[0].passed, "localhost should resolve: {}", report.checks[0].detail);
+    // localhost DNS always resolves; TCP on :443 is likely not listening
+    // With the fix, DNS-only (TCP failed) is now a failure
+    let detail = &report.checks[0].detail;
+    assert!(
+        detail.contains("reachable") || detail.contains("DNS resolves"),
+        "localhost should at least resolve DNS: {detail}"
+    );
 }
 
 fn network_dep_with_protocol(host: &str, protocol: &str) -> ShadowDep {
@@ -256,13 +260,18 @@ fn network_dep_with_protocol(host: &str, protocol: &str) -> ShadowDep {
 
 #[test]
 fn network_http_protocol_uses_port_80() {
-    // An HTTP-only host check should use port 80, not 443
-    // We test with localhost — DNS resolves, doctor marks as passed
     let deps = vec![network_dep_with_protocol("localhost", "http")];
     let report = run_doctor(&deps, 500, Path::new("."));
 
     assert_eq!(report.checks[0].category, "network");
-    assert!(report.checks[0].passed, "localhost with http should resolve: {}", report.checks[0].detail);
+    let detail = &report.checks[0].detail;
+    // If TCP failed, the suggestion should mention port 80 (not 443)
+    if !report.checks[0].passed {
+        let suggestion = report.checks[0].suggestion.as_deref().unwrap_or("");
+        assert!(suggestion.contains("80"), "http protocol should use port 80: {suggestion}");
+    } else {
+        assert_eq!(detail, "reachable");
+    }
 }
 
 #[test]

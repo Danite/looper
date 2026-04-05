@@ -220,9 +220,9 @@ fn check_network(host: &str, metadata: &crate::types::Metadata, timeout: Duratio
                     Err(_) => DoctorCheck {
                         category: "network".into(),
                         name: host.into(),
-                        passed: true,
-                        detail: "DNS resolves (TCP failed)".into(),
-                        suggestion: None,
+                        passed: false,
+                        detail: "DNS resolves but connection refused".into(),
+                        suggestion: Some(format!("host {clean_host} resolves but port {port} is not reachable")),
                     },
                 }
             } else {
