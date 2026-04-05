@@ -244,10 +244,13 @@ pub(crate) fn cmd_scan(args: ScanArgs) -> i32 {
     let registry = default_registry();
     let all_deps: Mutex<Vec<ShadowDep>> = Mutex::new(Vec::new());
     let parse_errors: Mutex<Vec<String>> = Mutex::new(Vec::new());
+    let skipped_large = std::sync::atomic::AtomicUsize::new(0);
+    let skipped_read = std::sync::atomic::AtomicUsize::new(0);
 
     walk_result.files.par_iter().for_each(|path| {
         if let Ok(meta) = std::fs::metadata(path) {
             if meta.len() > MAX_FILE_SIZE {
+                skipped_large.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
                 if args.verbose {
                     eprintln!("  {} skipping large file: {} ({}MB)", "warning:".yellow(), path.display(), meta.len() / 1_000_000);
                 }
@@ -258,8 +261,9 @@ pub(crate) fn cmd_scan(args: ScanArgs) -> i32 {
         let source = match std::fs::read_to_string(path) {
             Ok(s) => s,
             Err(e) => {
+                skipped_read.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
                 if args.verbose {
-                    eprintln!("  {} read error: {e}", path.display());
+                    eprintln!("  {} {}: {e}", "warning:".yellow(), path.display());
                 }
                 return;
             }
@@ -367,6 +371,19 @@ pub(crate) fn cmd_scan(args: ScanArgs) -> i32 {
     }
 
     let has_errors = !errors.is_empty();
+    let n_large = skipped_large.load(std::sync::atomic::Ordering::Relaxed);
+    let n_read = skipped_read.load(std::sync::atomic::Ordering::Relaxed);
+
+    if n_large > 0 || n_read > 0 {
+        let mut parts = Vec::new();
+        if n_large > 0 {
+            parts.push(format!("{n_large} too large"));
+        }
+        if n_read > 0 {
+            parts.push(format!("{n_read} unreadable"));
+        }
+        eprintln!("  {} {} files skipped ({})", "warning:".yellow(), n_large + n_read, parts.join(", "));
+    }
 
     if args.verbose && has_errors {
         eprintln!();
