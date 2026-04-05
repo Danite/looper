@@ -6,7 +6,7 @@ use clap::Parser;
 use std::process;
 
 use cli::{Cli, Command, ScanArgs};
-use commands::{cmd_check, cmd_diff, cmd_doctor, cmd_drift, cmd_init};
+use commands::{cmd_check, cmd_diff, cmd_doctor, cmd_drift, cmd_generate, cmd_init};
 use scan::cmd_scan;
 
 fn main() {
@@ -19,6 +19,7 @@ fn main() {
         Some(Command::Diff(args)) => cmd_diff(args),
         Some(Command::Doctor(args)) => cmd_doctor(args),
         Some(Command::Drift(args)) => cmd_drift(args),
+        Some(Command::Generate(args)) => cmd_generate(args),
         None => cmd_scan(ScanArgs::default()),
     };
 

@@ -4,6 +4,7 @@ pub mod detectors;
 pub mod diff;
 pub mod doctor;
 pub mod drift;
+pub mod generate;
 pub mod infra;
 pub mod output;
 pub mod parser;

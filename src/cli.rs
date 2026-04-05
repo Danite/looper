@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
-pub(crate) const SUBCOMMANDS: &[&str] = &["scan", "check", "init", "diff", "doctor", "drift", "help"];
+pub(crate) const SUBCOMMANDS: &[&str] = &["scan", "check", "init", "diff", "doctor", "drift", "generate", "help"];
 
 #[derive(Parser)]
 #[command(
@@ -33,6 +33,9 @@ pub(crate) enum Command {
 
     /// Compare code needs vs infrastructure provides
     Drift(DriftArgs),
+
+    /// Auto-generate infrastructure files from scan results
+    Generate(GenerateArgs),
 }
 
 #[derive(Parser)]
@@ -221,6 +224,36 @@ pub(crate) struct DoctorArgs {
     pub scan_paths: Option<Vec<PathBuf>>,
 
     /// Show detailed check output
+    #[arg(short, long)]
+    pub verbose: bool,
+
+    /// Path to config file
+    #[arg(long)]
+    pub config: Option<PathBuf>,
+}
+
+#[derive(Parser)]
+pub(crate) struct GenerateArgs {
+    /// What to generate: env, compose, dockerfile, readme, all
+    pub target: String,
+
+    /// Write output to file instead of stdout
+    #[arg(short, long)]
+    pub output: Option<PathBuf>,
+
+    /// Overwrite existing files without warning
+    #[arg(long)]
+    pub force: bool,
+
+    /// Minimum confidence level for included deps (default: medium)
+    #[arg(long, default_value = "medium")]
+    pub min_confidence: String,
+
+    /// Override scan paths (default: from config or '.')
+    #[arg(long, value_delimiter = ',')]
+    pub scan_paths: Option<Vec<PathBuf>>,
+
+    /// Show per-file scanning progress
     #[arg(short, long)]
     pub verbose: bool,
 
