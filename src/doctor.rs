@@ -59,7 +59,7 @@ pub fn run_doctor(deps: &[ShadowDep], timeout_ms: u64, scan_root: &Path) -> Doct
                 }
             }
             Category::Network => {
-                checks.push(check_network(&dep.name, timeout));
+                checks.push(check_network(&dep.name, &dep.metadata, timeout));
             }
             Category::Filesystem => {
                 checks.push(check_filesystem(&dep.name, scan_root));
@@ -188,8 +188,24 @@ fn check_port(port: u16, direction: &str, display_name: &str, timeout: Duration)
     }
 }
 
-fn check_network(host: &str, timeout: Duration) -> DoctorCheck {
-    let lookup = format!("{host}:443");
+fn resolve_network_port(host: &str, metadata: &crate::types::Metadata) -> u16 {
+    if let Some(idx) = host.rfind(':') {
+        if let Ok(port) = host[idx + 1..].parse::<u16>() {
+            return port;
+        }
+    }
+    match metadata.get_str("protocol").unwrap_or("https") {
+        "http" | "ws" => 80,
+        _ => 443,
+    }
+}
+
+fn check_network(host: &str, metadata: &crate::types::Metadata, timeout: Duration) -> DoctorCheck {
+    let port = resolve_network_port(host, metadata);
+    let clean_host = host.rfind(':')
+        .and_then(|i| host[i + 1..].parse::<u16>().ok().map(|_| &host[..i]))
+        .unwrap_or(host);
+    let lookup = format!("{clean_host}:{port}");
     match lookup.to_socket_addrs() {
         Ok(mut addrs) => {
             if let Some(addr) = addrs.next() {

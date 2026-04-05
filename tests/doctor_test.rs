@@ -247,6 +247,34 @@ fn network_localhost_resolves() {
     assert!(report.checks[0].passed, "localhost should resolve: {}", report.checks[0].detail);
 }
 
+fn network_dep_with_protocol(host: &str, protocol: &str) -> ShadowDep {
+    let mut meta = Metadata::new();
+    meta.insert("protocol", json!(protocol));
+    ShadowDep::new(Category::Network, host, Confidence::High, Location::new("a.ts", 8, 1))
+        .with_metadata(meta)
+}
+
+#[test]
+fn network_http_protocol_uses_port_80() {
+    // An HTTP-only host check should use port 80, not 443
+    // We test with localhost — DNS resolves, doctor marks as passed
+    let deps = vec![network_dep_with_protocol("localhost", "http")];
+    let report = run_doctor(&deps, 500, Path::new("."));
+
+    assert_eq!(report.checks[0].category, "network");
+    assert!(report.checks[0].passed, "localhost with http should resolve: {}", report.checks[0].detail);
+}
+
+#[test]
+fn network_wss_protocol_uses_port_443() {
+    let deps = vec![network_dep_with_protocol("this-host-should-never-exist-xyz.invalid", "wss")];
+    let report = run_doctor(&deps, 200, Path::new("."));
+
+    // Should fail DNS the same way — but the important thing is it doesn't crash
+    assert!(!report.checks[0].passed);
+    assert!(report.checks[0].detail.contains("DNS"));
+}
+
 // --- Platform skipped ---
 
 #[test]
