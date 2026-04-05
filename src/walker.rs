@@ -98,7 +98,7 @@ pub fn discover_files(roots: &[PathBuf], opts: &WalkOptions) -> Result<WalkResul
             let entry = match entry {
                 Ok(e) => e,
                 Err(e) => {
-                    errors.lock().unwrap().push(e.to_string());
+                    errors.lock().unwrap_or_else(|e| e.into_inner()).push(e.to_string());
                     return ignore::WalkState::Continue;
                 }
             };
@@ -123,14 +123,14 @@ pub fn discover_files(roots: &[PathBuf], opts: &WalkOptions) -> Result<WalkResul
                 return ignore::WalkState::Continue;
             }
 
-            files.lock().unwrap().push(path.to_path_buf());
+            files.lock().unwrap_or_else(|e| e.into_inner()).push(path.to_path_buf());
             ignore::WalkState::Continue
         })
     });
 
     let mut result = WalkResult {
-        files: files.into_inner().unwrap(),
-        errors: errors.into_inner().unwrap(),
+        files: files.into_inner().unwrap_or_else(|e| e.into_inner()),
+        errors: errors.into_inner().unwrap_or_else(|e| e.into_inner()),
     };
 
     result.files.sort();

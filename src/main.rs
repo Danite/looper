@@ -369,7 +369,7 @@ fn cmd_scan(args: ScanArgs) -> i32 {
         if result.panicked {
             parse_errors
                 .lock()
-                .unwrap()
+                .unwrap_or_else(|e| e.into_inner())
                 .push(format!("{}: parser panicked", path.display()));
             return;
         }
@@ -378,7 +378,7 @@ fn cmd_scan(args: ScanArgs) -> i32 {
             for err in &result.errors {
                 parse_errors
                     .lock()
-                    .unwrap()
+                    .unwrap_or_else(|e| e.into_inner())
                     .push(format!("{}: {err}", path.display()));
             }
         }
@@ -394,15 +394,15 @@ fn cmd_scan(args: ScanArgs) -> i32 {
 
         let deps = registry.run_all(&ctx);
         if !deps.is_empty() {
-            all_deps.lock().unwrap().extend(deps);
+            all_deps.lock().unwrap_or_else(|e| e.into_inner()).extend(deps);
         }
     });
 
     let duration = start.elapsed();
     let duration_ms = duration.as_millis() as u64;
 
-    let raw_deps = all_deps.into_inner().unwrap();
-    let errors = parse_errors.into_inner().unwrap();
+    let raw_deps = all_deps.into_inner().unwrap_or_else(|e| e.into_inner());
+    let errors = parse_errors.into_inner().unwrap_or_else(|e| e.into_inner());
 
     let mut merged = merge_deps(raw_deps);
 
@@ -557,7 +557,7 @@ fn run_scan(
             Err(e) => {
                 parse_errors
                     .lock()
-                    .unwrap()
+                    .unwrap_or_else(|e| e.into_inner())
                     .push(format!("{}: read error: {e}", path.display()));
                 return;
             }
@@ -578,7 +578,7 @@ fn run_scan(
         if result.panicked {
             parse_errors
                 .lock()
-                .unwrap()
+                .unwrap_or_else(|e| e.into_inner())
                 .push(format!("{}: parser panicked", path.display()));
             return;
         }
@@ -587,7 +587,7 @@ fn run_scan(
             for err in &result.errors {
                 parse_errors
                     .lock()
-                    .unwrap()
+                    .unwrap_or_else(|e| e.into_inner())
                     .push(format!("{}: {err}", path.display()));
             }
         }
@@ -602,13 +602,13 @@ fn run_scan(
 
         let deps = registry.run_all(&ctx);
         if !deps.is_empty() {
-            all_deps.lock().unwrap().extend(deps);
+            all_deps.lock().unwrap_or_else(|e| e.into_inner()).extend(deps);
         }
     });
 
     let duration_ms = start.elapsed().as_millis() as u64;
-    let raw_deps = all_deps.into_inner().unwrap();
-    let errors = parse_errors.into_inner().unwrap();
+    let raw_deps = all_deps.into_inner().unwrap_or_else(|e| e.into_inner());
+    let errors = parse_errors.into_inner().unwrap_or_else(|e| e.into_inner());
     let deps = merge_deps(raw_deps);
 
     let root = paths
