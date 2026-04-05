@@ -232,6 +232,48 @@ fn no_files_returns_error() {
     assert!(result.is_err());
 }
 
+#[test]
+fn binary_file_in_scan_does_not_crash() {
+    let dir = tempfile::TempDir::new().unwrap();
+    std::fs::write(dir.path().join("valid.ts"), "const url = process.env.API_KEY;").unwrap();
+    // Non-UTF-8 bytes with a .js extension
+    std::fs::write(dir.path().join("binary.js"), &[0xFF, 0xFE, 0x00, 0xD8, 0x80]).unwrap();
+
+    let roots = vec![dir.path().to_path_buf()];
+    let walk_result = discover_files(&roots, &WalkOptions::default()).unwrap();
+
+    let registry = default_registry();
+    let mut all_deps = Vec::new();
+
+    for path in &walk_result.files {
+        let source = match std::fs::read_to_string(path) {
+            Ok(s) => s,
+            Err(_) => continue,
+        };
+        if source.is_empty() {
+            continue;
+        }
+        let allocator = Allocator::new();
+        let source_leaked: &str = allocator.alloc_str(&source);
+        let result = parse_file(&allocator, path, source_leaked);
+        if result.panicked {
+            continue;
+        }
+        let bindings = resolve_bindings(&result.program);
+        let ctx = DetectorContext {
+            program: &result.program,
+            source_text: result.source_text,
+            file_path: &result.file_path,
+            bindings: &bindings,
+        };
+        all_deps.extend(registry.run_all(&ctx));
+    }
+
+    // The valid file should produce findings; the binary file should be skipped
+    assert!(!all_deps.is_empty(), "should find deps from valid.ts");
+    assert!(all_deps.iter().any(|d| d.name == "API_KEY"));
+}
+
 // --- Registry ---
 
 #[test]

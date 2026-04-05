@@ -233,3 +233,124 @@ fn empty_roots_returns_error() {
     let result = discover_files(&[], &WalkOptions::default());
     assert!(matches!(result.unwrap_err(), WalkError::NoFilesFound));
 }
+
+#[test]
+fn follows_symlinks() {
+    let dir = TempDir::new().unwrap();
+    let real_dir = dir.path().join("real");
+    fs::create_dir_all(&real_dir).unwrap();
+    fs::write(real_dir.join("app.ts"), "export const a = 1;").unwrap();
+
+    #[cfg(unix)]
+    std::os::unix::fs::symlink(&real_dir, dir.path().join("linked")).unwrap();
+    #[cfg(windows)]
+    std::os::windows::fs::symlink_dir(&real_dir, dir.path().join("linked")).unwrap();
+
+    let result = discover_files(
+        &[dir.path().to_path_buf()],
+        &WalkOptions::default(),
+    )
+    .unwrap();
+
+    let names: Vec<String> = result
+        .files
+        .iter()
+        .map(|p| p.to_string_lossy().into_owned())
+        .collect();
+
+    let has_linked = names.iter().any(|n| n.contains("linked"));
+    assert!(has_linked, "symlinked directory should be followed: {names:?}");
+    assert!(result.files.len() >= 2, "should find file via both real and linked paths");
+}
+
+#[test]
+fn symlink_cycle_does_not_hang() {
+    let dir = TempDir::new().unwrap();
+    fs::write(dir.path().join("index.ts"), "const x = 1;").unwrap();
+
+    #[cfg(unix)]
+    {
+        let a = dir.path().join("link_a");
+        std::os::unix::fs::symlink(dir.path(), &a).unwrap();
+    }
+
+    let result = discover_files(
+        &[dir.path().to_path_buf()],
+        &WalkOptions::default(),
+    );
+
+    // The walker should finish (not hang) and either succeed or report errors.
+    // The `ignore` crate detects symlink cycles and avoids infinite loops.
+    assert!(result.is_ok());
+    assert!(!result.unwrap().files.is_empty());
+}
+
+#[test]
+fn binary_file_with_js_extension_does_not_crash() {
+    let dir = TempDir::new().unwrap();
+    fs::write(dir.path().join("valid.ts"), "const x = 1;").unwrap();
+    // Write non-UTF-8 bytes with a .js extension
+    fs::write(dir.path().join("binary.js"), &[0xFF, 0xFE, 0x00, 0xD8, 0x80, 0x00]).unwrap();
+
+    let result = discover_files(
+        &[dir.path().to_path_buf()],
+        &WalkOptions::default(),
+    )
+    .unwrap();
+
+    // Walker discovers both files (it doesn't inspect content)
+    assert_eq!(result.files.len(), 2);
+}
+
+#[cfg(unix)]
+#[test]
+fn permission_denied_file_does_not_crash() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let dir = TempDir::new().unwrap();
+    fs::write(dir.path().join("readable.ts"), "const x = 1;").unwrap();
+
+    let denied_path = dir.path().join("secret.ts");
+    fs::write(&denied_path, "const s = 1;").unwrap();
+    fs::set_permissions(&denied_path, fs::Permissions::from_mode(0o000)).unwrap();
+
+    let result = discover_files(
+        &[dir.path().to_path_buf()],
+        &WalkOptions::default(),
+    )
+    .unwrap();
+
+    // Walker finds both files (permissions are checked at read time, not walk time)
+    assert!(result.files.len() >= 1);
+
+    // Restore permissions so TempDir cleanup succeeds
+    fs::set_permissions(&denied_path, fs::Permissions::from_mode(0o644)).unwrap();
+}
+
+#[cfg(unix)]
+#[test]
+fn permission_denied_directory_reports_error() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let dir = TempDir::new().unwrap();
+    fs::write(dir.path().join("root.ts"), "const x = 1;").unwrap();
+
+    let denied_dir = dir.path().join("locked");
+    fs::create_dir_all(&denied_dir).unwrap();
+    fs::write(denied_dir.join("hidden.ts"), "const h = 1;").unwrap();
+    fs::set_permissions(&denied_dir, fs::Permissions::from_mode(0o000)).unwrap();
+
+    let result = discover_files(
+        &[dir.path().to_path_buf()],
+        &WalkOptions::default(),
+    )
+    .unwrap();
+
+    // Should still find the root-level file
+    assert!(result.files.iter().any(|p| p.ends_with("root.ts")));
+    // Should report the permission error
+    assert!(!result.errors.is_empty(), "should report walk error for locked dir");
+
+    // Restore permissions so TempDir cleanup succeeds
+    fs::set_permissions(&denied_dir, fs::Permissions::from_mode(0o755)).unwrap();
+}
