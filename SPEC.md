@@ -385,6 +385,9 @@ COMMANDS:
     check             Compare scan against declared manifest
     init              Generate config file and initial manifest
     diff              Compare two manifest files
+    drift             Compare code needs vs infrastructure provides
+    doctor            Runtime health check — verify shadow deps are satisfied
+    generate          Auto-generate infrastructure files from scan results
 
 SCAN OPTIONS:
     -f, --format <FMT>     Output format: terminal (default), json, sarif, html
@@ -408,6 +411,15 @@ DIFF OPTIONS:
     <OLD>                  Path to old manifest
     <NEW>                  Path to new manifest
     -f, --format <FMT>     Output format: terminal (default), json
+
+GENERATE OPTIONS:
+    <TARGET>               What to generate: env, compose, dockerfile, readme, all
+    -o, --output <FILE>    Write to file (default: stdout for preview)
+    --force                Overwrite existing files without warning
+    --min-confidence <LVL> Minimum confidence for included deps (default: medium)
+    --scan-paths <PATHS>   Override scan paths (comma-separated)
+    -v, --verbose          Show per-file scanning progress
+    --config <FILE>        Path to config file
 
 GLOBAL OPTIONS:
     --config <FILE>        Path to config file (default: auto-detect)
@@ -647,6 +659,79 @@ looper doctor — runtime health check
 
 ---
 
+## Infrastructure File Generation (`looper generate`)
+
+The `generate` subcommand auto-generates infrastructure files from scan results. Instead of just reporting what's missing, looper produces the fix.
+
+### Targets
+
+| Target | Output file | What it generates |
+|--------|-------------|-------------------|
+| `env` | `.env.example` | All detected env vars with placeholders inferred from naming (`*_URL` → `https://`, `*_KEY` → `changeme`, etc.). Groups required vs optional. |
+| `compose` | `docker-compose.yml` | App service with listen ports and env vars. Infrastructure services (Redis, Postgres, etc.) from connect-direction ports with protocol hints. |
+| `dockerfile` | `Dockerfile` | Base image detected from project markers (`package.json` → `node:20-slim`, etc.). `RUN apt-get install` for detected binaries. `EXPOSE` for listen ports. |
+| `readme` | `REQUIREMENTS.md` | Markdown tables for env vars, binaries (with install commands), ports, network endpoints, filesystem paths. |
+| `all` | All of the above | Writes each to its default filename. |
+
+### Confidence Filtering
+
+Generators only include `High` and `Medium` confidence deps by default. `Low` confidence findings (dynamic `process.env[variable]`) and `<dynamic>` env vars are excluded to prevent noisy output. Override with `--min-confidence low`.
+
+### File Conflict Handling
+
+- **No `--output`**: Output goes to stdout (preview mode, safe by default).
+- **With `--output`**: If the target file exists and `--force` is not set, looper warns and skips.
+- **With `--force`**: Overwrites without prompting.
+- **`all` target**: Always writes to default filenames. Rejects `--output` (use individual targets instead).
+
+### CLI
+
+```
+looper generate <TARGET> [OPTIONS]
+
+ARGUMENTS:
+    <TARGET>               env, compose, dockerfile, readme, all
+
+OPTIONS:
+    -o, --output <FILE>    Write to file (default: stdout)
+    --force                Overwrite existing files
+    --min-confidence <LVL> Minimum confidence: low, medium, high (default: medium)
+    --scan-paths <PATHS>   Override scan paths (comma-separated)
+    -v, --verbose          Show per-file scanning progress
+    --config <FILE>        Path to config file
+```
+
+Exit codes: 0 = success, 1 = error (invalid target, write failure), 2 = no shadow deps found.
+
+### Service Mapping (compose)
+
+The compose generator maps `protocol_hint` from port findings to Docker images:
+
+| Protocol hint | Service name | Image | Default port |
+|---------------|-------------|-------|-------------|
+| `redis` | redis | `redis:7` | 6379 |
+| `postgres` | db | `postgres:16` | 5432 |
+| `mongodb` | mongo | `mongo:7` | 27017 |
+| `mysql` | mysql | `mysql:8` | 3306 |
+| `amqp` | rabbitmq | `rabbitmq:3-management` | 5672 |
+| `nats` | nats | `nats:2` | 4222 |
+| `memcached` | memcached | `memcached:1` | 11211 |
+| `elasticsearch` | elasticsearch | `elasticsearch:8` | 9200 |
+
+### Base Image Detection (dockerfile)
+
+| Project marker | Base image |
+|----------------|-----------|
+| `package.json` | `node:20-slim` |
+| `requirements.txt` / `pyproject.toml` | `python:3.12-slim` |
+| `go.mod` | `golang:1.23-alpine` |
+| `Cargo.toml` | `rust:1.82-slim` |
+| `Gemfile` | `ruby:3.3-slim` |
+| `composer.json` | `php:8.3-cli` |
+| (none found) | `debian:bookworm-slim` |
+
+---
+
 ## Project Structure
 
 ```
@@ -681,6 +766,12 @@ looper/
 │   ├── diff.rs              # Diff two manifest files
 │   ├── doctor.rs            # Runtime health check engine
 │   ├── drift.rs             # Infrastructure drift engine
+│   ├── generate/
+│   │   ├── mod.rs           # GenerateTarget enum, dispatch
+│   │   ├── env.rs           # .env.example generator
+│   │   ├── compose.rs       # docker-compose.yml generator
+│   │   ├── dockerfile.rs    # Dockerfile generator
+│   │   └── readme.rs        # README requirements section generator
 │   └── infra/
 │       ├── mod.rs           # InfraManifest type, auto-detection
 │       ├── envfile.rs       # .env / .env.example parser
@@ -817,12 +908,6 @@ oxc_semantic = "0.123"      # Scope analysis for deeper binding resolution
 ---
 
 ## Expansion Roadmap (post-v3)
-
-### `looper generate`
-Auto-generate infrastructure files from scan results:
-- `looper generate env` -- `.env.example` with all discovered vars, types inferred from naming
-- `looper generate compose` -- `docker-compose.yml` with required services (Redis, Postgres, etc.)
-- `looper generate dockerfile` -- `Dockerfile` with required system binaries
 
 ### Multi-Language Support
 Python (`os.environ`, `subprocess.run`, `open()`), Go (`os.Getenv`, `exec.Command`, `http.ListenAndServe`), Ruby (`ENV[]`, `system()`, `File.read`). The `Detector` trait already outputs a language-agnostic `Vec<ShadowDep>`. Add language backends:
