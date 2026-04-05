@@ -224,3 +224,53 @@ fn unix_path_not_guarded() {
     let deps = detect_platform(r#"fs.openSync("/dev/null");"#);
     assert_eq!(deps[0].metadata.get_bool("guarded"), Some(false));
 }
+
+#[test]
+fn os_platform_method() {
+    let deps = detect_platform(r#"
+        import os from 'os';
+        const p = os.platform();
+    "#);
+    assert_eq!(deps.len(), 1);
+    assert!(deps[0].name.contains("os.platform()"));
+}
+
+#[test]
+fn os_type_method() {
+    let deps = detect_platform(r#"
+        import os from 'os';
+        os.type();
+    "#);
+    assert_eq!(deps.len(), 1);
+    assert!(deps[0].name.contains("os.type()"));
+}
+
+#[test]
+fn os_arch_method() {
+    let deps = detect_platform(r#"
+        import os from 'os';
+        os.arch();
+    "#);
+    assert_eq!(deps.len(), 1);
+    assert!(deps[0].name.contains("os.arch()"));
+}
+
+#[test]
+fn process_arch_check() {
+    let deps = detect_platform(r#"
+        if (process.arch === "arm64") { }
+    "#);
+    assert_eq!(deps.len(), 1);
+    assert!(deps[0].name.contains("process.arch"));
+    assert!(deps[0].name.contains("arm64"));
+    assert_eq!(deps[0].metadata.get_bool("guarded"), Some(true));
+}
+
+#[test]
+fn process_arch_x64() {
+    let deps = detect_platform(r#"
+        const isX64 = process.arch === "x64";
+    "#);
+    assert_eq!(deps.len(), 1);
+    assert!(deps[0].name.contains("x64"));
+}

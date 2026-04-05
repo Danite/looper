@@ -9,8 +9,12 @@ use serde_json::json;
 const OS_MODULES: &[&str] = &["os", "node:os"];
 const UNIX_PATH_PREFIXES: &[&str] = &["/dev/", "/etc/", "/usr/", "/var/", "/tmp/", "/opt/", "/proc/", "/sys/"];
 const WINDOWS_BINARIES: &[&str] = &["cmd", "cmd.exe", "powershell", "powershell.exe"];
-const OS_PLATFORM_METHODS: &[&str] = &["homedir", "tmpdir", "hostname", "userInfo", "networkInterfaces"];
+const OS_PLATFORM_METHODS: &[&str] = &[
+    "homedir", "tmpdir", "hostname", "userInfo", "networkInterfaces",
+    "platform", "type", "release", "arch",
+];
 const PLATFORM_VALUES: &[&str] = &["darwin", "linux", "win32", "freebsd", "openbsd", "sunos", "aix"];
+const ARCH_VALUES: &[&str] = &["arm", "arm64", "ia32", "loong64", "mips", "mipsel", "ppc", "ppc64", "riscv64", "s390", "s390x", "x64"];
 
 pub struct PlatformDetector;
 
@@ -148,6 +152,44 @@ impl PlatformCollector<'_> {
         );
     }
 
+    /// process.arch === 'x64' / 'arm64' / etc.
+    fn handle_arch_check(&mut self, expr: &BinaryExpression<'_>) {
+        if !matches!(
+            expr.operator,
+            oxc_ast::ast::BinaryOperator::StrictEquality
+                | oxc_ast::ast::BinaryOperator::Equality
+                | oxc_ast::ast::BinaryOperator::StrictInequality
+                | oxc_ast::ast::BinaryOperator::Inequality
+        ) {
+            return;
+        }
+
+        let (_, value_expr) = if is_process_arch(&expr.left) {
+            (&expr.left, &expr.right)
+        } else if is_process_arch(&expr.right) {
+            (&expr.right, &expr.left)
+        } else {
+            return;
+        };
+
+        let Expression::StringLiteral(lit) = value_expr else {
+            return;
+        };
+
+        let arch_name = lit.value.as_str();
+        if !ARCH_VALUES.contains(&arch_name) {
+            return;
+        }
+
+        self.record(
+            &format!("process.arch === \"{arch_name}\""),
+            expr.span().start,
+            Confidence::High,
+            "any",
+            true,
+        );
+    }
+
     /// path.sep === '/' or path.sep === '\\'
     fn handle_path_sep_check(&mut self, expr: &BinaryExpression<'_>) {
         if !matches!(
@@ -228,6 +270,17 @@ fn is_process_platform(expr: &Expression<'_>) -> bool {
     false
 }
 
+fn is_process_arch(expr: &Expression<'_>) -> bool {
+    if let Expression::StaticMemberExpression(m) = expr {
+        if m.property.name == "arch" {
+            if let Expression::Identifier(id) = &m.object {
+                return id.name == "process";
+            }
+        }
+    }
+    false
+}
+
 fn is_path_sep(expr: &Expression<'_>) -> bool {
     if let Expression::StaticMemberExpression(m) = expr {
         if m.property.name == "sep" {
@@ -242,6 +295,7 @@ fn is_path_sep(expr: &Expression<'_>) -> bool {
 impl<'a> Visit<'a> for PlatformCollector<'a> {
     fn visit_binary_expression(&mut self, expr: &BinaryExpression<'a>) {
         self.handle_platform_check(expr);
+        self.handle_arch_check(expr);
         self.handle_path_sep_check(expr);
 
         walk::walk_binary_expression(self, expr);
