@@ -76,8 +76,8 @@ pub fn format_sarif(manifest: &ScanManifest) -> Result<String, serde_json::Error
 
 fn sarif_level(confidence: Confidence) -> &'static str {
     match confidence {
-        Confidence::High => "note",
+        Confidence::High => "error",
         Confidence::Medium => "warning",
-        Confidence::Low => "error",
+        Confidence::Low => "note",
     }
 }

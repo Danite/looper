@@ -8,7 +8,7 @@ expression: parsed
     {
       "results": [
         {
-          "level": "note",
+          "level": "error",
           "locations": [
             {
               "physicalLocation": {
@@ -35,7 +35,7 @@ expression: parsed
           "ruleId": "env_var"
         },
         {
-          "level": "note",
+          "level": "error",
           "locations": [
             {
               "physicalLocation": {

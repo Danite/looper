@@ -109,9 +109,9 @@ fn sarif_confidence_mapped_to_level() {
 
     let results = parsed["runs"][0]["results"].as_array().unwrap();
 
-    // High confidence -> note
+    // High confidence -> error (highest SARIF severity)
     let high = results.iter().find(|r| r["ruleId"] == "env_var").unwrap();
-    assert_eq!(high["level"], "note");
+    assert_eq!(high["level"], "error");
 
     // Medium confidence -> warning
     let medium = results.iter().find(|r| r["ruleId"] == "binary").unwrap();
