@@ -65,7 +65,7 @@ pub fn format_and_write(
                 .map_err(|e| format!("HTML generation failed: {e}"))?;
             write_output(&content, output_path).map_err(|e| e.to_string())
         }
-        _ => {
+        "terminal" => {
             let content = if quiet {
                 terminal::format_summary(&deps, file_count, duration_ms)
             } else {
@@ -74,5 +74,8 @@ pub fn format_and_write(
             print!("{content}");
             Ok(())
         }
+        unknown => Err(format!(
+            "unknown format '{unknown}'. Valid formats: terminal, json, sarif, html"
+        ))
     }
 }
