@@ -64,24 +64,42 @@ pub fn parse_env_file(path: &Path) -> Result<EnvFileResult, String> {
     Ok(result)
 }
 
-/// Auto-detect and parse .env files with precedence: .env > .env.example
+/// Known .env file names in descending priority order.
+/// Higher-priority files are listed first; their entries win on conflict.
+const ENV_FILE_PRIORITY: &[&str] = &[
+    ".env.development.local",
+    ".env.test.local",
+    ".env.production.local",
+    ".env.local",
+    ".env.development",
+    ".env.test",
+    ".env.production",
+    ".env",
+    ".env.defaults",
+    ".env.example",
+    ".env.sample",
+];
+
+/// Auto-detect and parse .env files, merging entries from all found files.
+/// Lower-priority files are parsed first so higher-priority entries override.
 pub fn find_and_parse_env(project_root: &Path) -> EnvFileResult {
-    let env_path = project_root.join(".env");
-    let example_path = project_root.join(".env.example");
+    let mut merged = EnvFileResult::default();
 
-    if env_path.exists() {
-        if let Ok(result) = parse_env_file(&env_path) {
-            return result;
+    for name in ENV_FILE_PRIORITY {
+        let path = project_root.join(name);
+        if path.exists() {
+            if let Ok(result) = parse_env_file(&path) {
+                if merged.source_file.is_none() {
+                    merged.source_file = result.source_file;
+                }
+                for (key, entry) in result.entries {
+                    merged.entries.entry(key).or_insert(entry);
+                }
+            }
         }
     }
 
-    if example_path.exists() {
-        if let Ok(result) = parse_env_file(&example_path) {
-            return result;
-        }
-    }
-
-    EnvFileResult::default()
+    merged
 }
 
 fn extract_var_name(line: &str) -> Option<String> {
