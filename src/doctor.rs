@@ -280,10 +280,31 @@ fn extract_port(name: &str) -> Option<u16> {
     name.strip_prefix(':')?.parse().ok()
 }
 
+fn detect_install_command() -> &'static str {
+    if cfg!(target_os = "macos") {
+        return "brew install";
+    }
+
+    if which::which("apt-get").is_ok() {
+        "apt-get install"
+    } else if which::which("apk").is_ok() {
+        "apk add"
+    } else if which::which("dnf").is_ok() {
+        "dnf install"
+    } else if which::which("yum").is_ok() {
+        "yum install"
+    } else if which::which("pacman").is_ok() {
+        "pacman -S"
+    } else {
+        "install"
+    }
+}
+
 fn suggest_install(binary: &str) -> Option<String> {
     for (pkg, bins) in PACKAGE_TO_BINARIES {
         if bins.contains(&binary) {
-            return Some(format!("install: apt-get install {pkg}"));
+            let cmd = detect_install_command();
+            return Some(format!("{cmd} {pkg}"));
         }
     }
     None
