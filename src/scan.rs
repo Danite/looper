@@ -319,20 +319,28 @@ pub(crate) fn cmd_scan(args: ScanArgs) -> i32 {
     let mut merged = merge_deps(raw_deps);
 
     if let Some(ref only) = args.only {
-        let allowed: Vec<looper::types::Category> = only
-            .iter()
-            .filter_map(|s| looper::types::Category::from_filter_name(s))
-            .collect();
-        if !allowed.is_empty() {
-            merged.retain(|d| allowed.contains(&d.category));
+        let mut allowed = Vec::new();
+        for s in only {
+            match looper::types::Category::from_filter_name(s) {
+                Some(cat) => allowed.push(cat),
+                None => eprintln!("  {} unknown category '{}'. Valid: env, fs, network, shell, ports, platform", "warning:".yellow(), s),
+            }
         }
+        if allowed.is_empty() {
+            eprintln!("{} --only contained no valid categories", "error:".red());
+            return 1;
+        }
+        merged.retain(|d| allowed.contains(&d.category));
     }
 
     if let Some(ref exclude) = args.exclude {
-        let excluded: Vec<looper::types::Category> = exclude
-            .iter()
-            .filter_map(|s| looper::types::Category::from_filter_name(s))
-            .collect();
+        let mut excluded = Vec::new();
+        for s in exclude {
+            match looper::types::Category::from_filter_name(s) {
+                Some(cat) => excluded.push(cat),
+                None => eprintln!("  {} unknown category '{}'. Valid: env, fs, network, shell, ports, platform", "warning:".yellow(), s),
+            }
+        }
         merged.retain(|d| !excluded.contains(&d.category));
     }
 
