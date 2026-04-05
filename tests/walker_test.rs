@@ -394,3 +394,40 @@ fn permission_denied_directory_reports_error() {
     // Restore permissions so TempDir cleanup succeeds
     fs::set_permissions(&denied_dir, fs::Permissions::from_mode(0o755)).unwrap();
 }
+
+#[test]
+fn unicode_directory_names() {
+    let dir = TempDir::new().unwrap();
+    let unicode_dir = dir.path().join("コンポーネント");
+    fs::create_dir_all(&unicode_dir).unwrap();
+    fs::write(unicode_dir.join("app.ts"), "const x = 1;").unwrap();
+
+    let latin_dir = dir.path().join("données");
+    fs::create_dir_all(&latin_dir).unwrap();
+    fs::write(latin_dir.join("utils.js"), "const y = 2;").unwrap();
+
+    let result = discover_files(
+        &[dir.path().to_path_buf()],
+        &WalkOptions::default(),
+    )
+    .unwrap();
+
+    assert_eq!(result.files.len(), 2, "should discover files in Unicode-named directories");
+}
+
+#[test]
+fn unicode_dir_not_matched_by_default_excludes() {
+    let dir = TempDir::new().unwrap();
+    // A Unicode dir should never accidentally match DEFAULT_EXCLUDED_DIRS
+    let unicode_dir = dir.path().join("ビルド");
+    fs::create_dir_all(&unicode_dir).unwrap();
+    fs::write(unicode_dir.join("index.ts"), "const x = 1;").unwrap();
+
+    let result = discover_files(
+        &[dir.path().to_path_buf()],
+        &WalkOptions::default(),
+    )
+    .unwrap();
+
+    assert_eq!(result.files.len(), 1);
+}

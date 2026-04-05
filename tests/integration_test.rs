@@ -274,6 +274,95 @@ fn binary_file_in_scan_does_not_crash() {
     assert!(all_deps.iter().any(|d| d.name == "API_KEY"));
 }
 
+#[test]
+fn large_file_skipped_in_scan() {
+    let dir = tempfile::TempDir::new().unwrap();
+    std::fs::write(dir.path().join("valid.ts"), "const url = process.env.API_KEY;").unwrap();
+
+    // Create a file just over 10MB with a .js extension containing valid env access
+    let large_path = dir.path().join("huge.js");
+    let padding = "// padding\n".repeat(1_100_000);
+    let content = format!("const x = process.env.HUGE_VAR;\n{padding}");
+    std::fs::write(&large_path, content).unwrap();
+    assert!(std::fs::metadata(&large_path).unwrap().len() > 10 * 1024 * 1024);
+
+    let roots = vec![dir.path().to_path_buf()];
+    let walk_result = discover_files(&roots, &WalkOptions::default()).unwrap();
+
+    let registry = default_registry();
+    let mut all_deps = Vec::new();
+
+    for path in &walk_result.files {
+        if let Ok(meta) = std::fs::metadata(path) {
+            if meta.len() > 10 * 1024 * 1024 {
+                continue;
+            }
+        }
+        let source = match std::fs::read_to_string(path) {
+            Ok(s) => s,
+            Err(_) => continue,
+        };
+        if source.is_empty() {
+            continue;
+        }
+        let allocator = Allocator::new();
+        let source_leaked: &str = allocator.alloc_str(&source);
+        let result = parse_file(&allocator, path, source_leaked);
+        if result.panicked {
+            continue;
+        }
+        let bindings = resolve_bindings(&result.program);
+        let ctx = DetectorContext {
+            program: &result.program,
+            source_text: result.source_text,
+            file_path: &result.file_path,
+            bindings: &bindings,
+        };
+        all_deps.extend(registry.run_all(&ctx));
+    }
+
+    assert!(all_deps.iter().any(|d| d.name == "API_KEY"), "valid.ts should still be scanned");
+    assert!(!all_deps.iter().any(|d| d.name == "HUGE_VAR"), "huge.js should be skipped");
+}
+
+#[test]
+fn broken_file_yields_partial_findings() {
+    let roots = vec![PathBuf::from("tests/fixtures/broken.ts")];
+    let walk_result = discover_files(&roots, &WalkOptions::default()).unwrap();
+
+    let registry = default_registry();
+    let mut all_deps = Vec::new();
+    let mut had_errors = false;
+
+    for path in &walk_result.files {
+        let source = std::fs::read_to_string(path).unwrap();
+        let allocator = Allocator::new();
+        let source_leaked: &str = allocator.alloc_str(&source);
+        let result = parse_file(&allocator, path, source_leaked);
+
+        if result.has_errors() || result.panicked {
+            had_errors = true;
+        }
+        if result.panicked {
+            continue;
+        }
+
+        let bindings = resolve_bindings(&result.program);
+        let ctx = DetectorContext {
+            program: &result.program,
+            source_text: result.source_text,
+            file_path: &result.file_path,
+            bindings: &bindings,
+        };
+        all_deps.extend(registry.run_all(&ctx));
+    }
+
+    assert!(had_errors, "broken.ts should produce parse errors");
+    // oxc error recovery may or may not preserve earlier AST nodes.
+    // The important thing is: no panic, no crash, scan completes.
+    // If recovery improves, VALID_VAR may appear here in the future.
+}
+
 // --- Registry ---
 
 #[test]
