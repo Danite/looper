@@ -8,7 +8,7 @@ use looper::walker::{discover_files, WalkError, WalkOptions};
 use oxc_allocator::Allocator;
 use rayon::prelude::*;
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process;
 use std::sync::Mutex;
 use std::time::Instant;
@@ -288,6 +288,35 @@ fn cmd_scan(args: ScanArgs) -> i32 {
         extra_ignores.extend(cfg.exclude.iter().cloned());
     }
 
+    // If paths are just the default "." and config has include patterns, use those instead
+    let scan_paths = if args.paths.len() == 1 && args.paths[0] == Path::new(".") {
+        if let Some(ref cfg) = config {
+            if !cfg.include.is_empty() {
+                cfg.include
+                    .iter()
+                    .map(|pattern| {
+                        // Strip glob suffixes: "src/**" -> "src", "lib/**/*.ts" -> "lib"
+                        let root = pattern.split("/**").next().unwrap_or(pattern);
+                        PathBuf::from(root)
+                    })
+                    .filter(|p| p.exists())
+                    .collect::<Vec<_>>()
+            } else {
+                args.paths.clone()
+            }
+        } else {
+            args.paths.clone()
+        }
+    } else {
+        args.paths.clone()
+    };
+
+    let scan_paths = if scan_paths.is_empty() {
+        args.paths.clone()
+    } else {
+        scan_paths
+    };
+
     let opts = WalkOptions {
         no_gitignore: args.no_gitignore,
         extra_ignore_patterns: extra_ignores,
@@ -296,7 +325,7 @@ fn cmd_scan(args: ScanArgs) -> i32 {
 
     let start = Instant::now();
 
-    let walk_result = match discover_files(&args.paths, &opts) {
+    let walk_result = match discover_files(&scan_paths, &opts) {
         Ok(r) => r,
         Err(WalkError::NoFilesFound) => {
             eprintln!("{}", "error: no JavaScript/TypeScript files found".red());
