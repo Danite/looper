@@ -7,6 +7,26 @@ const SUPPORTED_EXTENSIONS: &[&str] = &[
     "js", "jsx", "ts", "tsx", "mjs", "cjs", "mts", "cts",
 ];
 
+/// Directories excluded by default even without .gitignore or config.
+const DEFAULT_EXCLUDED_DIRS: &[&str] = &[
+    "node_modules",
+    ".git",
+    "dist",
+    "build",
+    "coverage",
+    ".next",
+    ".nuxt",
+    ".output",
+    ".svelte-kit",
+    "__pycache__",
+    ".tox",
+    "vendor",
+    ".cache",
+    ".parcel-cache",
+    "tmp",
+    ".turbo",
+];
+
 #[derive(Debug)]
 pub struct WalkOptions {
     pub no_gitignore: bool,
@@ -71,6 +91,8 @@ pub fn discover_files(roots: &[PathBuf], opts: &WalkOptions) -> Result<WalkResul
     let files = Mutex::new(Vec::new());
     let errors = Mutex::new(Vec::new());
 
+    let skip_defaults = !opts.no_gitignore;
+
     builder.build_parallel().run(|| {
         Box::new(|entry| {
             let entry = match entry {
@@ -80,6 +102,16 @@ pub fn discover_files(roots: &[PathBuf], opts: &WalkOptions) -> Result<WalkResul
                     return ignore::WalkState::Continue;
                 }
             };
+
+            // Skip default-excluded directories (prunes entire subtree)
+            if skip_defaults && entry.file_type().is_some_and(|ft| ft.is_dir()) {
+                if let Some(name) = entry.path().file_name().and_then(|n| n.to_str()) {
+                    if DEFAULT_EXCLUDED_DIRS.contains(&name) {
+                        return ignore::WalkState::Skip;
+                    }
+                }
+                return ignore::WalkState::Continue;
+            }
 
             if !entry.file_type().is_some_and(|ft| ft.is_file()) {
                 return ignore::WalkState::Continue;
