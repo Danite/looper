@@ -9,6 +9,7 @@ use serde_json::json;
 use std::sync::LazyLock;
 
 const NET_MODULES: &[&str] = &["net", "node:net"];
+const HTTP_MODULES: &[&str] = &["http", "https", "node:http", "node:https", "http2", "node:http2"];
 
 static CONN_STRING_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"^(?P<proto>[a-z][a-z0-9+\-.]*?)://(?:[^@/]*@)?(?P<host>[^/:]+?)(?::(?P<port>\d+))?(?:/|$)")
@@ -103,15 +104,41 @@ impl PortCollector<'_> {
         );
     }
 
-    fn is_bound_to_net(&self, expr: &Expression<'_>) -> bool {
+    fn is_bound_to_any(&self, expr: &Expression<'_>, modules: &[&str]) -> bool {
         if let Expression::Identifier(id) = expr {
             if let Some(binding) = self.bindings.get(id.name.as_str()) {
                 if binding.imported_name == "*" {
-                    return NET_MODULES.iter().any(|m| binding.module_source == *m);
+                    return modules.iter().any(|m| binding.module_source == *m);
                 }
             }
         }
         false
+    }
+
+    fn is_bound_to_net(&self, expr: &Expression<'_>) -> bool {
+        self.is_bound_to_any(expr, NET_MODULES)
+    }
+
+    fn resolve_listen_protocol(&self, obj: &Expression<'_>) -> &'static str {
+        if self.is_bound_to_any(obj, NET_MODULES) {
+            return "tcp";
+        }
+        if self.is_bound_to_any(obj, HTTP_MODULES) {
+            return "http";
+        }
+        // Handle chained calls like net.createServer().listen(port)
+        // where obj is the CallExpression `net.createServer()`
+        if let Expression::CallExpression(call) = obj {
+            if let Expression::StaticMemberExpression(m) = &call.callee {
+                if self.is_bound_to_any(&m.object, NET_MODULES) {
+                    return "tcp";
+                }
+                if self.is_bound_to_any(&m.object, HTTP_MODULES) {
+                    return "http";
+                }
+            }
+        }
+        "http"
     }
 
     fn handle_listen_call(&mut self, call: &CallExpression<'_>) {
@@ -123,7 +150,8 @@ impl PortCollector<'_> {
         }
 
         if let Some(port) = extract_port_from_first_arg(call) {
-            self.record_port(port, call.span().start, "listen", "http");
+            let protocol = self.resolve_listen_protocol(&m.object);
+            self.record_port(port, call.span().start, "listen", protocol);
         }
     }
 

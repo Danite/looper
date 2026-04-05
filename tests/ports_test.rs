@@ -182,6 +182,39 @@ fn bun_serve() {
     assert_eq!(ports[0].metadata.get_str("protocol_hint"), Some("http"));
 }
 
+// --- Protocol hint resolution for listen ---
+
+#[test]
+fn net_create_server_listen_is_tcp() {
+    let deps = detect_ports(r#"
+        import net from 'net';
+        net.createServer((socket) => {}).listen(9000);
+    "#);
+    let ports = port_deps(&deps);
+    assert_eq!(ports.len(), 1);
+    assert_eq!(ports[0].name, ":9000");
+    assert_eq!(ports[0].metadata.get_str("direction"), Some("listen"));
+    assert_eq!(ports[0].metadata.get_str("protocol_hint"), Some("tcp"));
+}
+
+#[test]
+fn http_create_server_listen_is_http() {
+    let deps = detect_ports(r#"
+        import http from 'http';
+        http.createServer((req, res) => {}).listen(8080);
+    "#);
+    let ports = port_deps(&deps);
+    assert_eq!(ports.len(), 1);
+    assert_eq!(ports[0].metadata.get_str("protocol_hint"), Some("http"));
+}
+
+#[test]
+fn unresolved_listen_defaults_to_http() {
+    let deps = detect_ports("app.listen(3000);");
+    let ports = port_deps(&deps);
+    assert_eq!(ports[0].metadata.get_str("protocol_hint"), Some("http"));
+}
+
 // --- Edge cases ---
 
 #[test]
