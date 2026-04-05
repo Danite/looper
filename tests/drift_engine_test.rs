@@ -281,6 +281,17 @@ fn no_missing() {
 }
 
 #[test]
+fn dynamic_env_var_skipped() {
+    let infra = make_infra(&[], &[], &[], &[]);
+    let deps = vec![env_dep("<dynamic>"), env_dep("REAL_VAR")];
+    let report = compare(&deps, &infra);
+
+    let names: Vec<&str> = report.missing.iter().map(|d| d.name.as_str()).collect();
+    assert!(!names.contains(&"<dynamic>"), "<dynamic> should be skipped in drift");
+    assert!(names.contains(&"REAL_VAR"), "real env vars should still appear");
+}
+
+#[test]
 fn sorted_output() {
     let infra = make_infra(&[], &[], &[], &[]);
     let deps = vec![env_dep("Z_VAR"), env_dep("A_VAR"), binary_dep("zzz")];

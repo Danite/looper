@@ -54,6 +54,9 @@ pub fn compare(code_deps: &[ShadowDep], infra: &InfraManifest) -> DriftReport {
     for dep in code_deps {
         match dep.category {
             Category::EnvVar => {
+                if dep.name == "<dynamic>" {
+                    continue;
+                }
                 let code_src = first_location(dep);
                 if infra_env_names.contains(&dep.name) {
                     covered.push(DriftItem {
