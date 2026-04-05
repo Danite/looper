@@ -15,7 +15,7 @@ fn main() {
     let exit_code = match cli.command {
         Some(Command::Scan(args)) => cmd_scan(args),
         Some(Command::Check(args)) => cmd_check(args),
-        Some(Command::Init) => cmd_init(),
+        Some(Command::Init(args)) => cmd_init(args),
         Some(Command::Diff(args)) => cmd_diff(args),
         Some(Command::Doctor(args)) => cmd_doctor(args),
         Some(Command::Drift(args)) => cmd_drift(args),

@@ -23,7 +23,7 @@ pub(crate) enum Command {
     Check(CheckArgs),
 
     /// Generate config file and initial manifest
-    Init,
+    Init(InitArgs),
 
     /// Compare two manifest files
     Diff(DiffArgs),
@@ -260,6 +260,13 @@ pub(crate) struct GenerateArgs {
     /// Path to config file
     #[arg(long)]
     pub config: Option<PathBuf>,
+}
+
+#[derive(Parser)]
+pub(crate) struct InitArgs {
+    /// Also generate .env.example from scanned shadow deps
+    #[arg(long)]
+    pub with_env: bool,
 }
 
 /// When the first positional arg isn't a known subcommand, insert "scan"
