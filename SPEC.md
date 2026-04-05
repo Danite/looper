@@ -718,27 +718,18 @@ oxc_allocator = "0.123"     # Arena allocator for oxc
 clap = { version = "4", features = ["derive"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-chrono = { version = "0.4", features = ["serde"] }  # ISO 8601 timestamps
+chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
 ignore = "0.4"              # .gitignore-aware file walking (includes WalkParallel)
 colored = "2"               # Terminal colors
 rayon = "1.10"              # Parallel file scanning
 url = "2"                   # URL parsing for network detector
 regex = "1"                 # Pattern matching for connection strings
+serde_yaml = "0.9"          # YAML parsing for docker-compose
+which = "8"                 # Binary lookup in PATH
 
 [dev-dependencies]
 insta = { version = "1", features = ["json", "redactions"] }  # Snapshot testing
-```
-
-Phase 5 additions (infrastructure drift):
-
-```toml
-serde_yaml = "0.9"                          # YAML parsing for docker-compose
-```
-
-Phase 6 additions (doctor):
-
-```toml
-which = "8"                                 # Binary lookup in PATH
+tempfile = "3"              # Temp directories for tests
 ```
 
 Future additions as needed:

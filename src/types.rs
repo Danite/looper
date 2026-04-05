@@ -135,14 +135,22 @@ pub enum Confidence {
     High,
 }
 
+impl std::str::FromStr for Confidence {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "low" => Ok(Self::Low),
+            "medium" => Ok(Self::Medium),
+            "high" => Ok(Self::High),
+            _ => Err(format!("unknown confidence level: {s}")),
+        }
+    }
+}
+
 impl Confidence {
     pub fn parse(s: &str) -> Option<Confidence> {
-        match s {
-            "low" => Some(Self::Low),
-            "medium" => Some(Self::Medium),
-            "high" => Some(Self::High),
-            _ => None,
-        }
+        s.parse().ok()
     }
 }
 
