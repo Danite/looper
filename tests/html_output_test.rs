@@ -116,6 +116,21 @@ fn html_empty_deps() {
 }
 
 #[test]
+fn html_escapes_script_closing_tag() {
+    let dep = ShadowDep::new(
+        Category::Filesystem,
+        "</script><img src=x onerror=alert(1)>",
+        Confidence::High,
+        Location::new("src/evil.ts", 1, 1),
+    );
+    let manifest = build_manifest(".", 1, 1, vec![dep]);
+    let html = format_html(&manifest).unwrap();
+
+    assert!(!html.contains("</script><img"), "raw </script> must not appear in embedded JSON");
+    assert!(html.contains("<\\/script>"), "closing tags must be escaped in JSON data");
+}
+
+#[test]
 fn html_has_confidence_colors() {
     let manifest = build_manifest(".", 10, 5, sample_deps());
     let html = format_html(&manifest).unwrap();

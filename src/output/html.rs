@@ -3,7 +3,8 @@ use crate::types::ScanManifest;
 /// Format a ScanManifest as a self-contained HTML report.
 pub fn format_html(manifest: &ScanManifest) -> Result<String, serde_json::Error> {
     let data_json = serde_json::to_string(manifest)?;
-    Ok(HTML_TEMPLATE.replace("/*__LOOPER_DATA__*/", &data_json))
+    let safe_json = data_json.replace("</", "<\\/");
+    Ok(HTML_TEMPLATE.replace("/*__LOOPER_DATA__*/", &safe_json))
 }
 
 const HTML_TEMPLATE: &str = r##"<!DOCTYPE html>
