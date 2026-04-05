@@ -104,4 +104,4 @@ cargo fmt -- --check # formatting check
 
 # Project Spec
 
-Reference the SPEC.md for project guidance
+Development specs and internal docs are in the /working/ directory
