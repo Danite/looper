@@ -111,6 +111,24 @@ fn http_request_without_binding_ignored() {
     assert!(deps.is_empty());
 }
 
+#[test]
+fn http_request_string_url() {
+    let deps = detect_net(r#"
+        import http from 'http';
+        http.request("http://api.internal.service/health");
+    "#);
+    assert_eq!(names(&deps), vec!["api.internal.service"]);
+}
+
+#[test]
+fn https_get_string_url() {
+    let deps = detect_net(r#"
+        import https from 'https';
+        https.get("https://registry.npmjs.org/looper");
+    "#);
+    assert_eq!(names(&deps), vec!["registry.npmjs.org"]);
+}
+
 // --- new URL ---
 
 #[test]

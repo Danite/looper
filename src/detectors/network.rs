@@ -152,6 +152,12 @@ impl NetCollector<'_> {
         let Some(expr) = first.as_expression() else {
             return;
         };
+
+        if let Expression::StringLiteral(lit) = expr {
+            self.record_url(lit.value.as_str(), call.span().start, Confidence::High);
+            return;
+        }
+
         let Expression::ObjectExpression(obj) = expr else {
             return;
         };
