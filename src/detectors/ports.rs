@@ -56,18 +56,7 @@ struct PortCollector<'a> {
 
 impl PortCollector<'_> {
     fn line_col(&self, offset: u32) -> (u32, u32) {
-        let src = self.source_text.as_bytes();
-        let mut line = 1u32;
-        let mut col = 1u32;
-        for &byte in src.iter().take(offset as usize) {
-            if byte == b'\n' {
-                line += 1;
-                col = 1;
-            } else {
-                col += 1;
-            }
-        }
-        (line, col)
+        crate::types::line_col(self.source_text, offset)
     }
 
     fn record_port(

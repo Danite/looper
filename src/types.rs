@@ -240,3 +240,18 @@ impl ScanManifest {
         }
     }
 }
+
+/// Convert a byte offset in source text to a (line, col) pair (1-indexed).
+pub fn line_col(source: &str, offset: u32) -> (u32, u32) {
+    let mut line = 1u32;
+    let mut col = 1u32;
+    for &byte in source.as_bytes().iter().take(offset as usize) {
+        if byte == b'\n' {
+            line += 1;
+            col = 1;
+        } else {
+            col += 1;
+        }
+    }
+    (line, col)
+}
