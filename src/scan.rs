@@ -353,11 +353,21 @@ pub(crate) fn cmd_scan(args: ScanArgs) -> i32 {
     }
 
     if let Some(ref baseline_path) = args.baseline {
-        if let Ok(content) = std::fs::read_to_string(baseline_path) {
-            if let Ok(baseline) = serde_json::from_str::<looper::types::ScanManifest>(&content) {
-                let baseline_ids: std::collections::HashSet<String> =
-                    baseline.deps.iter().map(|d| d.id.clone()).collect();
-                merged.retain(|d| !baseline_ids.contains(&d.id));
+        match std::fs::read_to_string(baseline_path) {
+            Ok(content) => match serde_json::from_str::<looper::types::ScanManifest>(&content) {
+                Ok(baseline) => {
+                    let baseline_ids: std::collections::HashSet<String> =
+                        baseline.deps.iter().map(|d| d.id.clone()).collect();
+                    merged.retain(|d| !baseline_ids.contains(&d.id));
+                }
+                Err(e) => {
+                    eprintln!("{} invalid baseline JSON in {}: {e}", "error:".red(), baseline_path.display());
+                    return 1;
+                }
+            },
+            Err(e) => {
+                eprintln!("{} could not read baseline {}: {e}", "error:".red(), baseline_path.display());
+                return 1;
             }
         }
     }

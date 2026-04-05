@@ -81,6 +81,7 @@ pub fn load_config(explicit_path: Option<&Path>) -> Option<Config> {
             if p.exists() {
                 Some(p.to_path_buf())
             } else {
+                eprintln!("  warning: config file not found: {}", p.display());
                 None
             }
         }
@@ -88,8 +89,20 @@ pub fn load_config(explicit_path: Option<&Path>) -> Option<Config> {
     };
 
     let path = path?;
-    let content = std::fs::read_to_string(&path).ok()?;
-    serde_json::from_str(&content).ok()
+    let content = match std::fs::read_to_string(&path) {
+        Ok(c) => c,
+        Err(e) => {
+            eprintln!("  warning: could not read {}: {e}", path.display());
+            return None;
+        }
+    };
+    match serde_json::from_str(&content) {
+        Ok(cfg) => Some(cfg),
+        Err(e) => {
+            eprintln!("  warning: invalid JSON in {}: {e}", path.display());
+            None
+        }
+    }
 }
 
 /// Walk up from `start_dir` looking for looper.config.json.
