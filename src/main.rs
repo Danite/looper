@@ -14,6 +14,7 @@ use std::sync::Mutex;
 use std::time::Instant;
 
 const SUBCOMMANDS: &[&str] = &["scan", "check", "init", "diff", "doctor", "drift", "help"];
+const MAX_FILE_SIZE: u64 = 10 * 1024 * 1024; // 10MB
 
 #[derive(Parser)]
 #[command(
@@ -343,6 +344,15 @@ fn cmd_scan(args: ScanArgs) -> i32 {
     let parse_errors: Mutex<Vec<String>> = Mutex::new(Vec::new());
 
     walk_result.files.par_iter().for_each(|path| {
+        if let Ok(meta) = std::fs::metadata(path) {
+            if meta.len() > MAX_FILE_SIZE {
+                if args.verbose {
+                    eprintln!("  {} skipping large file: {} ({}MB)", "warning:".yellow(), path.display(), meta.len() / 1_000_000);
+                }
+                return;
+            }
+        }
+
         let source = match std::fs::read_to_string(path) {
             Ok(s) => s,
             Err(e) => {
@@ -552,6 +562,12 @@ fn run_scan(
     let parse_errors: Mutex<Vec<String>> = Mutex::new(Vec::new());
 
     walk_result.files.par_iter().for_each(|path| {
+        if let Ok(meta) = std::fs::metadata(path) {
+            if meta.len() > MAX_FILE_SIZE {
+                return;
+            }
+        }
+
         let source = match std::fs::read_to_string(path) {
             Ok(s) => s,
             Err(e) => {
