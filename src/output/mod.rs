@@ -57,6 +57,9 @@ pub fn format_and_write(
             write_output(&content, output_path).map_err(|e| e.to_string())
         }
         "html" => {
+            if output_path.is_none() {
+                return Err("HTML output requires --output <file>".into());
+            }
             let manifest = build_manifest(root, file_count, duration_ms, deps);
             let content = html::format_html(&manifest)
                 .map_err(|e| format!("HTML generation failed: {e}"))?;
