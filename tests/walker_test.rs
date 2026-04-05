@@ -84,10 +84,10 @@ fn respects_gitignore() {
 fn no_gitignore_flag_includes_ignored_files() {
     let dir = setup_project(&[
         "src/index.ts",
-        "dist/bundle.js",
+        "generated/output.js",
     ]);
 
-    fs::write(dir.path().join(".gitignore"), "dist/\n").unwrap();
+    fs::write(dir.path().join(".gitignore"), "generated/\n").unwrap();
     fs::create_dir_all(dir.path().join(".git")).unwrap();
 
     let opts = WalkOptions {
@@ -98,6 +98,46 @@ fn no_gitignore_flag_includes_ignored_files() {
     let result = discover_files(&[dir.path().to_path_buf()], &opts).unwrap();
 
     assert_eq!(result.files.len(), 2);
+}
+
+#[test]
+fn no_gitignore_still_excludes_default_dirs() {
+    let dir = setup_project(&[
+        "src/index.ts",
+        "node_modules/pkg/index.js",
+        "dist/bundle.js",
+    ]);
+
+    fs::write(dir.path().join(".gitignore"), "").unwrap();
+    fs::create_dir_all(dir.path().join(".git")).unwrap();
+
+    let opts = WalkOptions {
+        no_gitignore: true,
+        ..Default::default()
+    };
+
+    let result = discover_files(&[dir.path().to_path_buf()], &opts).unwrap();
+
+    assert_eq!(result.files.len(), 1, "default excludes should still apply with --no-gitignore");
+    assert!(result.files[0].ends_with("index.ts"));
+}
+
+#[test]
+fn no_default_excludes_includes_default_dirs() {
+    let dir = setup_project(&[
+        "src/index.ts",
+        "node_modules/pkg/index.js",
+        "dist/bundle.js",
+    ]);
+
+    let opts = WalkOptions {
+        no_default_excludes: true,
+        ..Default::default()
+    };
+
+    let result = discover_files(&[dir.path().to_path_buf()], &opts).unwrap();
+
+    assert_eq!(result.files.len(), 3, "all files should be found with --no-default-excludes");
 }
 
 #[test]

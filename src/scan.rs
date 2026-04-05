@@ -61,6 +61,7 @@ pub(crate) fn run_scan(
 
     let opts = WalkOptions {
         no_gitignore,
+        no_default_excludes: false,
         extra_ignore_patterns: ignores,
         follow_symlinks: true,
     };
@@ -214,6 +215,7 @@ pub(crate) fn cmd_scan(args: ScanArgs) -> i32 {
 
     let opts = WalkOptions {
         no_gitignore: args.no_gitignore,
+        no_default_excludes: args.no_default_excludes,
         extra_ignore_patterns: extra_ignores,
         follow_symlinks: true,
     };

@@ -30,6 +30,7 @@ const DEFAULT_EXCLUDED_DIRS: &[&str] = &[
 #[derive(Debug)]
 pub struct WalkOptions {
     pub no_gitignore: bool,
+    pub no_default_excludes: bool,
     pub extra_ignore_patterns: Vec<String>,
     pub follow_symlinks: bool,
 }
@@ -38,6 +39,7 @@ impl Default for WalkOptions {
     fn default() -> Self {
         Self {
             no_gitignore: false,
+            no_default_excludes: false,
             extra_ignore_patterns: Vec::new(),
             follow_symlinks: true,
         }
@@ -91,7 +93,7 @@ pub fn discover_files(roots: &[PathBuf], opts: &WalkOptions) -> Result<WalkResul
     let files = Mutex::new(Vec::new());
     let errors = Mutex::new(Vec::new());
 
-    let skip_defaults = !opts.no_gitignore;
+    let skip_defaults = !opts.no_default_excludes;
 
     builder.build_parallel().run(|| {
         Box::new(|entry| {

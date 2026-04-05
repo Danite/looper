@@ -73,6 +73,10 @@ pub(crate) struct ScanArgs {
     #[arg(long)]
     pub no_gitignore: bool,
 
+    /// Don't exclude default directories (node_modules, dist, .git, etc.)
+    #[arg(long)]
+    pub no_default_excludes: bool,
+
     /// Only output summary line
     #[arg(short, long)]
     pub quiet: bool,
@@ -102,6 +106,7 @@ impl Default for ScanArgs {
             baseline: None,
             ignore: None,
             no_gitignore: false,
+            no_default_excludes: false,
             quiet: false,
             verbose: false,
             threads: None,
