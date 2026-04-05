@@ -123,7 +123,9 @@ impl ShellCollector<'_> {
         }
 
         let mut parts = cmd.split_whitespace();
-        let binary = parts.next().unwrap();
+        let Some(binary) = parts.next() else {
+            return;
+        };
         let args: String = parts.collect::<Vec<_>>().join(" ");
 
         self.record(binary, call.span().start, Confidence::High, &args);
