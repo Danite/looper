@@ -13,6 +13,10 @@ use url::Url;
 const HTTP_MODULES: &[&str] = &["http", "https", "node:http", "node:https", "http2", "node:http2"];
 const AXIOS_METHODS: &[&str] = &["get", "post", "put", "delete", "patch", "head", "options", "request"];
 const URL_SCHEMES: &[&str] = &["http", "https", "ws", "wss"];
+const HTTP_CLIENT_MODULES: &[&str] = &[
+    "got", "node-fetch", "ky", "superagent", "ofetch", "undici",
+    "make-fetch-happen", "urllib", "phin",
+];
 
 pub struct NetworkDetector;
 
@@ -134,6 +138,44 @@ impl NetCollector<'_> {
         }
     }
 
+    fn is_bound_to_http_client(&self, name: &str) -> bool {
+        if let Some(binding) = self.bindings.get(name) {
+            return HTTP_CLIENT_MODULES.iter().any(|m| binding.module_source == *m);
+        }
+        false
+    }
+
+    fn handle_http_client_call(&mut self, call: &CallExpression<'_>) {
+        match &call.callee {
+            Expression::StaticMemberExpression(m) => {
+                let Expression::Identifier(obj) = &m.object else {
+                    return;
+                };
+                if !self.is_bound_to_http_client(obj.name.as_str()) {
+                    return;
+                }
+                if !AXIOS_METHODS.contains(&m.property.name.as_str()) {
+                    return;
+                }
+                if let Some(url_str) = first_string_arg(call) {
+                    self.record_url(&url_str, call.span().start, Confidence::High);
+                }
+            }
+            Expression::Identifier(id) => {
+                if id.name == "fetch" || id.name == "axios" {
+                    return;
+                }
+                if !self.is_bound_to_http_client(id.name.as_str()) {
+                    return;
+                }
+                if let Some(url_str) = first_string_arg(call) {
+                    self.record_url(&url_str, call.span().start, Confidence::High);
+                }
+            }
+            _ => {}
+        }
+    }
+
     fn handle_http_request(&mut self, call: &CallExpression<'_>) {
         // http.request({ hostname: 'example.com' })
         let Expression::StaticMemberExpression(m) = &call.callee else {
@@ -231,6 +273,7 @@ impl<'a> Visit<'a> for NetCollector<'a> {
     fn visit_call_expression(&mut self, call: &CallExpression<'a>) {
         self.handle_fetch(call);
         self.handle_axios(call);
+        self.handle_http_client_call(call);
         self.handle_http_request(call);
 
         walk::walk_call_expression(self, call);

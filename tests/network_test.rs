@@ -244,3 +244,59 @@ fn localhost_detected() {
     let deps = detect_net(r#"fetch("http://localhost:3000/api");"#);
     assert_eq!(names(&deps), vec!["localhost:3000"]);
 }
+
+// --- Third-party HTTP clients ---
+
+#[test]
+fn got_get() {
+    let deps = detect_net(r#"
+        import got from 'got';
+        got.get("https://api.example.com/data");
+    "#);
+    assert_eq!(names(&deps), vec!["api.example.com"]);
+}
+
+#[test]
+fn got_direct_call() {
+    let deps = detect_net(r#"
+        import got from 'got';
+        got("https://hooks.slack.com/trigger");
+    "#);
+    assert_eq!(names(&deps), vec!["hooks.slack.com"]);
+}
+
+#[test]
+fn node_fetch_call() {
+    let deps = detect_net(r#"
+        import fetch from 'node-fetch';
+        fetch("https://api.github.com/repos");
+    "#);
+    assert_eq!(names(&deps), vec!["api.github.com"]);
+}
+
+#[test]
+fn ky_post() {
+    let deps = detect_net(r#"
+        import ky from 'ky';
+        ky.post("https://analytics.example.com/events");
+    "#);
+    assert_eq!(names(&deps), vec!["analytics.example.com"]);
+}
+
+#[test]
+fn superagent_get() {
+    let deps = detect_net(r#"
+        import superagent from 'superagent';
+        superagent.get("https://api.weather.com/forecast");
+    "#);
+    assert_eq!(names(&deps), vec!["api.weather.com"]);
+}
+
+#[test]
+fn undici_request() {
+    let deps = detect_net(r#"
+        import { request } from 'undici';
+        request("https://cdn.example.com/assets");
+    "#);
+    assert_eq!(names(&deps), vec!["cdn.example.com"]);
+}
