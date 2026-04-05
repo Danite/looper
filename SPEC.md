@@ -568,6 +568,85 @@ looper drift — comparing code vs infrastructure
 
 ---
 
+## Runtime Health Check (`looper doctor`)
+
+The `doctor` subcommand runtime-verifies shadow dependencies: is the env var set? Is the binary installed? Is the port reachable? Is the host resolvable? Turns the static scan manifest into a runnable health check.
+
+The killer onboarding tool: new developer clones repo, runs `looper doctor`, sees exactly what's red, fixes it.
+
+### What Gets Checked
+
+| Category | Runtime check | Pass condition | Example |
+|---|---|---|---|
+| **env_var** | `std::env::var(name)` | Variable set and non-empty | DATABASE_URL -> set / missing |
+| **binary** | PATH lookup via `which` | Binary found | ffmpeg -> /usr/local/bin/ffmpeg |
+| **port (connect)** | TCP connect with timeout | Connection accepted | :6379 -> reachable / refused |
+| **port (listen)** | Bind attempt | Port available | :3000 -> available / in use |
+| **network** | DNS resolve + TCP connect | Host resolves | api.stripe.com -> reachable |
+| **filesystem** | `Path::exists()` | File/dir exists | ./config.json -> exists / missing |
+| **platform** | Skipped | -- | -- |
+
+### Smart handling
+
+- **Secret redaction**: Env vars whose name contains SECRET, KEY, TOKEN, PASSWORD, CREDENTIAL, or AUTH show `set (*****)` instead of the value.
+- **Optional env vars**: If `metadata.required = false` (has a default), show "optional (default: 3000)" instead of failing.
+- **Dynamic env vars**: Deps named `<dynamic>` (from `process.env[variable]`) are skipped.
+- **Port direction**: Read `metadata.direction` to choose connect check vs bind check.
+- **Filesystem paths**: Resolved relative to scan root, not CWD.
+- **Install suggestions**: Failed binary checks suggest the install command via reverse package-to-binary mapping (e.g., "install: apt-get install imagemagick").
+
+### CLI
+
+```
+looper doctor [OPTIONS]
+
+OPTIONS:
+    --manifest <FILE>      Use pre-scanned manifest instead of live scan
+    --timeout <MS>         Timeout for network/port checks (default: 2000ms)
+    --fail-on-error        Exit 1 if any check fails (for CI)
+    -f, --format <FMT>     Output format: terminal (default), json
+    -o, --output <FILE>    Write to file
+    --scan-paths <PATHS>   Override scan paths
+    -v, --verbose          Show detailed check output
+    --config <FILE>        Path to config file
+```
+
+Exit codes: 0 = all pass (or `--fail-on-error` not set), 1 = checks failed (with flag), 2 = no shadow deps found.
+
+### Terminal Output
+
+```
+looper doctor — runtime health check
+
+ ENV VARS
+  ✓ DATABASE_URL         set
+  ✗ STRIPE_SECRET_KEY    missing
+  ✓ PORT                 optional (default: 3000)
+  ✓ NODE_ENV             set (production)
+
+ BINARIES
+  ✓ ffmpeg               /usr/local/bin/ffmpeg
+  ✗ convert              not found — install: apt-get install imagemagick
+  ✓ git                  /usr/bin/git
+
+ PORTS
+  ✓ :5432 (connect)      reachable
+  ✗ :6379 (connect)      connection refused
+  ✓ :3000 (listen)       available
+
+ NETWORK
+  ✓ api.stripe.com       reachable (45ms)
+  ✗ internal.service     DNS resolution failed
+
+ FILESYSTEM
+  ✓ ./config.json        exists
+  ✗ /tmp/cache/          missing
+
+ Summary: 9 passed, 3 failed
+```
+
+---
+
 ## Project Structure
 
 ```
@@ -600,6 +679,7 @@ looper/
 │   │   └── html.rs          # Self-contained HTML report
 │   ├── check.rs             # CI check: diff scan vs manifest
 │   ├── diff.rs              # Diff two manifest files
+│   ├── doctor.rs            # Runtime health check engine
 │   ├── drift.rs             # Infrastructure drift engine
 │   └── infra/
 │       ├── mod.rs           # InfraManifest type, auto-detection
@@ -653,8 +733,12 @@ Phase 5 additions (infrastructure drift):
 
 ```toml
 serde_yaml = "0.9"                          # YAML parsing for docker-compose
-docker-compose-types = "0.23"               # Typed docker-compose parsing
-dockerfile-parser = "0.12"                  # Dockerfile instruction parsing
+```
+
+Phase 6 additions (doctor):
+
+```toml
+which = "8"                                 # Binary lookup in PATH
 ```
 
 Future additions as needed:
@@ -727,12 +811,21 @@ oxc_semantic = "0.123"      # Scope analysis for deeper binding resolution
 
 **Milestone:** `looper drift --fail-on-missing` gates PRs for infrastructure completeness. Cross-layer drift detection between code and infra.
 
+### Phase 6 — Runtime Health Check (`looper doctor`)
+- Doctor engine (`doctor.rs`) — check env vars set, binaries in PATH, ports reachable, hosts resolvable, files exist
+- Secret redaction for sensitive env var values
+- Optional env var handling (skip failure for vars with defaults)
+- Port direction-aware checks (connect vs listen from metadata)
+- Binary install suggestions via reverse package-to-binary mapping
+- `doctor` subcommand with `--fail-on-error` for CI, `--manifest` for pre-scanned, `--timeout` for network checks
+- Terminal output with checkmarks/crosses, JSON output
+- Exit codes: 0 = all pass, 1 = checks failed (with flag), 2 = no deps found
+
+**Milestone:** `looper doctor` verifies a development environment is fully set up. The onboarding health check.
+
 ---
 
-## Expansion Roadmap (post-v2)
-
-### `looper doctor`
-Runtime verification command that actually checks shadow deps: is the env var set? Is the binary installed? Is the port available? Is the host reachable? Turns the static manifest into a runnable health check for onboarding and debugging. The killer onboarding tool: new developer clones repo, runs `looper doctor`, fixes everything red.
+## Expansion Roadmap (post-v3)
 
 ### `looper generate`
 Auto-generate infrastructure files from scan results:

@@ -2,6 +2,7 @@ pub mod check;
 pub mod config;
 pub mod detectors;
 pub mod diff;
+pub mod doctor;
 pub mod drift;
 pub mod infra;
 pub mod output;

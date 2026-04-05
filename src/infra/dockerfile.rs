@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::path::Path;
 
 /// Package name -> binary names it provides.
-const PACKAGE_TO_BINARIES: &[(&str, &[&str])] = &[
+pub const PACKAGE_TO_BINARIES: &[(&str, &[&str])] = &[
     ("ffmpeg", &["ffmpeg", "ffprobe"]),
     ("imagemagick", &["convert", "mogrify", "identify", "composite"]),
     ("graphicsmagick", &["gm"]),
