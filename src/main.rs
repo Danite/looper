@@ -442,6 +442,15 @@ fn cmd_scan(args: ScanArgs) -> i32 {
         }
     }
 
+    // Apply config per-category ignore lists
+    if let Some(ref cfg) = config {
+        merged.retain(|dep| {
+            let cat_name = dep.category.to_string();
+            let ignored = cfg.ignored_names(&cat_name);
+            !ignored.contains(&dep.name)
+        });
+    }
+
     let has_errors = !errors.is_empty();
 
     if args.verbose && has_errors {

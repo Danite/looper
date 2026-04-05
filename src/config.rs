@@ -64,6 +64,14 @@ impl Config {
     pub fn to_json(&self) -> Result<String, serde_json::Error> {
         serde_json::to_string_pretty(self)
     }
+
+    /// Get the ignore list for a category (by its serde name like "env_var", "network").
+    pub fn ignored_names(&self, category_name: &str) -> &[String] {
+        self.categories
+            .get(category_name)
+            .map(|c| c.ignore.as_slice())
+            .unwrap_or(&[])
+    }
 }
 
 /// Load config from an explicit path or by auto-detecting looper.config.json.
