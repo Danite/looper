@@ -149,6 +149,104 @@ fn filesystem_relative_to_scan_root() {
     assert!(report.checks[0].passed);
 }
 
+// --- Port checks ---
+
+fn port_dep(name: &str, direction: &str) -> ShadowDep {
+    let mut meta = Metadata::new();
+    meta.insert("direction", json!(direction));
+    ShadowDep::new(Category::Port, name, Confidence::High, Location::new("a.ts", 6, 1))
+        .with_metadata(meta)
+}
+
+#[test]
+fn port_listen_available_passes() {
+    // Bind to port 0 to get an OS-assigned free port, then test that port
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let port = listener.local_addr().unwrap().port();
+    drop(listener);
+
+    let deps = vec![port_dep(&format!(":{port}"), "listen")];
+    let report = run_doctor(&deps, 500, Path::new("."));
+
+    assert_eq!(report.checks.len(), 1);
+    assert_eq!(report.checks[0].category, "port");
+    assert!(report.checks[0].passed, "free port should be available for listen");
+    assert_eq!(report.checks[0].detail, "available");
+}
+
+#[test]
+fn port_listen_in_use_fails() {
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let port = listener.local_addr().unwrap().port();
+    // Keep listener alive so the port is occupied
+
+    let deps = vec![port_dep(&format!(":{port}"), "listen")];
+    let report = run_doctor(&deps, 500, Path::new("."));
+
+    assert_eq!(report.checks[0].category, "port");
+    assert!(!report.checks[0].passed, "occupied port should fail listen check");
+    assert_eq!(report.checks[0].detail, "in use");
+    assert!(report.checks[0].suggestion.is_some());
+
+    drop(listener);
+}
+
+#[test]
+fn port_connect_refused() {
+    // Use a high port that's almost certainly not listening
+    let deps = vec![port_dep(":59999", "connect")];
+    let report = run_doctor(&deps, 200, Path::new("."));
+
+    assert_eq!(report.checks[0].category, "port");
+    assert!(!report.checks[0].passed, "nothing listens on 59999");
+    assert_eq!(report.checks[0].detail, "connection refused");
+    assert!(report.checks[0].suggestion.is_some());
+}
+
+#[test]
+fn port_connect_reachable() {
+    // Start a listener, then check connect
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let port = listener.local_addr().unwrap().port();
+
+    let deps = vec![port_dep(&format!(":{port}"), "connect")];
+    let report = run_doctor(&deps, 500, Path::new("."));
+
+    assert_eq!(report.checks[0].category, "port");
+    assert!(report.checks[0].passed, "should connect to listening port");
+    assert_eq!(report.checks[0].detail, "reachable");
+
+    drop(listener);
+}
+
+// --- Network checks ---
+
+fn network_dep(host: &str) -> ShadowDep {
+    ShadowDep::new(Category::Network, host, Confidence::High, Location::new("a.ts", 7, 1))
+}
+
+#[test]
+fn network_nonexistent_host_fails() {
+    let deps = vec![network_dep("this-host-should-never-exist-xyz.invalid")];
+    let report = run_doctor(&deps, 200, Path::new("."));
+
+    assert_eq!(report.checks[0].category, "network");
+    assert!(!report.checks[0].passed);
+    assert!(report.checks[0].detail.contains("DNS"));
+    assert!(report.checks[0].suggestion.is_some());
+}
+
+#[test]
+fn network_localhost_resolves() {
+    let deps = vec![network_dep("localhost")];
+    let report = run_doctor(&deps, 500, Path::new("."));
+
+    assert_eq!(report.checks[0].category, "network");
+    // localhost DNS always resolves; TCP may or may not connect on :443
+    // Either way, doctor marks it as passed (reachable or DNS resolves)
+    assert!(report.checks[0].passed, "localhost should resolve: {}", report.checks[0].detail);
+}
+
 // --- Platform skipped ---
 
 #[test]
