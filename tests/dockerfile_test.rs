@@ -155,6 +155,46 @@ fn find_and_parse_returns_empty_when_missing() {
     assert!(result.binaries.is_empty());
 }
 
+// --- JSON exec form ---
+
+#[test]
+fn parses_json_exec_form_install() {
+    let dir = TempDir::new().unwrap();
+    let path = dir.path().join("Dockerfile");
+    fs::write(&path, r#"FROM alpine
+RUN ["apt-get", "install", "-y", "curl", "git"]
+"#).unwrap();
+
+    let result = parse_dockerfile(&path).unwrap();
+    assert!(result.binaries.contains("curl"));
+    assert!(result.binaries.contains("git"));
+}
+
+#[test]
+fn parses_json_exec_form_apk() {
+    let dir = TempDir::new().unwrap();
+    let path = dir.path().join("Dockerfile");
+    fs::write(&path, r#"FROM alpine
+RUN ["apk", "add", "ffmpeg"]
+"#).unwrap();
+
+    let result = parse_dockerfile(&path).unwrap();
+    assert!(result.binaries.contains("ffmpeg"));
+    assert!(result.binaries.contains("ffprobe"));
+}
+
+#[test]
+fn json_exec_form_non_install_ignored() {
+    let dir = TempDir::new().unwrap();
+    let path = dir.path().join("Dockerfile");
+    fs::write(&path, r#"FROM node:20
+RUN ["node", "build.js"]
+"#).unwrap();
+
+    let result = parse_dockerfile(&path).unwrap();
+    assert!(!result.binaries.contains("build.js"));
+}
+
 // --- Edge cases ---
 
 #[test]

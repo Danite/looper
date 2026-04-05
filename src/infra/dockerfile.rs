@@ -139,13 +139,31 @@ fn handle_from(line: &str, result: &mut DockerfileResult) {
 }
 
 fn handle_run(line: &str, result: &mut DockerfileResult) {
-    // RUN apt-get install -y pkg1 pkg2 && apk add pkg3
-    let run_body = &line[4..]; // skip "RUN "
-    let commands: Vec<&str> = run_body.split("&&").collect();
+    let run_body = line[4..].trim(); // skip "RUN "
 
+    let shell_str = if run_body.starts_with('[') {
+        parse_exec_form(run_body)
+    } else {
+        run_body.to_string()
+    };
+
+    let commands: Vec<&str> = shell_str.split("&&").collect();
     for cmd in commands {
         let cmd = cmd.trim();
         extract_install_packages(cmd, result);
+    }
+}
+
+fn parse_exec_form(s: &str) -> String {
+    if let Ok(arr) = serde_json::from_str::<Vec<String>>(s) {
+        arr.join(" ")
+    } else {
+        let trimmed = s.trim_start_matches('[').trim_end_matches(']');
+        trimmed
+            .split(',')
+            .map(|part| part.trim().trim_matches('"').trim_matches('\''))
+            .collect::<Vec<_>>()
+            .join(" ")
     }
 }
 
