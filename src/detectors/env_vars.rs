@@ -119,6 +119,36 @@ impl EnvVarCollector<'_> {
             .with_metadata(meta),
         );
     }
+
+    fn handle_envalid_schema(&mut self, call: &CallExpression<'_>) {
+        let Some(second) = call.arguments.get(1) else {
+            return;
+        };
+        let Some(Expression::ObjectExpression(obj)) = second.as_expression() else {
+            return;
+        };
+
+        for prop in &obj.properties {
+            let oxc_ast::ast::ObjectPropertyKind::ObjectProperty(p) = prop else {
+                continue;
+            };
+            let Some(key_name) = p.key.name() else {
+                continue;
+            };
+
+            if let Some(default_val) = extract_envalid_default(&p.value) {
+                self.record_with_default(
+                    key_name.as_ref(),
+                    p.span().start,
+                    Confidence::High,
+                    "envalid",
+                    &default_val,
+                );
+            } else {
+                self.record(key_name.as_ref(), p.span().start, Confidence::High, "envalid");
+            }
+        }
+    }
 }
 
 /// Check if an expression is `process.env`.
@@ -253,6 +283,27 @@ fn is_bound_to_module(expr: &Expression<'_>, bindings: &BindingMap, module_name:
         .is_some_and(|b| b.module_source == module_name)
 }
 
+/// Extract the default value from an envalid validator call, e.g.
+/// `envalid.port({ default: 3000 })` returns `Some("3000")`.
+fn extract_envalid_default(expr: &Expression<'_>) -> Option<String> {
+    let Expression::CallExpression(call) = expr else {
+        return None;
+    };
+    let arg = call.arguments.first()?;
+    let Expression::ObjectExpression(obj) = arg.as_expression()? else {
+        return None;
+    };
+    for prop in &obj.properties {
+        let oxc_ast::ast::ObjectPropertyKind::ObjectProperty(p) = prop else {
+            continue;
+        };
+        if p.key.name().is_some_and(|k| k.as_ref() == "default") {
+            return extract_default_value(&p.value);
+        }
+    }
+    None
+}
+
 struct EnvAccess {
     name: String,
     confidence: Confidence,
@@ -373,6 +424,14 @@ impl<'a> Visit<'a> for EnvVarCollector<'a> {
                     Confidence::Medium,
                     "dotenv_config",
                 );
+            }
+
+            // envalid.cleanEnv(process.env, { KEY: envalid.str(), ... })
+            if m.property.name == "cleanEnv"
+                && (is_bound_to_module(&m.object, self.bindings, "envalid")
+                    || matches!(&m.object, Expression::Identifier(id) if id.name == "envalid"))
+            {
+                self.handle_envalid_schema(call);
             }
         }
         walk::walk_call_expression(self, call);

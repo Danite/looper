@@ -310,3 +310,80 @@ fn dotenv_not_triggered_by_random_config() {
     let deps = detect_env_vars("someLib.config();");
     assert!(deps.is_empty());
 }
+
+// --- envalid schema extraction ---
+
+#[test]
+fn envalid_cleanenv_extracts_keys() {
+    let deps = detect_env_vars_with_bindings(
+        r#"
+        import envalid from "envalid";
+        envalid.cleanEnv(process.env, {
+            DATABASE_URL: envalid.str(),
+            API_KEY: envalid.str(),
+        });
+        "#,
+    );
+    let env_names = names(&deps);
+    assert!(env_names.contains(&"DATABASE_URL"));
+    assert!(env_names.contains(&"API_KEY"));
+}
+
+#[test]
+fn envalid_cleanenv_with_defaults() {
+    let deps = detect_env_vars_with_bindings(
+        r#"
+        import envalid from "envalid";
+        envalid.cleanEnv(process.env, {
+            PORT: envalid.port({ default: 3000 }),
+            HOST: envalid.str({ default: "localhost" }),
+        });
+        "#,
+    );
+    let port = deps.iter().find(|d| d.name == "PORT").unwrap();
+    assert_eq!(port.metadata.get_bool("required"), Some(false));
+    assert_eq!(port.metadata.get_str("default_value"), Some("3000"));
+
+    let host = deps.iter().find(|d| d.name == "HOST").unwrap();
+    assert_eq!(host.metadata.get_bool("required"), Some(false));
+    assert_eq!(host.metadata.get_str("default_value"), Some("localhost"));
+}
+
+#[test]
+fn envalid_required_without_default() {
+    let deps = detect_env_vars_with_bindings(
+        r#"
+        import envalid from "envalid";
+        envalid.cleanEnv(process.env, {
+            SECRET: envalid.str(),
+        });
+        "#,
+    );
+    let secret = deps.iter().find(|d| d.name == "SECRET").unwrap();
+    assert_eq!(secret.metadata.get_bool("required"), Some(true));
+    assert_eq!(secret.metadata.get_str("source_pattern"), Some("envalid"));
+    assert_eq!(secret.confidence, Confidence::High);
+}
+
+#[test]
+fn envalid_require_cjs() {
+    let deps = detect_env_vars_with_bindings(
+        r#"
+        const envalid = require("envalid");
+        envalid.cleanEnv(process.env, {
+            DB_HOST: envalid.host(),
+        });
+        "#,
+    );
+    assert!(names(&deps).contains(&"DB_HOST"));
+}
+
+#[test]
+fn envalid_not_triggered_by_random_cleanenv() {
+    let deps = detect_env_vars("someLib.cleanEnv(process.env, { X: 1 });");
+    let envalid_deps: Vec<_> = deps
+        .iter()
+        .filter(|d| d.metadata.get_str("source_pattern") == Some("envalid"))
+        .collect();
+    assert!(envalid_deps.is_empty());
+}
