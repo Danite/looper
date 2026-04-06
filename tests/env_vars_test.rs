@@ -1,5 +1,5 @@
 use looper::detectors::{default_registry, DetectorContext};
-use looper::resolver::BindingMap;
+use looper::resolver::{resolve_bindings, BindingMap};
 use looper::types::{Category, Confidence, ShadowDep};
 use oxc_allocator::Allocator;
 use oxc_parser::Parser;
@@ -10,6 +10,25 @@ fn detect_env_vars(source: &str) -> Vec<ShadowDep> {
     let ret = Parser::new(&allocator, source, SourceType::mjs()).parse();
     let program = allocator.alloc(ret.program);
     let bindings = BindingMap::new();
+    let ctx = DetectorContext {
+        program,
+        source_text: source,
+        file_path: "test.ts",
+        bindings: &bindings,
+    };
+    let registry = default_registry();
+    registry
+        .run_all(&ctx)
+        .into_iter()
+        .filter(|d| d.category == Category::EnvVar)
+        .collect()
+}
+
+fn detect_env_vars_with_bindings(source: &str) -> Vec<ShadowDep> {
+    let allocator = Allocator::new();
+    let ret = Parser::new(&allocator, source, SourceType::mjs()).parse();
+    let program = allocator.alloc(ret.program);
+    let bindings = resolve_bindings(program);
     let ctx = DetectorContext {
         program,
         source_text: source,
@@ -240,4 +259,54 @@ fn nested_in_arrow_function() {
     let deps = detect_env_vars("const getPort = () => process.env.PORT || 3000;");
     assert_eq!(names(&deps), vec!["PORT"]);
     assert_eq!(deps[0].metadata.get_bool("required"), Some(false));
+}
+
+// --- dotenv usage flagging ---
+
+#[test]
+fn dotenv_require_config() {
+    let deps = detect_env_vars(r#"require("dotenv").config();"#);
+    assert_eq!(names(&deps), vec!["<dotenv>"]);
+    assert_eq!(deps[0].confidence, Confidence::Medium);
+    assert_eq!(
+        deps[0].metadata.get_str("source_pattern"),
+        Some("dotenv_config")
+    );
+}
+
+#[test]
+fn dotenv_import_side_effect() {
+    let deps = detect_env_vars(r#"import "dotenv/config";"#);
+    assert_eq!(names(&deps), vec!["<dotenv>"]);
+    assert_eq!(deps[0].confidence, Confidence::Medium);
+}
+
+#[test]
+fn dotenv_import_bare() {
+    let deps = detect_env_vars(r#"import "dotenv";"#);
+    assert_eq!(names(&deps), vec!["<dotenv>"]);
+}
+
+#[test]
+fn dotenv_esm_explicit() {
+    let deps = detect_env_vars_with_bindings(
+        r#"import dotenv from "dotenv";
+dotenv.config();"#,
+    );
+    assert!(names(&deps).contains(&"<dotenv>"));
+}
+
+#[test]
+fn dotenv_require_variable() {
+    let deps = detect_env_vars_with_bindings(
+        r#"const dotenv = require("dotenv");
+dotenv.config();"#,
+    );
+    assert!(names(&deps).contains(&"<dotenv>"));
+}
+
+#[test]
+fn dotenv_not_triggered_by_random_config() {
+    let deps = detect_env_vars("someLib.config();");
+    assert!(deps.is_empty());
 }

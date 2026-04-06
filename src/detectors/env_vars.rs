@@ -1,8 +1,9 @@
 use super::{Detector, DetectorContext};
+use crate::resolver::BindingMap;
 use crate::types::{Category, Confidence, Location, Metadata, ShadowDep};
 use oxc_ast::ast::{
-    ComputedMemberExpression, Expression, LogicalExpression, LogicalOperator,
-    StaticMemberExpression, VariableDeclarator,
+    Argument, CallExpression, ComputedMemberExpression, Expression, LogicalExpression,
+    LogicalOperator, Statement, StaticMemberExpression, VariableDeclarator,
 };
 use oxc_ast_visit::{walk, Visit};
 use oxc_span::GetSpan;
@@ -19,8 +20,30 @@ impl Detector for EnvVarsDetector {
         let mut collector = EnvVarCollector {
             file_path: ctx.file_path,
             source_text: ctx.source_text,
+            bindings: ctx.bindings,
             findings: Vec::new(),
         };
+
+        for stmt in &ctx.program.body {
+            if let Statement::ImportDeclaration(import) = stmt {
+                let src = import.source.value.as_str();
+                if src == "dotenv/config" || src == "dotenv" {
+                    let specifiers_empty = import
+                        .specifiers
+                        .as_ref()
+                        .is_none_or(|s| s.is_empty());
+                    if specifiers_empty {
+                        collector.record(
+                            "<dotenv>",
+                            import.span.start,
+                            Confidence::Medium,
+                            "dotenv_config",
+                        );
+                    }
+                }
+            }
+        }
+
         collector.visit_program(ctx.program);
         collector.findings
     }
@@ -29,6 +52,7 @@ impl Detector for EnvVarsDetector {
 struct EnvVarCollector<'a> {
     file_path: &'a str,
     source_text: &'a str,
+    bindings: &'a BindingMap,
     findings: Vec<ShadowDep>,
 }
 
@@ -205,6 +229,30 @@ fn extract_env_access(expr: &Expression<'_>) -> Option<EnvAccess> {
     }
 }
 
+/// Check if an expression is `require("module_name")`.
+fn is_require_of(expr: &Expression<'_>, module_name: &str) -> bool {
+    let Expression::CallExpression(call) = expr else {
+        return false;
+    };
+    let Expression::Identifier(id) = &call.callee else {
+        return false;
+    };
+    if id.name != "require" {
+        return false;
+    }
+    matches!(call.arguments.first(), Some(Argument::StringLiteral(lit)) if lit.value.as_str() == module_name)
+}
+
+/// Check if an identifier expression is bound to the given module via bindings.
+fn is_bound_to_module(expr: &Expression<'_>, bindings: &BindingMap, module_name: &str) -> bool {
+    let Expression::Identifier(id) = expr else {
+        return false;
+    };
+    bindings
+        .get(id.name.as_str())
+        .is_some_and(|b| b.module_source == module_name)
+}
+
 struct EnvAccess {
     name: String,
     confidence: Confidence,
@@ -300,13 +348,11 @@ impl<'a> Visit<'a> for EnvVarCollector<'a> {
         walk::walk_variable_declarator(self, decl);
     }
 
-    fn visit_call_expression(&mut self, call: &oxc_ast::ast::CallExpression<'a>) {
-        // Deno.env.get("VAR")
+    fn visit_call_expression(&mut self, call: &CallExpression<'a>) {
         if let Expression::StaticMemberExpression(m) = &call.callee {
+            // Deno.env.get("VAR")
             if m.property.name == "get" && is_deno_env(&m.object) {
-                if let Some(oxc_ast::ast::Argument::StringLiteral(lit)) =
-                    call.arguments.first()
-                {
+                if let Some(Argument::StringLiteral(lit)) = call.arguments.first() {
                     self.record(
                         lit.value.as_str(),
                         call.span().start,
@@ -314,6 +360,19 @@ impl<'a> Visit<'a> for EnvVarCollector<'a> {
                         "deno_env",
                     );
                 }
+            }
+
+            // require("dotenv").config() or dotenv.config()
+            if m.property.name == "config"
+                && (is_require_of(&m.object, "dotenv")
+                    || is_bound_to_module(&m.object, self.bindings, "dotenv"))
+            {
+                self.record(
+                    "<dotenv>",
+                    call.span().start,
+                    Confidence::Medium,
+                    "dotenv_config",
+                );
             }
         }
         walk::walk_call_expression(self, call);
