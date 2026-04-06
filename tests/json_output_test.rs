@@ -56,7 +56,7 @@ fn json_output_is_valid() {
     let parsed: serde_json::Value = serde_json::from_str(&json_str).unwrap();
 
     assert_eq!(parsed["schema_version"], "1");
-    assert_eq!(parsed["tool_version"], "0.1.0");
+    assert_eq!(parsed["tool_version"], env!("CARGO_PKG_VERSION"));
     assert_eq!(parsed["root"], ".");
     assert_eq!(parsed["files_scanned"], 142);
     assert_eq!(parsed["scan_duration_ms"], 48);
@@ -87,8 +87,8 @@ fn json_output_snapshot() {
     let json_str = format_json(&manifest).unwrap();
     let mut parsed: serde_json::Value = serde_json::from_str(&json_str).unwrap();
 
-    // Redact dynamic field for stable snapshots
     parsed["scanned_at"] = serde_json::Value::String("[timestamp]".into());
+    parsed["tool_version"] = serde_json::Value::String("[version]".into());
 
     insta::assert_json_snapshot!("json_manifest", parsed);
 }

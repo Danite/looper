@@ -30,7 +30,7 @@ looper v0.1.0 — scanned 142 files in 48ms
 ## Install
 
 ```bash
-cargo install looper
+cargo install looper-cli
 ```
 
 ## What It Finds
@@ -77,7 +77,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: cargo install looper
+      - run: cargo install looper-cli
       - run: looper check
       - run: looper drift --fail-on-missing
 ```

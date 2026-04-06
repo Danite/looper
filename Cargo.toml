@@ -1,6 +1,6 @@
 [package]
-name = "looper"
-version = "0.1.0"
+name = "looper-cli"
+version = "0.0.1"
 edition = "2021"
 description = "Static analysis tool that discovers implicit shadow dependencies in JavaScript/TypeScript codebases"
 license = "MIT"
@@ -10,6 +10,10 @@ homepage = "https://github.com/Danite/looper"
 readme = "README.md"
 keywords = ["static-analysis", "shadow-dependencies", "javascript", "typescript", "devops"]
 categories = ["command-line-utilities", "development-tools"]
+exclude = [".beads/", ".cursor/", ".github/", "sandbox/", "working/"]
+
+[lib]
+name = "looper"
 
 [[bin]]
 name = "looper"
