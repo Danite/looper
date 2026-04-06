@@ -1,6 +1,7 @@
 pub mod compose;
 pub mod dockerfile;
 pub mod envfile;
+pub mod prisma;
 
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
@@ -166,6 +167,16 @@ pub fn build_infra_manifest(project_root: &Path) -> InfraManifest {
 
     manifest.volumes.extend(docker_result.copy_sources);
 
+    // 4. Parse Prisma schema
+    let prisma_result = prisma::find_and_parse_prisma(project_root);
+    if let Some(ref prisma_source) = prisma_result.source_file {
+        for (name, entry) in &prisma_result.entries {
+            manifest.env_vars.entry(name.clone()).or_insert_with(|| {
+                format!("{prisma_source} line {}", entry.line)
+            });
+        }
+    }
+
     manifest
 }
 
@@ -193,6 +204,8 @@ pub fn has_infra_files(project_root: &Path) -> bool {
         "compose.yaml",
         "Dockerfile",
         "dockerfile",
+        "prisma/schema.prisma",
+        "schema.prisma",
     ];
     candidates.iter().any(|f| project_root.join(f).exists())
 }
