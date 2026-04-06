@@ -86,16 +86,18 @@ function render() {
   tbody.innerHTML = rows.map(d => {
     const loc = d.locations[0]||{};
     return `<tr>
-      <td class="clickable" onclick="copy('${d.name.replace(/'/g,"\\'")}')">${esc(d.name)}</td>
-      <td><span class="cat-badge">${d.category}</span></td>
-      <td class="conf-${d.confidence}">${d.confidence}</td>
-      <td class="clickable" onclick="copy('${(loc.file||'').replace(/'/g,"\\'")}')">${esc(loc.file||'')}</td>
+      <td class="clickable" data-copy="${escAttr(d.name)}">${esc(d.name)}</td>
+      <td><span class="cat-badge">${esc(d.category)}</span></td>
+      <td class="conf-${esc(d.confidence)}">${esc(d.confidence)}</td>
+      <td class="clickable" data-copy="${escAttr(loc.file||'')}">${esc(loc.file||'')}</td>
       <td>${loc.line||''}</td>
     </tr>`;
   }).join('');
 }
 function esc(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+function escAttr(s) { return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function copy(t) { navigator.clipboard.writeText(t); const toast=document.getElementById('toast'); toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),1500); }
+document.getElementById('tbody').addEventListener('click', e => { const td=e.target.closest('[data-copy]'); if(td) copy(td.dataset.copy); });
 document.querySelectorAll('th').forEach(th => th.addEventListener('click', () => { const c=th.dataset.col; if(sortCol===c) sortDir*=-1; else { sortCol=c; sortDir=1; } render(); }));
 filterCat.addEventListener('change', render);
 document.getElementById('filterConf').addEventListener('change', render);

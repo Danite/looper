@@ -8,7 +8,13 @@ rust-version = "1.92.0"
 repository = "https://github.com/Danite/looper"
 homepage = "https://github.com/Danite/looper"
 readme = "README.md"
-keywords = ["static-analysis", "shadow-dependencies", "javascript", "typescript", "devops"]
+keywords = [
+    "static-analysis",
+    "shadow-dependencies",
+    "javascript",
+    "typescript",
+    "devops",
+]
 categories = ["command-line-utilities", "development-tools"]
 exclude = [".beads/", ".cursor/", ".github/", "sandbox/", "working/"]
 
@@ -28,13 +34,16 @@ oxc_allocator = "0.123"
 clap = { version = "4", features = ["derive"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
+chrono = { version = "0.4", default-features = false, features = [
+    "clock",
+    "serde",
+] }
 ignore = "0.4"
 colored = "2"
 rayon = "1.10"
 url = "2"
 regex = "1"
-serde_yaml = "0.9"
+serde_yaml_ng = "0.10"
 which = "8"
 xxhash-rust = { version = "0.8", features = ["xxh3"] }
 

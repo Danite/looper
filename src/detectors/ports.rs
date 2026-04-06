@@ -228,10 +228,18 @@ impl PortCollector<'_> {
     }
 }
 
+fn f64_to_port(v: f64) -> Option<u16> {
+    if (1.0..=65535.0).contains(&v) && v.fract() == 0.0 {
+        Some(v as u16)
+    } else {
+        None
+    }
+}
+
 fn extract_port_from_first_arg(call: &CallExpression<'_>) -> Option<u16> {
     let arg = call.arguments.first()?;
     match arg {
-        Argument::NumericLiteral(lit) => Some(lit.value as u16),
+        Argument::NumericLiteral(lit) => f64_to_port(lit.value),
         _ => {
             let expr = arg.as_expression()?;
             extract_port_from_logical_expr(expr)
@@ -242,14 +250,14 @@ fn extract_port_from_first_arg(call: &CallExpression<'_>) -> Option<u16> {
 fn extract_port_from_logical_expr(expr: &Expression<'_>) -> Option<u16> {
     if let Expression::LogicalExpression(logical) = expr {
         if let Expression::NumericLiteral(lit) = &logical.right {
-            return Some(lit.value as u16);
+            return f64_to_port(lit.value);
         }
         if let Expression::NumericLiteral(lit) = &logical.left {
-            return Some(lit.value as u16);
+            return f64_to_port(lit.value);
         }
     }
     if let Expression::NumericLiteral(lit) = expr {
-        return Some(lit.value as u16);
+        return f64_to_port(lit.value);
     }
     None
 }
@@ -270,7 +278,7 @@ fn extract_port_from_options_arg(call: &CallExpression<'_>) -> Option<u16> {
         };
         if key_name == "port" {
             if let Expression::NumericLiteral(lit) = &p.value {
-                return Some(lit.value as u16);
+                return f64_to_port(lit.value);
             }
         }
     }
