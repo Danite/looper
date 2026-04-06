@@ -137,8 +137,7 @@ fn sarif_snapshot() {
     let sarif_str = format_sarif(&manifest).unwrap();
     let mut parsed: serde_json::Value = serde_json::from_str(&sarif_str).unwrap();
 
-    parsed["runs"][0]["tool"]["driver"]["version"] =
-        serde_json::Value::String("[version]".into());
+    parsed["runs"][0]["tool"]["driver"]["version"] = serde_json::Value::String("[version]".into());
     insta::assert_json_snapshot!("sarif_output", parsed);
 }
 
