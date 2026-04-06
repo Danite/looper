@@ -131,9 +131,9 @@ pub(crate) struct CheckArgs {
     #[arg(short, long)]
     pub manifest: Option<PathBuf>,
 
-    /// Exit 1 if new undeclared deps found (default)
-    #[arg(long, default_value_t = true)]
-    pub fail_on_new: bool,
+    /// Don't exit 1 on new undeclared deps (default: fail on new)
+    #[arg(long)]
+    pub no_fail_on_new: bool,
 
     /// Also exit 1 if declared deps are no longer found
     #[arg(long)]

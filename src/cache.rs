@@ -48,10 +48,18 @@ pub fn save_cache(project_root: &Path, cache: &ScanCache) {
     let cache_path = project_root.join(CACHE_FILENAME);
     let tmp_path = cache_path.with_extension("tmp");
 
-    let Ok(content) = serde_json::to_string(cache) else {
-        return;
+    let content = match serde_json::to_string(cache) {
+        Ok(c) => c,
+        Err(e) => {
+            eprintln!("  warning: failed to serialize cache: {e}");
+            return;
+        }
     };
-    if std::fs::write(&tmp_path, &content).is_ok() {
-        let _ = std::fs::rename(&tmp_path, &cache_path);
+    if let Err(e) = std::fs::write(&tmp_path, &content) {
+        eprintln!("  warning: failed to write cache: {e}");
+        return;
+    }
+    if let Err(e) = std::fs::rename(&tmp_path, &cache_path) {
+        eprintln!("  warning: failed to save cache: {e}");
     }
 }

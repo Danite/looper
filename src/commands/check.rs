@@ -66,7 +66,7 @@ pub(crate) fn cmd_check(args: CheckArgs) -> i32 {
     let result = looper::check::check_against_manifest(&scan.deps, &manifest);
     looper::check::print_check_report(&result);
 
-    if !result.added.is_empty() && args.fail_on_new {
+    if !result.added.is_empty() && !args.no_fail_on_new {
         return 1;
     }
     if !result.removed.is_empty() && args.fail_on_removed {
