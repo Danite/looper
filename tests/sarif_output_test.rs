@@ -56,7 +56,7 @@ fn sarif_has_tool_info() {
 
     let driver = &parsed["runs"][0]["tool"]["driver"];
     assert_eq!(driver["name"], "looper");
-    assert_eq!(driver["version"], "0.1.0");
+    assert_eq!(driver["version"], env!("CARGO_PKG_VERSION"));
 }
 
 #[test]
@@ -137,7 +137,10 @@ fn sarif_snapshot() {
     let sarif_str = format_sarif(&manifest).unwrap();
     let parsed: serde_json::Value = serde_json::from_str(&sarif_str).unwrap();
 
-    insta::assert_json_snapshot!("sarif_output", parsed);
+    let mut redacted = parsed.clone();
+    redacted["runs"][0]["tool"]["driver"]["version"] =
+        serde_json::Value::String("[version]".into());
+    insta::assert_json_snapshot!("sarif_output", redacted);
 }
 
 #[test]

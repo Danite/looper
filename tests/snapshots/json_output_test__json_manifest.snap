@@ -62,5 +62,5 @@ expression: parsed
   "scan_duration_ms": 48,
   "scanned_at": "[timestamp]",
   "schema_version": "1",
-  "tool_version": "0.1.0"
+  "tool_version": "[version]"
 }
