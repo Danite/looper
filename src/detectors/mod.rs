@@ -7,7 +7,48 @@ pub mod shell;
 
 use crate::resolver::BindingMap;
 use crate::types::ShadowDep;
-use oxc_ast::ast::Program;
+use oxc_ast::ast::{Argument, Expression, Program, TemplateLiteral};
+
+pub struct StringOrTemplate {
+    pub value: String,
+    pub has_expressions: bool,
+}
+
+pub fn extract_string_or_template_arg(arg: &Argument<'_>) -> Option<StringOrTemplate> {
+    match arg {
+        Argument::StringLiteral(lit) => Some(StringOrTemplate {
+            value: lit.value.to_string(),
+            has_expressions: false,
+        }),
+        _ => {
+            let expr = arg.as_expression()?;
+            extract_string_or_template_expr(expr)
+        }
+    }
+}
+
+pub fn extract_string_or_template_expr(expr: &Expression<'_>) -> Option<StringOrTemplate> {
+    match expr {
+        Expression::StringLiteral(lit) => Some(StringOrTemplate {
+            value: lit.value.to_string(),
+            has_expressions: false,
+        }),
+        Expression::TemplateLiteral(tpl) => template_to_pattern(tpl),
+        _ => None,
+    }
+}
+
+fn template_to_pattern(tpl: &TemplateLiteral<'_>) -> Option<StringOrTemplate> {
+    let quasis: Vec<&str> = tpl.quasis.iter().map(|q| q.value.raw.as_str()).collect();
+    let joined = quasis.join("*");
+    if joined.is_empty() || joined == "*" {
+        return None;
+    }
+    Some(StringOrTemplate {
+        value: joined,
+        has_expressions: !tpl.expressions.is_empty(),
+    })
+}
 
 /// Context passed to each detector for a single file.
 pub struct DetectorContext<'a> {
