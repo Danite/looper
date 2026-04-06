@@ -36,8 +36,16 @@ pub(crate) fn cmd_generate(args: GenerateArgs) -> i32 {
         return 2;
     }
 
-    if let Some(min) = looper::types::Confidence::parse(&args.min_confidence) {
-        deps.retain(|d| d.confidence >= min);
+    match looper::types::Confidence::parse(&args.min_confidence) {
+        Some(min) => deps.retain(|d| d.confidence >= min),
+        None => {
+            eprintln!(
+                "{} invalid --min-confidence '{}'. Valid values: low, medium, high",
+                "error:".red(),
+                args.min_confidence
+            );
+            return 1;
+        }
     }
     deps.retain(|d| d.name != "<dynamic>");
 
