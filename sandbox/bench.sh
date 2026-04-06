@@ -103,7 +103,7 @@ validate_project() {
 
 is_tag_ref() {
   local ref="$1"
-  [[ "$ref" =~ ^v[0-9] ]] || [[ "$ref" =~ ^[0-9]+\.[0-9]+ ]]
+  [[ "$ref" =~ ^v[0-9] ]] || [[ "$ref" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]
 }
 
 # --- Subcommands ------------------------------------------------------
@@ -188,8 +188,11 @@ cmd_scan() {
         ok "$name: $count findings (scan had warnings) -> results/$name.json"
       else
         err "$name: scan failed"
-        cat "$stderr_tmp" >&2
       fi
+    fi
+    if [[ -s "$stderr_tmp" ]]; then
+      warn "$name: scan produced warnings (see below)"
+      cat "$stderr_tmp" >&2
     fi
     rm -f "$stderr_tmp"
   done
@@ -238,7 +241,7 @@ cmd_compare() {
     added=$(echo "$diff_json" | jq '.added | length')
     removed=$(echo "$diff_json" | jq '.removed | length')
     changed=$(echo "$diff_json" | jq '.changed | length')
-    local matched=$((approved_count - removed - changed))
+    local matched=$(( (approved_count - removed - changed) > 0 ? approved_count - removed - changed : 0 ))
 
     printf "  Approved findings:  %s\n" "$approved_count"
     printf "  Detected findings:  %s\n" "$detected"
@@ -411,7 +414,7 @@ cmd_report() {
       added=$(echo "$diff_json" | jq '.added | length' 2>/dev/null || echo 0)
       removed=$(echo "$diff_json" | jq '.removed | length' 2>/dev/null || echo 0)
       changed=$(echo "$diff_json" | jq '.changed | length' 2>/dev/null || echo 0)
-      matched=$((approved_count - removed - changed))
+      matched=$(( (approved_count - removed - changed) > 0 ? approved_count - removed - changed : 0 ))
       total_regressions=$((total_regressions + removed))
 
       echo "| Metric | Count |"
