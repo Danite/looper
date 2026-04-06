@@ -14,10 +14,14 @@ pub(crate) fn cmd_doctor(args: DoctorArgs) -> i32 {
             }
         }
     } else {
-        let scan_paths = args
-            .scan_paths
-            .unwrap_or_else(|| vec![PathBuf::from(".")]);
-        match run_scan(&scan_paths, false, Vec::new(), args.verbose, args.config.as_deref()) {
+        let scan_paths = args.scan_paths.unwrap_or_else(|| vec![PathBuf::from(".")]);
+        match run_scan(
+            &scan_paths,
+            false,
+            Vec::new(),
+            args.verbose,
+            args.config.as_deref(),
+        ) {
             Ok(s) => {
                 log_scan_errors(&s.errors, args.verbose);
                 s.deps

@@ -11,26 +11,72 @@ struct ServiceTemplate {
 }
 
 const PROTOCOL_TO_SERVICE: &[ServiceTemplate] = &[
-    ServiceTemplate { protocol: "redis", name: "redis", image: "redis:7", port: 6379, env_vars: &[] },
-    ServiceTemplate { protocol: "postgres", name: "db", image: "postgres:16", port: 5432, env_vars: &[
-        ("POSTGRES_PASSWORD", "postgres"),
-        ("POSTGRES_DB", "app"),
-    ]},
-    ServiceTemplate { protocol: "mongodb", name: "mongo", image: "mongo:7", port: 27017, env_vars: &[] },
-    ServiceTemplate { protocol: "mysql", name: "mysql", image: "mysql:8", port: 3306, env_vars: &[
-        ("MYSQL_ROOT_PASSWORD", "mysql"),
-        ("MYSQL_DATABASE", "app"),
-    ]},
-    ServiceTemplate { protocol: "amqp", name: "rabbitmq", image: "rabbitmq:3-management", port: 5672, env_vars: &[] },
-    ServiceTemplate { protocol: "nats", name: "nats", image: "nats:2", port: 4222, env_vars: &[] },
-    ServiceTemplate { protocol: "memcached", name: "memcached", image: "memcached:1", port: 11211, env_vars: &[] },
-    ServiceTemplate { protocol: "elasticsearch", name: "elasticsearch", image: "elasticsearch:8", port: 9200, env_vars: &[
-        ("discovery.type", "single-node"),
-    ]},
-    ServiceTemplate { protocol: "s3", name: "minio", image: "minio/minio:latest", port: 9000, env_vars: &[
-        ("MINIO_ROOT_USER", "minioadmin"),
-        ("MINIO_ROOT_PASSWORD", "minioadmin"),
-    ]},
+    ServiceTemplate {
+        protocol: "redis",
+        name: "redis",
+        image: "redis:7",
+        port: 6379,
+        env_vars: &[],
+    },
+    ServiceTemplate {
+        protocol: "postgres",
+        name: "db",
+        image: "postgres:16",
+        port: 5432,
+        env_vars: &[("POSTGRES_PASSWORD", "postgres"), ("POSTGRES_DB", "app")],
+    },
+    ServiceTemplate {
+        protocol: "mongodb",
+        name: "mongo",
+        image: "mongo:7",
+        port: 27017,
+        env_vars: &[],
+    },
+    ServiceTemplate {
+        protocol: "mysql",
+        name: "mysql",
+        image: "mysql:8",
+        port: 3306,
+        env_vars: &[("MYSQL_ROOT_PASSWORD", "mysql"), ("MYSQL_DATABASE", "app")],
+    },
+    ServiceTemplate {
+        protocol: "amqp",
+        name: "rabbitmq",
+        image: "rabbitmq:3-management",
+        port: 5672,
+        env_vars: &[],
+    },
+    ServiceTemplate {
+        protocol: "nats",
+        name: "nats",
+        image: "nats:2",
+        port: 4222,
+        env_vars: &[],
+    },
+    ServiceTemplate {
+        protocol: "memcached",
+        name: "memcached",
+        image: "memcached:1",
+        port: 11211,
+        env_vars: &[],
+    },
+    ServiceTemplate {
+        protocol: "elasticsearch",
+        name: "elasticsearch",
+        image: "elasticsearch:8",
+        port: 9200,
+        env_vars: &[("discovery.type", "single-node")],
+    },
+    ServiceTemplate {
+        protocol: "s3",
+        name: "minio",
+        image: "minio/minio:latest",
+        port: 9000,
+        env_vars: &[
+            ("MINIO_ROOT_USER", "minioadmin"),
+            ("MINIO_ROOT_PASSWORD", "minioadmin"),
+        ],
+    },
 ];
 
 struct ComposeService {
@@ -136,7 +182,11 @@ fn lookup_service(protocol_hint: &str) -> Option<ComposeService> {
                 name: tmpl.name.to_string(),
                 image: tmpl.image.to_string(),
                 port: tmpl.port,
-                env_vars: tmpl.env_vars.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect(),
+                env_vars: tmpl
+                    .env_vars
+                    .iter()
+                    .map(|(k, v)| (k.to_string(), v.to_string()))
+                    .collect(),
             });
         }
     }

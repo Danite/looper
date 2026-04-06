@@ -119,7 +119,10 @@ fn deduplicates_packages() {
     let deps = vec![binary_dep("ffmpeg"), binary_dep("ffprobe")];
     let result = generate_dockerfile(&deps, tmp.path());
     let count = result.matches("ffmpeg").count();
-    assert_eq!(count, 1, "ffmpeg and ffprobe both resolve to ffmpeg package");
+    assert_eq!(
+        count, 1,
+        "ffmpeg and ffprobe both resolve to ffmpeg package"
+    );
 }
 
 #[test]

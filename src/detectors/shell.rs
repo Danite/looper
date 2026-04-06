@@ -6,10 +6,7 @@ use oxc_ast_visit::{walk, Visit};
 use oxc_span::GetSpan;
 use serde_json::json;
 
-const CP_MODULES: &[&str] = &[
-    "child_process",
-    "node:child_process",
-];
+const CP_MODULES: &[&str] = &["child_process", "node:child_process"];
 const EXEC_METHODS: &[&str] = &["exec", "execSync"];
 const SPAWN_METHODS: &[&str] = &["spawn", "spawnSync", "execFile", "execFileSync"];
 const EXECA_MODULES: &[&str] = &["execa"];

@@ -27,11 +27,7 @@ fn discovers_js_and_ts_files() {
         "lib/legacy.cts",
     ]);
 
-    let result = discover_files(
-        &[dir.path().to_path_buf()],
-        &WalkOptions::default(),
-    )
-    .unwrap();
+    let result = discover_files(&[dir.path().to_path_buf()], &WalkOptions::default()).unwrap();
 
     assert_eq!(result.files.len(), 8);
 }
@@ -47,11 +43,7 @@ fn ignores_non_js_ts_files() {
         "data.json",
     ]);
 
-    let result = discover_files(
-        &[dir.path().to_path_buf()],
-        &WalkOptions::default(),
-    )
-    .unwrap();
+    let result = discover_files(&[dir.path().to_path_buf()], &WalkOptions::default()).unwrap();
 
     assert_eq!(result.files.len(), 1);
     assert!(result.files[0].ends_with("index.ts"));
@@ -70,11 +62,7 @@ fn respects_gitignore() {
     // Need a git repo for .gitignore to take effect
     fs::create_dir_all(dir.path().join(".git")).unwrap();
 
-    let result = discover_files(
-        &[dir.path().to_path_buf()],
-        &WalkOptions::default(),
-    )
-    .unwrap();
+    let result = discover_files(&[dir.path().to_path_buf()], &WalkOptions::default()).unwrap();
 
     assert_eq!(result.files.len(), 1);
     assert!(result.files[0].ends_with("index.ts"));
@@ -82,10 +70,7 @@ fn respects_gitignore() {
 
 #[test]
 fn no_gitignore_flag_includes_ignored_files() {
-    let dir = setup_project(&[
-        "src/index.ts",
-        "generated/output.js",
-    ]);
+    let dir = setup_project(&["src/index.ts", "generated/output.js"]);
 
     fs::write(dir.path().join(".gitignore"), "generated/\n").unwrap();
     fs::create_dir_all(dir.path().join(".git")).unwrap();
@@ -118,7 +103,11 @@ fn no_gitignore_still_excludes_default_dirs() {
 
     let result = discover_files(&[dir.path().to_path_buf()], &opts).unwrap();
 
-    assert_eq!(result.files.len(), 1, "default excludes should still apply with --no-gitignore");
+    assert_eq!(
+        result.files.len(),
+        1,
+        "default excludes should still apply with --no-gitignore"
+    );
     assert!(result.files[0].ends_with("index.ts"));
 }
 
@@ -137,7 +126,11 @@ fn no_default_excludes_includes_default_dirs() {
 
     let result = discover_files(&[dir.path().to_path_buf()], &opts).unwrap();
 
-    assert_eq!(result.files.len(), 3, "all files should be found with --no-default-excludes");
+    assert_eq!(
+        result.files.len(),
+        3,
+        "all files should be found with --no-default-excludes"
+    );
 }
 
 #[test]
@@ -150,10 +143,7 @@ fn extra_ignore_patterns() {
     ]);
 
     let opts = WalkOptions {
-        extra_ignore_patterns: vec![
-            "*.test.ts".into(),
-            "*.spec.ts".into(),
-        ],
+        extra_ignore_patterns: vec!["*.test.ts".into(), "*.spec.ts".into()],
         ..Default::default()
     };
 
@@ -171,17 +161,10 @@ fn extra_ignore_patterns() {
 
 #[test]
 fn multiple_root_paths() {
-    let dir = setup_project(&[
-        "src/app.ts",
-        "lib/utils.ts",
-        "scripts/build.js",
-    ]);
+    let dir = setup_project(&["src/app.ts", "lib/utils.ts", "scripts/build.js"]);
 
     let result = discover_files(
-        &[
-            dir.path().join("src"),
-            dir.path().join("lib"),
-        ],
+        &[dir.path().join("src"), dir.path().join("lib")],
         &WalkOptions::default(),
     )
     .unwrap();
@@ -199,15 +182,9 @@ fn multiple_root_paths() {
 
 #[test]
 fn returns_error_when_no_files_found() {
-    let dir = setup_project(&[
-        "README.md",
-        "Cargo.toml",
-    ]);
+    let dir = setup_project(&["README.md", "Cargo.toml"]);
 
-    let result = discover_files(
-        &[dir.path().to_path_buf()],
-        &WalkOptions::default(),
-    );
+    let result = discover_files(&[dir.path().to_path_buf()], &WalkOptions::default());
 
     assert!(result.is_err());
     assert!(matches!(result.unwrap_err(), WalkError::NoFilesFound));
@@ -219,11 +196,7 @@ fn skips_empty_files() {
     fs::write(dir.path().join("empty.ts"), "").unwrap();
     fs::write(dir.path().join("real.ts"), "const x = 1;").unwrap();
 
-    let result = discover_files(
-        &[dir.path().to_path_buf()],
-        &WalkOptions::default(),
-    )
-    .unwrap();
+    let result = discover_files(&[dir.path().to_path_buf()], &WalkOptions::default()).unwrap();
 
     // Walker finds both files (filtering empty is done at parse time),
     // but it should at least not crash
@@ -237,11 +210,7 @@ fn skips_directories_with_js_like_names() {
     fs::create_dir_all(dir.path().join("something.ts")).unwrap();
     fs::write(dir.path().join("real.ts"), "const x = 1;").unwrap();
 
-    let result = discover_files(
-        &[dir.path().to_path_buf()],
-        &WalkOptions::default(),
-    )
-    .unwrap();
+    let result = discover_files(&[dir.path().to_path_buf()], &WalkOptions::default()).unwrap();
 
     assert_eq!(result.files.len(), 1);
     assert!(result.files[0].ends_with("real.ts"));
@@ -249,18 +218,9 @@ fn skips_directories_with_js_like_names() {
 
 #[test]
 fn results_are_sorted() {
-    let dir = setup_project(&[
-        "z.ts",
-        "a.ts",
-        "m/b.ts",
-        "m/a.ts",
-    ]);
+    let dir = setup_project(&["z.ts", "a.ts", "m/b.ts", "m/a.ts"]);
 
-    let result = discover_files(
-        &[dir.path().to_path_buf()],
-        &WalkOptions::default(),
-    )
-    .unwrap();
+    let result = discover_files(&[dir.path().to_path_buf()], &WalkOptions::default()).unwrap();
 
     let sorted = result.files.clone();
     let mut expected = sorted.clone();
@@ -286,11 +246,7 @@ fn follows_symlinks() {
     #[cfg(windows)]
     std::os::windows::fs::symlink_dir(&real_dir, dir.path().join("linked")).unwrap();
 
-    let result = discover_files(
-        &[dir.path().to_path_buf()],
-        &WalkOptions::default(),
-    )
-    .unwrap();
+    let result = discover_files(&[dir.path().to_path_buf()], &WalkOptions::default()).unwrap();
 
     let names: Vec<String> = result
         .files
@@ -299,8 +255,14 @@ fn follows_symlinks() {
         .collect();
 
     let has_linked = names.iter().any(|n| n.contains("linked"));
-    assert!(has_linked, "symlinked directory should be followed: {names:?}");
-    assert!(result.files.len() >= 2, "should find file via both real and linked paths");
+    assert!(
+        has_linked,
+        "symlinked directory should be followed: {names:?}"
+    );
+    assert!(
+        result.files.len() >= 2,
+        "should find file via both real and linked paths"
+    );
 }
 
 #[test]
@@ -314,10 +276,7 @@ fn symlink_cycle_does_not_hang() {
         std::os::unix::fs::symlink(dir.path(), &a).unwrap();
     }
 
-    let result = discover_files(
-        &[dir.path().to_path_buf()],
-        &WalkOptions::default(),
-    );
+    let result = discover_files(&[dir.path().to_path_buf()], &WalkOptions::default());
 
     // The walker should finish (not hang) and either succeed or report errors.
     // The `ignore` crate detects symlink cycles and avoids infinite loops.
@@ -330,13 +289,13 @@ fn binary_file_with_js_extension_does_not_crash() {
     let dir = TempDir::new().unwrap();
     fs::write(dir.path().join("valid.ts"), "const x = 1;").unwrap();
     // Write non-UTF-8 bytes with a .js extension
-    fs::write(dir.path().join("binary.js"), &[0xFF, 0xFE, 0x00, 0xD8, 0x80, 0x00]).unwrap();
-
-    let result = discover_files(
-        &[dir.path().to_path_buf()],
-        &WalkOptions::default(),
+    fs::write(
+        dir.path().join("binary.js"),
+        &[0xFF, 0xFE, 0x00, 0xD8, 0x80, 0x00],
     )
     .unwrap();
+
+    let result = discover_files(&[dir.path().to_path_buf()], &WalkOptions::default()).unwrap();
 
     // Walker discovers both files (it doesn't inspect content)
     assert_eq!(result.files.len(), 2);
@@ -354,11 +313,7 @@ fn permission_denied_file_does_not_crash() {
     fs::write(&denied_path, "const s = 1;").unwrap();
     fs::set_permissions(&denied_path, fs::Permissions::from_mode(0o000)).unwrap();
 
-    let result = discover_files(
-        &[dir.path().to_path_buf()],
-        &WalkOptions::default(),
-    )
-    .unwrap();
+    let result = discover_files(&[dir.path().to_path_buf()], &WalkOptions::default()).unwrap();
 
     // Walker finds both files (permissions are checked at read time, not walk time)
     assert!(result.files.len() >= 1);
@@ -380,16 +335,15 @@ fn permission_denied_directory_reports_error() {
     fs::write(denied_dir.join("hidden.ts"), "const h = 1;").unwrap();
     fs::set_permissions(&denied_dir, fs::Permissions::from_mode(0o000)).unwrap();
 
-    let result = discover_files(
-        &[dir.path().to_path_buf()],
-        &WalkOptions::default(),
-    )
-    .unwrap();
+    let result = discover_files(&[dir.path().to_path_buf()], &WalkOptions::default()).unwrap();
 
     // Should still find the root-level file
     assert!(result.files.iter().any(|p| p.ends_with("root.ts")));
     // Should report the permission error
-    assert!(!result.errors.is_empty(), "should report walk error for locked dir");
+    assert!(
+        !result.errors.is_empty(),
+        "should report walk error for locked dir"
+    );
 
     // Restore permissions so TempDir cleanup succeeds
     fs::set_permissions(&denied_dir, fs::Permissions::from_mode(0o755)).unwrap();
@@ -406,13 +360,13 @@ fn unicode_directory_names() {
     fs::create_dir_all(&latin_dir).unwrap();
     fs::write(latin_dir.join("utils.js"), "const y = 2;").unwrap();
 
-    let result = discover_files(
-        &[dir.path().to_path_buf()],
-        &WalkOptions::default(),
-    )
-    .unwrap();
+    let result = discover_files(&[dir.path().to_path_buf()], &WalkOptions::default()).unwrap();
 
-    assert_eq!(result.files.len(), 2, "should discover files in Unicode-named directories");
+    assert_eq!(
+        result.files.len(),
+        2,
+        "should discover files in Unicode-named directories"
+    );
 }
 
 #[test]
@@ -423,11 +377,7 @@ fn unicode_dir_not_matched_by_default_excludes() {
     fs::create_dir_all(&unicode_dir).unwrap();
     fs::write(unicode_dir.join("index.ts"), "const x = 1;").unwrap();
 
-    let result = discover_files(
-        &[dir.path().to_path_buf()],
-        &WalkOptions::default(),
-    )
-    .unwrap();
+    let result = discover_files(&[dir.path().to_path_buf()], &WalkOptions::default()).unwrap();
 
     assert_eq!(result.files.len(), 1);
 }

@@ -103,8 +103,16 @@ fn find_and_parse_returns_empty_when_no_files() {
 #[test]
 fn find_and_parse_env_local_overrides_env() {
     let dir = TempDir::new().unwrap();
-    fs::write(dir.path().join(".env"), "API_URL=https://prod.api.com\nSHARED=base\n").unwrap();
-    fs::write(dir.path().join(".env.local"), "API_URL=http://localhost:3000\nLOCAL_ONLY=true\n").unwrap();
+    fs::write(
+        dir.path().join(".env"),
+        "API_URL=https://prod.api.com\nSHARED=base\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.path().join(".env.local"),
+        "API_URL=http://localhost:3000\nLOCAL_ONLY=true\n",
+    )
+    .unwrap();
 
     let result = find_and_parse_env(dir.path(), &mut Vec::new());
     let names = result.var_names();
@@ -114,7 +122,11 @@ fn find_and_parse_env_local_overrides_env() {
     assert!(names.contains("LOCAL_ONLY"));
     // .env.local has higher priority — its source should win for API_URL
     let api_entry = &result.entries["API_URL"];
-    assert!(api_entry.source_file.contains(".env.local"), "API_URL should come from .env.local: {}", api_entry.source_file);
+    assert!(
+        api_entry.source_file.contains(".env.local"),
+        "API_URL should come from .env.local: {}",
+        api_entry.source_file
+    );
 }
 
 #[test]
@@ -127,9 +139,16 @@ fn find_and_parse_development_env() {
     let names = result.var_names();
 
     assert!(names.contains("DB_HOST"));
-    assert!(names.contains("REDIS_HOST"), "vars from .env.example should be merged");
+    assert!(
+        names.contains("REDIS_HOST"),
+        "vars from .env.example should be merged"
+    );
     let db_entry = &result.entries["DB_HOST"];
-    assert!(db_entry.source_file.contains(".env.development"), "DB_HOST should come from .env.development: {}", db_entry.source_file);
+    assert!(
+        db_entry.source_file.contains(".env.development"),
+        "DB_HOST should come from .env.development: {}",
+        db_entry.source_file
+    );
 }
 
 // --- Edge cases ---

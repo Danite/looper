@@ -7,14 +7,28 @@ use oxc_span::GetSpan;
 use serde_json::json;
 
 const OS_MODULES: &[&str] = &["os", "node:os"];
-const UNIX_PATH_PREFIXES: &[&str] = &["/dev/", "/etc/", "/usr/", "/var/", "/tmp/", "/opt/", "/proc/", "/sys/"];
+const UNIX_PATH_PREFIXES: &[&str] = &[
+    "/dev/", "/etc/", "/usr/", "/var/", "/tmp/", "/opt/", "/proc/", "/sys/",
+];
 const WINDOWS_BINARIES: &[&str] = &["cmd", "cmd.exe", "powershell", "powershell.exe"];
 const OS_PLATFORM_METHODS: &[&str] = &[
-    "homedir", "tmpdir", "hostname", "userInfo", "networkInterfaces",
-    "platform", "type", "release", "arch",
+    "homedir",
+    "tmpdir",
+    "hostname",
+    "userInfo",
+    "networkInterfaces",
+    "platform",
+    "type",
+    "release",
+    "arch",
 ];
-const PLATFORM_VALUES: &[&str] = &["darwin", "linux", "win32", "freebsd", "openbsd", "sunos", "aix"];
-const ARCH_VALUES: &[&str] = &["arm", "arm64", "ia32", "loong64", "mips", "mipsel", "ppc", "ppc64", "riscv64", "s390", "s390x", "x64"];
+const PLATFORM_VALUES: &[&str] = &[
+    "darwin", "linux", "win32", "freebsd", "openbsd", "sunos", "aix",
+];
+const ARCH_VALUES: &[&str] = &[
+    "arm", "arm64", "ia32", "loong64", "mips", "mipsel", "ppc", "ppc64", "riscv64", "s390",
+    "s390x", "x64",
+];
 
 pub struct PlatformDetector;
 

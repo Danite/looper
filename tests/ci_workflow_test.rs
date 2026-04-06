@@ -178,8 +178,7 @@ fn broken_file_still_scans_valid_files() {
 fn check_all_categories_against_manifest() {
     let deps = scan_paths(&[PathBuf::from("tests/fixtures")]);
 
-    let categories: std::collections::HashSet<Category> =
-        deps.iter().map(|d| d.category).collect();
+    let categories: std::collections::HashSet<Category> = deps.iter().map(|d| d.category).collect();
 
     assert!(categories.contains(&Category::EnvVar));
     assert!(categories.contains(&Category::Filesystem));

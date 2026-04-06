@@ -3,12 +3,27 @@ use serde_json::json;
 
 #[test]
 fn category_serializes_to_snake_case() {
-    assert_eq!(serde_json::to_string(&Category::EnvVar).unwrap(), "\"env_var\"");
-    assert_eq!(serde_json::to_string(&Category::Filesystem).unwrap(), "\"filesystem\"");
-    assert_eq!(serde_json::to_string(&Category::Network).unwrap(), "\"network\"");
-    assert_eq!(serde_json::to_string(&Category::Binary).unwrap(), "\"binary\"");
+    assert_eq!(
+        serde_json::to_string(&Category::EnvVar).unwrap(),
+        "\"env_var\""
+    );
+    assert_eq!(
+        serde_json::to_string(&Category::Filesystem).unwrap(),
+        "\"filesystem\""
+    );
+    assert_eq!(
+        serde_json::to_string(&Category::Network).unwrap(),
+        "\"network\""
+    );
+    assert_eq!(
+        serde_json::to_string(&Category::Binary).unwrap(),
+        "\"binary\""
+    );
     assert_eq!(serde_json::to_string(&Category::Port).unwrap(), "\"port\"");
-    assert_eq!(serde_json::to_string(&Category::Platform).unwrap(), "\"platform\"");
+    assert_eq!(
+        serde_json::to_string(&Category::Platform).unwrap(),
+        "\"platform\""
+    );
 }
 
 #[test]
@@ -25,8 +40,14 @@ fn category_deserializes_from_snake_case() {
 
 #[test]
 fn confidence_serializes_to_lowercase() {
-    assert_eq!(serde_json::to_string(&Confidence::High).unwrap(), "\"high\"");
-    assert_eq!(serde_json::to_string(&Confidence::Medium).unwrap(), "\"medium\"");
+    assert_eq!(
+        serde_json::to_string(&Confidence::High).unwrap(),
+        "\"high\""
+    );
+    assert_eq!(
+        serde_json::to_string(&Confidence::Medium).unwrap(),
+        "\"medium\""
+    );
     assert_eq!(serde_json::to_string(&Confidence::Low).unwrap(), "\"low\"");
 }
 

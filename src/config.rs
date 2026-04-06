@@ -122,9 +122,7 @@ fn find_config_file(start_dir: &Path) -> Option<PathBuf> {
 /// Write a default config file to the given directory.
 pub fn write_default_config(dir: &Path) -> std::io::Result<PathBuf> {
     let config = Config::default_config();
-    let json = config
-        .to_json()
-        .map_err(std::io::Error::other)?;
+    let json = config.to_json().map_err(std::io::Error::other)?;
     let path = dir.join(CONFIG_FILENAME);
     std::fs::write(&path, json)?;
     Ok(path)

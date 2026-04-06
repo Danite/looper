@@ -115,9 +115,10 @@ pub fn build_infra_manifest(project_root: &Path) -> InfraManifest {
         // Merge compose service env vars
         for env_name in &svc.environment {
             if !manifest.env_vars.contains_key(env_name) {
-                manifest
-                    .env_vars
-                    .insert(env_name.clone(), format!("{compose_source} service {}", svc.name));
+                manifest.env_vars.insert(
+                    env_name.clone(),
+                    format!("{compose_source} service {}", svc.name),
+                );
             }
         }
 
@@ -131,7 +132,10 @@ pub fn build_infra_manifest(project_root: &Path) -> InfraManifest {
             if let Ok(result) = envfile::parse_env_file(&resolved) {
                 for (name, entry) in result.entries {
                     manifest.env_vars.entry(name).or_insert_with(|| {
-                        format!("{} line {} (via env_file in {})", entry.source_file, entry.line, svc.name)
+                        format!(
+                            "{} line {} (via env_file in {})",
+                            entry.source_file, entry.line, svc.name
+                        )
                     });
                 }
             }
@@ -154,10 +158,7 @@ pub fn build_infra_manifest(project_root: &Path) -> InfraManifest {
     let docker_result = dockerfile::find_and_parse_dockerfile(project_root, &mut manifest.warnings);
     manifest.binaries.extend(docker_result.binaries);
 
-    let docker_source = docker_result
-        .source_file
-        .as_deref()
-        .unwrap_or("Dockerfile");
+    let docker_source = docker_result.source_file.as_deref().unwrap_or("Dockerfile");
 
     for port in docker_result.exposed_ports {
         manifest.exposed_ports.push(InfraPort {
@@ -172,9 +173,10 @@ pub fn build_infra_manifest(project_root: &Path) -> InfraManifest {
     let prisma_result = prisma::find_and_parse_prisma(project_root, &mut manifest.warnings);
     if let Some(ref prisma_source) = prisma_result.source_file {
         for (name, entry) in &prisma_result.entries {
-            manifest.env_vars.entry(name.clone()).or_insert_with(|| {
-                format!("{prisma_source} line {}", entry.line)
-            });
+            manifest
+                .env_vars
+                .entry(name.clone())
+                .or_insert_with(|| format!("{prisma_source} line {}", entry.line));
         }
     }
 

@@ -97,7 +97,10 @@ impl Category {
     }
 
     pub fn from_filter_name(name: &str) -> Option<Category> {
-        Self::all().iter().find(|c| c.filter_name() == name).copied()
+        Self::all()
+            .iter()
+            .find(|c| c.filter_name() == name)
+            .copied()
     }
 
     pub fn all() -> &'static [Category] {

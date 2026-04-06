@@ -126,8 +126,14 @@ fn html_escapes_script_closing_tag() {
     let manifest = build_manifest(".", 1, 1, vec![dep]);
     let html = format_html(&manifest).unwrap();
 
-    assert!(!html.contains("</script><img"), "raw </script> must not appear in embedded JSON");
-    assert!(html.contains("<\\/script>"), "closing tags must be escaped in JSON data");
+    assert!(
+        !html.contains("</script><img"),
+        "raw </script> must not appear in embedded JSON"
+    );
+    assert!(
+        html.contains("<\\/script>"),
+        "closing tags must be escaped in JSON data"
+    );
 }
 
 #[test]

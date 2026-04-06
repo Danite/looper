@@ -8,17 +8,17 @@ pub(crate) fn cmd_init(args: InitArgs) -> i32 {
     let cwd = match std::env::current_dir() {
         Ok(d) => d,
         Err(e) => {
-            eprintln!("{} could not determine current directory: {e}", "error:".red());
+            eprintln!(
+                "{} could not determine current directory: {e}",
+                "error:".red()
+            );
             return 1;
         }
     };
 
     let config_path = cwd.join("looper.config.json");
     if config_path.exists() {
-        eprintln!(
-            "{} looper.config.json already exists",
-            "warning:".yellow()
-        );
+        eprintln!("{} looper.config.json already exists", "warning:".yellow());
     } else {
         match looper::config::write_default_config(&cwd) {
             Ok(path) => {
@@ -42,7 +42,10 @@ pub(crate) fn cmd_init(args: InitArgs) -> i32 {
             let scan = match run_scan(&[PathBuf::from(".")], false, Vec::new(), false, None) {
                 Ok(s) => s,
                 Err(_) => {
-                    eprintln!("{} scan failed, skipping .env.example generation", "warning:".yellow());
+                    eprintln!(
+                        "{} scan failed, skipping .env.example generation",
+                        "warning:".yellow()
+                    );
                     return 0;
                 }
             };

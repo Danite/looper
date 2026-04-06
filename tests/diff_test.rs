@@ -5,17 +5,47 @@ use serde_json::json;
 
 fn deps_a() -> Vec<ShadowDep> {
     vec![
-        ShadowDep::new(Category::EnvVar, "DB_URL", Confidence::High, Location::new("a.ts", 1, 1)),
-        ShadowDep::new(Category::Network, "api.com", Confidence::High, Location::new("a.ts", 2, 1)),
-        ShadowDep::new(Category::Binary, "git", Confidence::High, Location::new("a.ts", 3, 1)),
+        ShadowDep::new(
+            Category::EnvVar,
+            "DB_URL",
+            Confidence::High,
+            Location::new("a.ts", 1, 1),
+        ),
+        ShadowDep::new(
+            Category::Network,
+            "api.com",
+            Confidence::High,
+            Location::new("a.ts", 2, 1),
+        ),
+        ShadowDep::new(
+            Category::Binary,
+            "git",
+            Confidence::High,
+            Location::new("a.ts", 3, 1),
+        ),
     ]
 }
 
 fn deps_b() -> Vec<ShadowDep> {
     vec![
-        ShadowDep::new(Category::EnvVar, "DB_URL", Confidence::High, Location::new("a.ts", 1, 1)),
-        ShadowDep::new(Category::Binary, "git", Confidence::High, Location::new("a.ts", 3, 1)),
-        ShadowDep::new(Category::Port, ":3000", Confidence::High, Location::new("b.ts", 5, 1)),
+        ShadowDep::new(
+            Category::EnvVar,
+            "DB_URL",
+            Confidence::High,
+            Location::new("a.ts", 1, 1),
+        ),
+        ShadowDep::new(
+            Category::Binary,
+            "git",
+            Confidence::High,
+            Location::new("a.ts", 3, 1),
+        ),
+        ShadowDep::new(
+            Category::Port,
+            ":3000",
+            Confidence::High,
+            Location::new("b.ts", 5, 1),
+        ),
     ]
 }
 
@@ -59,11 +89,26 @@ fn diff_detects_changed() {
     dep_modified.locations.push(Location::new("b.ts", 10, 1));
 
     let old = build_manifest(".", 10, 5, deps_a());
-    let new = build_manifest(".", 10, 5, vec![
-        dep_modified,
-        ShadowDep::new(Category::Network, "api.com", Confidence::High, Location::new("a.ts", 2, 1)),
-        ShadowDep::new(Category::Binary, "git", Confidence::High, Location::new("a.ts", 3, 1)),
-    ]);
+    let new = build_manifest(
+        ".",
+        10,
+        5,
+        vec![
+            dep_modified,
+            ShadowDep::new(
+                Category::Network,
+                "api.com",
+                Confidence::High,
+                Location::new("a.ts", 2, 1),
+            ),
+            ShadowDep::new(
+                Category::Binary,
+                "git",
+                Confidence::High,
+                Location::new("a.ts", 3, 1),
+            ),
+        ],
+    );
     let diff = diff_manifests(&old, &new);
 
     assert_eq!(diff.changed.len(), 1);

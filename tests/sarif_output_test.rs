@@ -65,7 +65,9 @@ fn sarif_has_six_rules() {
     let sarif_str = format_sarif(&manifest).unwrap();
     let parsed: serde_json::Value = serde_json::from_str(&sarif_str).unwrap();
 
-    let rules = parsed["runs"][0]["tool"]["driver"]["rules"].as_array().unwrap();
+    let rules = parsed["runs"][0]["tool"]["driver"]["rules"]
+        .as_array()
+        .unwrap();
     assert_eq!(rules.len(), 6);
 
     let rule_ids: Vec<&str> = rules.iter().map(|r| r["id"].as_str().unwrap()).collect();

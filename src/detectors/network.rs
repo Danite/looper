@@ -9,12 +9,28 @@ use oxc_span::GetSpan;
 use serde_json::json;
 use url::Url;
 
-const HTTP_MODULES: &[&str] = &["http", "https", "node:http", "node:https", "http2", "node:http2"];
-const AXIOS_METHODS: &[&str] = &["get", "post", "put", "delete", "patch", "head", "options", "request"];
+const HTTP_MODULES: &[&str] = &[
+    "http",
+    "https",
+    "node:http",
+    "node:https",
+    "http2",
+    "node:http2",
+];
+const AXIOS_METHODS: &[&str] = &[
+    "get", "post", "put", "delete", "patch", "head", "options", "request",
+];
 const URL_SCHEMES: &[&str] = &["http", "https", "ws", "wss"];
 const HTTP_CLIENT_MODULES: &[&str] = &[
-    "got", "node-fetch", "ky", "superagent", "ofetch", "undici",
-    "make-fetch-happen", "urllib", "phin",
+    "got",
+    "node-fetch",
+    "ky",
+    "superagent",
+    "ofetch",
+    "undici",
+    "make-fetch-happen",
+    "urllib",
+    "phin",
 ];
 
 pub struct NetworkDetector;
@@ -114,7 +130,11 @@ impl NetCollector<'_> {
         if id.name != "fetch" {
             return;
         }
-        if let Some(result) = call.arguments.first().and_then(extract_string_or_template_arg) {
+        if let Some(result) = call
+            .arguments
+            .first()
+            .and_then(extract_string_or_template_arg)
+        {
             self.record_url_or_template(&result, call.span().start);
         }
     }
@@ -131,14 +151,20 @@ impl NetCollector<'_> {
         if !is_axios_call {
             return;
         }
-        if let Some(result) = call.arguments.first().and_then(extract_string_or_template_arg) {
+        if let Some(result) = call
+            .arguments
+            .first()
+            .and_then(extract_string_or_template_arg)
+        {
             self.record_url_or_template(&result, call.span().start);
         }
     }
 
     fn is_bound_to_http_client(&self, name: &str) -> bool {
         if let Some(binding) = self.bindings.get(name) {
-            return HTTP_CLIENT_MODULES.iter().any(|m| binding.module_source == *m);
+            return HTTP_CLIENT_MODULES
+                .iter()
+                .any(|m| binding.module_source == *m);
         }
         false
     }
@@ -159,7 +185,11 @@ impl NetCollector<'_> {
         if !is_client_call {
             return;
         }
-        if let Some(result) = call.arguments.first().and_then(extract_string_or_template_arg) {
+        if let Some(result) = call
+            .arguments
+            .first()
+            .and_then(extract_string_or_template_arg)
+        {
             self.record_url_or_template(&result, call.span().start);
         }
     }
@@ -253,7 +283,9 @@ impl NetCollector<'_> {
 }
 
 fn is_url_like(s: &str) -> bool {
-    URL_SCHEMES.iter().any(|scheme| s.starts_with(&format!("{scheme}://")))
+    URL_SCHEMES
+        .iter()
+        .any(|scheme| s.starts_with(&format!("{scheme}://")))
 }
 
 impl<'a> Visit<'a> for NetCollector<'a> {

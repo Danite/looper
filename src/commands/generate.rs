@@ -19,11 +19,15 @@ pub(crate) fn cmd_generate(args: GenerateArgs) -> i32 {
         },
     };
 
-    let scan_paths = args
-        .scan_paths
-        .unwrap_or_else(|| vec![PathBuf::from(".")]);
+    let scan_paths = args.scan_paths.unwrap_or_else(|| vec![PathBuf::from(".")]);
 
-    let scan = match run_scan(&scan_paths, false, Vec::new(), args.verbose, args.config.as_deref()) {
+    let scan = match run_scan(
+        &scan_paths,
+        false,
+        Vec::new(),
+        args.verbose,
+        args.config.as_deref(),
+    ) {
         Ok(s) => s,
         Err(code) => return code,
     };
@@ -32,7 +36,10 @@ pub(crate) fn cmd_generate(args: GenerateArgs) -> i32 {
     let mut deps = scan.deps;
 
     if deps.is_empty() {
-        eprintln!("{}", "No shadow dependencies found to generate from.".dimmed());
+        eprintln!(
+            "{}",
+            "No shadow dependencies found to generate from.".dimmed()
+        );
         return 2;
     }
 

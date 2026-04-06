@@ -34,11 +34,7 @@ pub fn parse_file<'a>(
 
     let parser_return = Parser::new(allocator, source_text, source_type).parse();
 
-    let errors: Vec<String> = parser_return
-        .errors
-        .iter()
-        .map(|e| e.to_string())
-        .collect();
+    let errors: Vec<String> = parser_return.errors.iter().map(|e| e.to_string()).collect();
 
     ParseResult {
         program: parser_return.program,

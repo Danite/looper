@@ -51,7 +51,12 @@ fn merge_deps(deps: Vec<ShadowDep>) -> Vec<ShadowDep> {
             .or_insert(dep);
     }
     let mut result: Vec<ShadowDep> = map.into_values().collect();
-    result.sort_by(|a, b| a.category.label().cmp(b.category.label()).then(a.name.cmp(&b.name)));
+    result.sort_by(|a, b| {
+        a.category
+            .label()
+            .cmp(b.category.label())
+            .then(a.name.cmp(&b.name))
+    });
     result
 }
 
@@ -78,9 +83,15 @@ fn drift_covers_env_vars_from_compose_and_dotenv() {
     let covered_names: Vec<&str> = report.covered.iter().map(|i| i.name.as_str()).collect();
 
     // DATABASE_URL is in both .env.example and docker-compose app environment
-    assert!(covered_names.contains(&"DATABASE_URL"), "DATABASE_URL should be covered: {covered_names:?}");
+    assert!(
+        covered_names.contains(&"DATABASE_URL"),
+        "DATABASE_URL should be covered: {covered_names:?}"
+    );
     // NODE_ENV is in .env.example and compose
-    assert!(covered_names.contains(&"NODE_ENV"), "NODE_ENV should be covered: {covered_names:?}");
+    assert!(
+        covered_names.contains(&"NODE_ENV"),
+        "NODE_ENV should be covered: {covered_names:?}"
+    );
 }
 
 #[test]
@@ -92,9 +103,15 @@ fn drift_covers_ports_from_compose() {
     let covered_names: Vec<&str> = report.covered.iter().map(|i| i.name.as_str()).collect();
 
     // Port 3000 is exposed by the app service; ports.ts has app.listen(3000)
-    assert!(covered_names.contains(&":3000"), ":3000 should be covered: {covered_names:?}");
+    assert!(
+        covered_names.contains(&":3000"),
+        ":3000 should be covered: {covered_names:?}"
+    );
     // Port 6379 is exposed by redis service; ports.ts has Redis connection
-    assert!(covered_names.contains(&":6379"), ":6379 should be covered: {covered_names:?}");
+    assert!(
+        covered_names.contains(&":6379"),
+        ":6379 should be covered: {covered_names:?}"
+    );
 }
 
 #[test]
@@ -106,8 +123,14 @@ fn drift_covers_binaries_from_dockerfile() {
     let covered_names: Vec<&str> = report.covered.iter().map(|i| i.name.as_str()).collect();
 
     // ffmpeg, git are installed via apk in the Dockerfile; shell.ts uses them
-    assert!(covered_names.contains(&"ffmpeg"), "ffmpeg should be covered: {covered_names:?}");
-    assert!(covered_names.contains(&"git"), "git should be covered: {covered_names:?}");
+    assert!(
+        covered_names.contains(&"ffmpeg"),
+        "ffmpeg should be covered: {covered_names:?}"
+    );
+    assert!(
+        covered_names.contains(&"git"),
+        "git should be covered: {covered_names:?}"
+    );
 }
 
 #[test]
@@ -119,8 +142,14 @@ fn drift_external_hosts_are_classified() {
     let external_names: Vec<&str> = report.external.iter().map(|i| i.name.as_str()).collect();
 
     // network.ts has api.stripe.com, sentry.io — these are external APIs
-    assert!(external_names.contains(&"api.stripe.com"), "api.stripe.com should be external: {external_names:?}");
-    assert!(external_names.contains(&"sentry.io"), "sentry.io should be external: {external_names:?}");
+    assert!(
+        external_names.contains(&"api.stripe.com"),
+        "api.stripe.com should be external: {external_names:?}"
+    );
+    assert!(
+        external_names.contains(&"sentry.io"),
+        "sentry.io should be external: {external_names:?}"
+    );
 }
 
 #[test]
@@ -135,11 +164,20 @@ fn drift_report_categories_are_disjoint() {
     let external_ids: Vec<&str> = report.external.iter().map(|i| i.name.as_str()).collect();
 
     for name in &covered_ids {
-        assert!(!missing_ids.contains(name), "{name} is both covered and missing");
-        assert!(!external_ids.contains(name), "{name} is both covered and external");
+        assert!(
+            !missing_ids.contains(name),
+            "{name} is both covered and missing"
+        );
+        assert!(
+            !external_ids.contains(name),
+            "{name} is both covered and external"
+        );
     }
     for name in &missing_ids {
-        assert!(!external_ids.contains(name), "{name} is both missing and external");
+        assert!(
+            !external_ids.contains(name),
+            "{name} is both missing and external"
+        );
     }
 }
 
@@ -174,7 +212,10 @@ fn drift_unused_infra_detected() {
 
     // At minimum, the Postgres service-level env vars should be unused by JS code
     let has_some_unused = !unused_names.is_empty();
-    assert!(has_some_unused, "should detect some unused infra provisions");
+    assert!(
+        has_some_unused,
+        "should detect some unused infra provisions"
+    );
 }
 
 #[test]

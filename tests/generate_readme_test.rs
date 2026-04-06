@@ -8,12 +8,22 @@ fn env_dep(name: &str, required: bool, default_value: Option<&str>) -> ShadowDep
     if let Some(dv) = default_value {
         meta.insert("default_value", json!(dv));
     }
-    ShadowDep::new(Category::EnvVar, name, Confidence::High, Location::new("src/config.ts", 10, 1))
-        .with_metadata(meta)
+    ShadowDep::new(
+        Category::EnvVar,
+        name,
+        Confidence::High,
+        Location::new("src/config.ts", 10, 1),
+    )
+    .with_metadata(meta)
 }
 
 fn binary_dep(name: &str) -> ShadowDep {
-    ShadowDep::new(Category::Binary, name, Confidence::High, Location::new("src/video.ts", 15, 1))
+    ShadowDep::new(
+        Category::Binary,
+        name,
+        Confidence::High,
+        Location::new("src/video.ts", 15, 1),
+    )
 }
 
 fn port_dep(port: u16, direction: &str, protocol: &str) -> ShadowDep {
@@ -33,15 +43,25 @@ fn port_dep(port: u16, direction: &str, protocol: &str) -> ShadowDep {
 fn network_dep(host: &str) -> ShadowDep {
     let mut meta = Metadata::new();
     meta.insert("protocol", json!("https"));
-    ShadowDep::new(Category::Network, host, Confidence::High, Location::new("src/api.ts", 20, 1))
-        .with_metadata(meta)
+    ShadowDep::new(
+        Category::Network,
+        host,
+        Confidence::High,
+        Location::new("src/api.ts", 20, 1),
+    )
+    .with_metadata(meta)
 }
 
 fn fs_dep(path: &str, operation: &str) -> ShadowDep {
     let mut meta = Metadata::new();
     meta.insert("operation", json!(operation));
-    ShadowDep::new(Category::Filesystem, path, Confidence::High, Location::new("src/io.ts", 8, 1))
-        .with_metadata(meta)
+    ShadowDep::new(
+        Category::Filesystem,
+        path,
+        Confidence::High,
+        Location::new("src/io.ts", 8, 1),
+    )
+    .with_metadata(meta)
 }
 
 #[test]

@@ -54,7 +54,10 @@ fn process_env_direct_access() {
     let deps = detect_env_vars("const url = process.env.DATABASE_URL;");
     assert_eq!(names(&deps), vec!["DATABASE_URL"]);
     assert_eq!(deps[0].confidence, Confidence::High);
-    assert_eq!(deps[0].metadata.get_str("source_pattern"), Some("direct_access"));
+    assert_eq!(
+        deps[0].metadata.get_str("source_pattern"),
+        Some("direct_access")
+    );
 }
 
 #[test]
@@ -76,7 +79,10 @@ fn process_env_bracket_access() {
     let deps = detect_env_vars(r#"const key = process.env["STRIPE_KEY"];"#);
     assert_eq!(names(&deps), vec!["STRIPE_KEY"]);
     assert_eq!(deps[0].confidence, Confidence::High);
-    assert_eq!(deps[0].metadata.get_str("source_pattern"), Some("bracket_access"));
+    assert_eq!(
+        deps[0].metadata.get_str("source_pattern"),
+        Some("bracket_access")
+    );
 }
 
 // --- process.env[dynamic] (dynamic access) ---
@@ -87,7 +93,10 @@ fn process_env_dynamic_access() {
     assert_eq!(deps.len(), 1);
     assert_eq!(deps[0].name, "<dynamic>");
     assert_eq!(deps[0].confidence, Confidence::Low);
-    assert_eq!(deps[0].metadata.get_str("source_pattern"), Some("dynamic_access"));
+    assert_eq!(
+        deps[0].metadata.get_str("source_pattern"),
+        Some("dynamic_access")
+    );
 }
 
 // --- const { VAR } = process.env (destructuring) ---
@@ -98,7 +107,10 @@ fn process_env_destructuring() {
     assert_eq!(names(&deps), vec!["NODE_ENV", "PORT", "API_KEY"]);
     for dep in &deps {
         assert_eq!(dep.confidence, Confidence::High);
-        assert_eq!(dep.metadata.get_str("source_pattern"), Some("destructuring"));
+        assert_eq!(
+            dep.metadata.get_str("source_pattern"),
+            Some("destructuring")
+        );
     }
 }
 
@@ -118,7 +130,10 @@ fn import_meta_env() {
     let deps = detect_env_vars("const url = import.meta.env.VITE_API_URL;");
     assert_eq!(names(&deps), vec!["VITE_API_URL"]);
     assert_eq!(deps[0].confidence, Confidence::High);
-    assert_eq!(deps[0].metadata.get_str("source_pattern"), Some("import_meta_env"));
+    assert_eq!(
+        deps[0].metadata.get_str("source_pattern"),
+        Some("import_meta_env")
+    );
 }
 
 #[test]
@@ -167,7 +182,10 @@ fn fallback_with_nullish_coalescing() {
     let deps = detect_env_vars(r#"const key = process.env.API_KEY ?? "sk-default";"#);
     assert_eq!(names(&deps), vec!["API_KEY"]);
     assert_eq!(deps[0].metadata.get_bool("required"), Some(false));
-    assert_eq!(deps[0].metadata.get_str("default_value"), Some("sk-default"));
+    assert_eq!(
+        deps[0].metadata.get_str("default_value"),
+        Some("sk-default")
+    );
 }
 
 #[test]

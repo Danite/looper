@@ -1,0 +1,14 @@
+{
+  "project": "nestjs-realworld",
+  "gaps": [
+    {
+      "id": "env_var::SECRET",
+      "category": "env_var",
+      "name": "SECRET",
+      "reason": "Hardcoded in config.ts but should be an env var; looper can't flag hardcoded secrets",
+      "source_location": "src/config.ts.example:1",
+      "blocked_by": "framework-specific",
+      "priority": "low"
+    }
+  ]
+}

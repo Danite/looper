@@ -61,8 +61,8 @@ pub fn format_and_write(
                 return Err("HTML output requires --output <file>".into());
             }
             let manifest = build_manifest(root, file_count, duration_ms, deps);
-            let content = html::format_html(&manifest)
-                .map_err(|e| format!("HTML generation failed: {e}"))?;
+            let content =
+                html::format_html(&manifest).map_err(|e| format!("HTML generation failed: {e}"))?;
             write_output(&content, output_path).map_err(|e| e.to_string())
         }
         "terminal" => {
@@ -76,6 +76,6 @@ pub fn format_and_write(
         }
         unknown => Err(format!(
             "unknown format '{unknown}'. Valid formats: terminal, json, sarif, html"
-        ))
+        )),
     }
 }

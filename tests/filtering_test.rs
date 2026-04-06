@@ -6,10 +6,16 @@ use looper::types::*;
 fn category_from_filter_name() {
     assert_eq!(Category::from_filter_name("env"), Some(Category::EnvVar));
     assert_eq!(Category::from_filter_name("fs"), Some(Category::Filesystem));
-    assert_eq!(Category::from_filter_name("network"), Some(Category::Network));
+    assert_eq!(
+        Category::from_filter_name("network"),
+        Some(Category::Network)
+    );
     assert_eq!(Category::from_filter_name("shell"), Some(Category::Binary));
     assert_eq!(Category::from_filter_name("ports"), Some(Category::Port));
-    assert_eq!(Category::from_filter_name("platform"), Some(Category::Platform));
+    assert_eq!(
+        Category::from_filter_name("platform"),
+        Some(Category::Platform)
+    );
     assert_eq!(Category::from_filter_name("unknown"), None);
 }
 
@@ -27,12 +33,42 @@ fn confidence_parse() {
 
 fn sample_deps() -> Vec<ShadowDep> {
     vec![
-        ShadowDep::new(Category::EnvVar, "DB_URL", Confidence::High, Location::new("a.ts", 1, 1)),
-        ShadowDep::new(Category::Network, "api.com", Confidence::High, Location::new("a.ts", 2, 1)),
-        ShadowDep::new(Category::Binary, "git", Confidence::High, Location::new("a.ts", 3, 1)),
-        ShadowDep::new(Category::Filesystem, "./config", Confidence::Medium, Location::new("a.ts", 4, 1)),
-        ShadowDep::new(Category::Port, ":3000", Confidence::High, Location::new("a.ts", 5, 1)),
-        ShadowDep::new(Category::Platform, "/dev/null", Confidence::Low, Location::new("a.ts", 6, 1)),
+        ShadowDep::new(
+            Category::EnvVar,
+            "DB_URL",
+            Confidence::High,
+            Location::new("a.ts", 1, 1),
+        ),
+        ShadowDep::new(
+            Category::Network,
+            "api.com",
+            Confidence::High,
+            Location::new("a.ts", 2, 1),
+        ),
+        ShadowDep::new(
+            Category::Binary,
+            "git",
+            Confidence::High,
+            Location::new("a.ts", 3, 1),
+        ),
+        ShadowDep::new(
+            Category::Filesystem,
+            "./config",
+            Confidence::Medium,
+            Location::new("a.ts", 4, 1),
+        ),
+        ShadowDep::new(
+            Category::Port,
+            ":3000",
+            Confidence::High,
+            Location::new("a.ts", 5, 1),
+        ),
+        ShadowDep::new(
+            Category::Platform,
+            "/dev/null",
+            Confidence::Low,
+            Location::new("a.ts", 6, 1),
+        ),
     ]
 }
 
@@ -52,7 +88,9 @@ fn exclude_filter() {
     let excluded = [Category::Platform, Category::Port];
     deps.retain(|d| !excluded.contains(&d.category));
     assert_eq!(deps.len(), 4);
-    assert!(deps.iter().all(|d| d.category != Category::Platform && d.category != Category::Port));
+    assert!(deps
+        .iter()
+        .all(|d| d.category != Category::Platform && d.category != Category::Port));
 }
 
 #[test]
@@ -86,7 +124,8 @@ fn min_confidence_low_keeps_all() {
 #[test]
 fn baseline_filter() {
     let deps = sample_deps();
-    let baseline_ids: std::collections::HashSet<String> = deps.iter().map(|d| d.id.clone()).collect();
+    let baseline_ids: std::collections::HashSet<String> =
+        deps.iter().map(|d| d.id.clone()).collect();
 
     let mut new_deps = sample_deps();
     new_deps.push(ShadowDep::new(

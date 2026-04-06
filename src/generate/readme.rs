@@ -10,7 +10,11 @@ pub fn generate_readme(deps: &[ShadowDep]) -> String {
 
     let mut out = String::new();
     writeln!(out, "# Requirements\n").unwrap();
-    writeln!(out, "Shadow dependencies detected by [looper](https://github.com/example/looper).\n").unwrap();
+    writeln!(
+        out,
+        "Shadow dependencies detected by [looper](https://github.com/example/looper).\n"
+    )
+    .unwrap();
 
     write_env_section(&mut out, deps);
     write_binary_section(&mut out, deps);
@@ -22,7 +26,10 @@ pub fn generate_readme(deps: &[ShadowDep]) -> String {
 }
 
 fn write_env_section(out: &mut String, deps: &[ShadowDep]) {
-    let env_deps: Vec<&ShadowDep> = deps.iter().filter(|d| d.category == Category::EnvVar).collect();
+    let env_deps: Vec<&ShadowDep> = deps
+        .iter()
+        .filter(|d| d.category == Category::EnvVar)
+        .collect();
     if env_deps.is_empty() {
         return;
     }
@@ -41,7 +48,10 @@ fn write_env_section(out: &mut String, deps: &[ShadowDep]) {
 }
 
 fn write_binary_section(out: &mut String, deps: &[ShadowDep]) {
-    let bin_deps: Vec<&ShadowDep> = deps.iter().filter(|d| d.category == Category::Binary).collect();
+    let bin_deps: Vec<&ShadowDep> = deps
+        .iter()
+        .filter(|d| d.category == Category::Binary)
+        .collect();
     if bin_deps.is_empty() {
         return;
     }
@@ -58,7 +68,10 @@ fn write_binary_section(out: &mut String, deps: &[ShadowDep]) {
 }
 
 fn write_port_section(out: &mut String, deps: &[ShadowDep]) {
-    let port_deps: Vec<&ShadowDep> = deps.iter().filter(|d| d.category == Category::Port).collect();
+    let port_deps: Vec<&ShadowDep> = deps
+        .iter()
+        .filter(|d| d.category == Category::Port)
+        .collect();
     if port_deps.is_empty() {
         return;
     }
@@ -76,7 +89,10 @@ fn write_port_section(out: &mut String, deps: &[ShadowDep]) {
 }
 
 fn write_network_section(out: &mut String, deps: &[ShadowDep]) {
-    let net_deps: Vec<&ShadowDep> = deps.iter().filter(|d| d.category == Category::Network).collect();
+    let net_deps: Vec<&ShadowDep> = deps
+        .iter()
+        .filter(|d| d.category == Category::Network)
+        .collect();
     if net_deps.is_empty() {
         return;
     }
@@ -90,7 +106,10 @@ fn write_network_section(out: &mut String, deps: &[ShadowDep]) {
 }
 
 fn write_filesystem_section(out: &mut String, deps: &[ShadowDep]) {
-    let fs_deps: Vec<&ShadowDep> = deps.iter().filter(|d| d.category == Category::Filesystem).collect();
+    let fs_deps: Vec<&ShadowDep> = deps
+        .iter()
+        .filter(|d| d.category == Category::Filesystem)
+        .collect();
     if fs_deps.is_empty() {
         return;
     }

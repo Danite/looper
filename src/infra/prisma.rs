@@ -3,8 +3,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::sync::LazyLock;
 
-static ENV_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r#"env\(\s*"([^"]+)"\s*\)"#).unwrap());
+static ENV_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"env\(\s*"([^"]+)"\s*\)"#).unwrap());
 
 #[derive(Debug, Clone)]
 pub struct PrismaEnvEntry {
@@ -34,11 +33,14 @@ pub fn parse_prisma_file(path: &Path) -> Result<PrismaResult, String> {
         for caps in ENV_RE.captures_iter(line) {
             if let Some(name) = caps.get(1) {
                 let name = name.as_str().to_string();
-                result.entries.entry(name.clone()).or_insert(PrismaEnvEntry {
-                    name,
-                    line: line_num,
-                    source_file: source_file.clone(),
-                });
+                result
+                    .entries
+                    .entry(name.clone())
+                    .or_insert(PrismaEnvEntry {
+                        name,
+                        line: line_num,
+                        source_file: source_file.clone(),
+                    });
             }
         }
     }
