@@ -6,9 +6,24 @@ use tempfile::TempDir;
 
 fn sample_deps() -> Vec<ShadowDep> {
     vec![
-        ShadowDep::new(Category::EnvVar, "DB_URL", Confidence::High, Location::new("a.ts", 1, 1)),
-        ShadowDep::new(Category::Network, "api.com", Confidence::High, Location::new("a.ts", 2, 1)),
-        ShadowDep::new(Category::Binary, "git", Confidence::High, Location::new("a.ts", 3, 1)),
+        ShadowDep::new(
+            Category::EnvVar,
+            "DB_URL",
+            Confidence::High,
+            Location::new("a.ts", 1, 1),
+        ),
+        ShadowDep::new(
+            Category::Network,
+            "api.com",
+            Confidence::High,
+            Location::new("a.ts", 2, 1),
+        ),
+        ShadowDep::new(
+            Category::Binary,
+            "git",
+            Confidence::High,
+            Location::new("a.ts", 3, 1),
+        ),
     ]
 }
 
@@ -55,7 +70,12 @@ fn check_detects_both_added_and_removed() {
     let manifest = build_manifest(".", 10, 5, sample_deps());
     let current = vec![
         sample_deps()[0].clone(),
-        ShadowDep::new(Category::Port, ":8080", Confidence::High, Location::new("c.ts", 1, 1)),
+        ShadowDep::new(
+            Category::Port,
+            ":8080",
+            Confidence::High,
+            Location::new("c.ts", 1, 1),
+        ),
     ];
 
     let result = check_against_manifest(&current, &manifest);
@@ -118,7 +138,12 @@ fn is_clean_helper() {
     assert!(clean.is_clean());
 
     let mut more = sample_deps();
-    more.push(ShadowDep::new(Category::EnvVar, "X", Confidence::High, Location::new("x.ts", 1, 1)));
+    more.push(ShadowDep::new(
+        Category::EnvVar,
+        "X",
+        Confidence::High,
+        Location::new("x.ts", 1, 1),
+    ));
     let dirty = check_against_manifest(&more, &manifest);
     assert!(!dirty.is_clean());
 }

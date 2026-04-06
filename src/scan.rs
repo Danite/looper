@@ -42,7 +42,12 @@ pub(crate) fn merge_deps(deps: Vec<ShadowDep>) -> Vec<ShadowDep> {
             .or_insert(dep);
     }
     let mut result: Vec<ShadowDep> = map.into_values().collect();
-    result.sort_by(|a, b| a.category.label().cmp(b.category.label()).then(a.name.cmp(&b.name)));
+    result.sort_by(|a, b| {
+        a.category
+            .label()
+            .cmp(b.category.label())
+            .then(a.name.cmp(&b.name))
+    });
     result
 }
 
@@ -148,7 +153,10 @@ pub(crate) fn run_scan(
 
         let deps = registry.run_all(&ctx);
         if !deps.is_empty() {
-            all_deps.lock().unwrap_or_else(|e| e.into_inner()).extend(deps);
+            all_deps
+                .lock()
+                .unwrap_or_else(|e| e.into_inner())
+                .extend(deps);
         }
     });
 
@@ -276,7 +284,12 @@ pub(crate) fn cmd_scan(args: ScanArgs) -> i32 {
             if meta.len() > MAX_FILE_SIZE {
                 skipped_large.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
                 if args.verbose {
-                    eprintln!("  {} skipping large file: {} ({}MB)", "warning:".yellow(), path.display(), meta.len() / 1_000_000);
+                    eprintln!(
+                        "  {} skipping large file: {} ({}MB)",
+                        "warning:".yellow(),
+                        path.display(),
+                        meta.len() / 1_000_000
+                    );
                 }
                 return;
             }
@@ -378,7 +391,9 @@ pub(crate) fn cmd_scan(args: ScanArgs) -> i32 {
     let new_cache = cache::ScanCache {
         version: current_version.to_string(),
         config_hash,
-        entries: new_cache_entries.into_inner().unwrap_or_else(|e| e.into_inner()),
+        entries: new_cache_entries
+            .into_inner()
+            .unwrap_or_else(|e| e.into_inner()),
     };
     cache::save_cache(&project_root, &new_cache);
 
@@ -403,7 +418,11 @@ pub(crate) fn cmd_scan(args: ScanArgs) -> i32 {
         for s in only {
             match looper::types::Category::from_filter_name(s) {
                 Some(cat) => allowed.push(cat),
-                None => eprintln!("  {} unknown category '{}'. Valid: env, fs, network, shell, ports, platform", "warning:".yellow(), s),
+                None => eprintln!(
+                    "  {} unknown category '{}'. Valid: env, fs, network, shell, ports, platform",
+                    "warning:".yellow(),
+                    s
+                ),
             }
         }
         if allowed.is_empty() {
@@ -418,7 +437,11 @@ pub(crate) fn cmd_scan(args: ScanArgs) -> i32 {
         for s in exclude {
             match looper::types::Category::from_filter_name(s) {
                 Some(cat) => excluded.push(cat),
-                None => eprintln!("  {} unknown category '{}'. Valid: env, fs, network, shell, ports, platform", "warning:".yellow(), s),
+                None => eprintln!(
+                    "  {} unknown category '{}'. Valid: env, fs, network, shell, ports, platform",
+                    "warning:".yellow(),
+                    s
+                ),
             }
         }
         merged.retain(|d| !excluded.contains(&d.category));
@@ -445,12 +468,20 @@ pub(crate) fn cmd_scan(args: ScanArgs) -> i32 {
                     merged.retain(|d| !baseline_ids.contains(&d.id));
                 }
                 Err(e) => {
-                    eprintln!("{} invalid baseline JSON in {}: {e}", "error:".red(), baseline_path.display());
+                    eprintln!(
+                        "{} invalid baseline JSON in {}: {e}",
+                        "error:".red(),
+                        baseline_path.display()
+                    );
                     return 1;
                 }
             },
             Err(e) => {
-                eprintln!("{} could not read baseline {}: {e}", "error:".red(), baseline_path.display());
+                eprintln!(
+                    "{} could not read baseline {}: {e}",
+                    "error:".red(),
+                    baseline_path.display()
+                );
                 return 1;
             }
         }
@@ -476,7 +507,12 @@ pub(crate) fn cmd_scan(args: ScanArgs) -> i32 {
         if n_read > 0 {
             parts.push(format!("{n_read} unreadable"));
         }
-        eprintln!("  {} {} files skipped ({})", "warning:".yellow(), n_large + n_read, parts.join(", "));
+        eprintln!(
+            "  {} {} files skipped ({})",
+            "warning:".yellow(),
+            n_large + n_read,
+            parts.join(", ")
+        );
     }
 
     if args.verbose && has_errors {
@@ -505,5 +541,9 @@ pub(crate) fn cmd_scan(args: ScanArgs) -> i32 {
         return 1;
     }
 
-    if has_errors { 1 } else { 0 }
+    if has_errors {
+        1
+    } else {
+        0
+    }
 }

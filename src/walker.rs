@@ -3,9 +3,7 @@ use ignore::WalkBuilder;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
-const SUPPORTED_EXTENSIONS: &[&str] = &[
-    "js", "jsx", "ts", "tsx", "mjs", "cjs", "mts", "cts",
-];
+const SUPPORTED_EXTENSIONS: &[&str] = &["js", "jsx", "ts", "tsx", "mjs", "cjs", "mts", "cts"];
 
 /// Directories excluded by default even without .gitignore or config.
 const DEFAULT_EXCLUDED_DIRS: &[&str] = &[
@@ -100,7 +98,10 @@ pub fn discover_files(roots: &[PathBuf], opts: &WalkOptions) -> Result<WalkResul
             let entry = match entry {
                 Ok(e) => e,
                 Err(e) => {
-                    errors.lock().unwrap_or_else(|e| e.into_inner()).push(e.to_string());
+                    errors
+                        .lock()
+                        .unwrap_or_else(|e| e.into_inner())
+                        .push(e.to_string());
                     return ignore::WalkState::Continue;
                 }
             };
@@ -125,7 +126,10 @@ pub fn discover_files(roots: &[PathBuf], opts: &WalkOptions) -> Result<WalkResul
                 return ignore::WalkState::Continue;
             }
 
-            files.lock().unwrap_or_else(|e| e.into_inner()).push(path.to_path_buf());
+            files
+                .lock()
+                .unwrap_or_else(|e| e.into_inner())
+                .push(path.to_path_buf());
             ignore::WalkState::Continue
         })
     });

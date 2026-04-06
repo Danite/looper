@@ -124,7 +124,11 @@ fn invalid_yaml_returns_error() {
 fn service_without_image() {
     let dir = TempDir::new().unwrap();
     let path = dir.path().join("docker-compose.yml");
-    fs::write(&path, "services:\n  app:\n    build: .\n    ports:\n      - '3000:3000'\n").unwrap();
+    fs::write(
+        &path,
+        "services:\n  app:\n    build: .\n    ports:\n      - '3000:3000'\n",
+    )
+    .unwrap();
 
     let result = parse_compose_file(&path).unwrap();
     assert_eq!(result.services.len(), 1);
@@ -148,7 +152,11 @@ fn service_without_ports_or_env() {
 fn port_with_ip_binding() {
     let dir = TempDir::new().unwrap();
     let path = dir.path().join("docker-compose.yml");
-    fs::write(&path, "services:\n  db:\n    image: postgres\n    ports:\n      - '127.0.0.1:5432:5432'\n").unwrap();
+    fs::write(
+        &path,
+        "services:\n  db:\n    image: postgres\n    ports:\n      - '127.0.0.1:5432:5432'\n",
+    )
+    .unwrap();
 
     let result = parse_compose_file(&path).unwrap();
     assert_eq!(result.services[0].ports[0].host, 5432);
@@ -204,6 +212,9 @@ services:
 fn env_file_not_present() {
     let result = parse_compose_file(Path::new("tests/fixtures/infra/docker-compose.yml")).unwrap();
     for svc in &result.services {
-        assert!(svc.env_files.is_empty(), "fixture compose has no env_file directives");
+        assert!(
+            svc.env_files.is_empty(),
+            "fixture compose has no env_file directives"
+        );
     }
 }

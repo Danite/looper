@@ -23,11 +23,15 @@ fn detect_ports(source: &str) -> Vec<ShadowDep> {
 }
 
 fn port_deps(deps: &[ShadowDep]) -> Vec<&ShadowDep> {
-    deps.iter().filter(|d| d.category == Category::Port).collect()
+    deps.iter()
+        .filter(|d| d.category == Category::Port)
+        .collect()
 }
 
 fn net_deps(deps: &[ShadowDep]) -> Vec<&ShadowDep> {
-    deps.iter().filter(|d| d.category == Category::Network).collect()
+    deps.iter()
+        .filter(|d| d.category == Category::Network)
+        .collect()
 }
 
 // --- app.listen / server.listen ---
@@ -70,10 +74,12 @@ fn listen_id_format() {
 
 #[test]
 fn net_create_connection() {
-    let deps = detect_ports(r#"
+    let deps = detect_ports(
+        r#"
         import net from 'net';
         net.createConnection({ port: 6379 });
-    "#);
+    "#,
+    );
     let ports = port_deps(&deps);
     assert_eq!(ports.len(), 1);
     assert_eq!(ports[0].name, ":6379");
@@ -83,10 +89,12 @@ fn net_create_connection() {
 
 #[test]
 fn net_connect() {
-    let deps = detect_ports(r#"
+    let deps = detect_ports(
+        r#"
         import net from 'node:net';
         net.connect({ port: 5432 });
-    "#);
+    "#,
+    );
     let ports = port_deps(&deps);
     assert_eq!(ports.len(), 1);
     assert_eq!(ports[0].name, ":5432");
@@ -94,10 +102,12 @@ fn net_connect() {
 
 #[test]
 fn net_without_binding_ignored() {
-    let deps = detect_ports(r#"
+    let deps = detect_ports(
+        r#"
         const net = { createConnection: () => {} };
         net.createConnection({ port: 9999 });
-    "#);
+    "#,
+    );
     assert!(port_deps(&deps).is_empty());
 }
 
@@ -186,10 +196,12 @@ fn bun_serve() {
 
 #[test]
 fn net_create_server_listen_is_tcp() {
-    let deps = detect_ports(r#"
+    let deps = detect_ports(
+        r#"
         import net from 'net';
         net.createServer((socket) => {}).listen(9000);
-    "#);
+    "#,
+    );
     let ports = port_deps(&deps);
     assert_eq!(ports.len(), 1);
     assert_eq!(ports[0].name, ":9000");
@@ -199,10 +211,12 @@ fn net_create_server_listen_is_tcp() {
 
 #[test]
 fn http_create_server_listen_is_http() {
-    let deps = detect_ports(r#"
+    let deps = detect_ports(
+        r#"
         import http from 'http';
         http.createServer((req, res) => {}).listen(8080);
-    "#);
+    "#,
+    );
     let ports = port_deps(&deps);
     assert_eq!(ports.len(), 1);
     assert_eq!(ports[0].metadata.get_str("protocol_hint"), Some("http"));
@@ -238,10 +252,12 @@ fn http_url_not_matched_as_connection_string() {
 
 #[test]
 fn all_findings_high_confidence() {
-    let deps = detect_ports(r#"
+    let deps = detect_ports(
+        r#"
         app.listen(3000);
         new Redis("redis://localhost:6379");
-    "#);
+    "#,
+    );
     for dep in &deps {
         assert_eq!(dep.confidence, Confidence::High);
     }
@@ -249,11 +265,13 @@ fn all_findings_high_confidence() {
 
 #[test]
 fn multiple_ports() {
-    let deps = detect_ports(r#"
+    let deps = detect_ports(
+        r#"
         app.listen(3000);
         new Redis("redis://localhost:6379");
         mongoose.connect("mongodb://db:27017/app");
-    "#);
+    "#,
+    );
     let ports = port_deps(&deps);
     assert_eq!(ports.len(), 3);
     let names: Vec<&str> = ports.iter().map(|d| d.name.as_str()).collect();

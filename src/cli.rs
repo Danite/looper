@@ -1,7 +1,9 @@
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
-pub(crate) const SUBCOMMANDS: &[&str] = &["scan", "check", "init", "diff", "doctor", "drift", "generate", "help"];
+pub(crate) const SUBCOMMANDS: &[&str] = &[
+    "scan", "check", "init", "diff", "doctor", "drift", "generate", "help",
+];
 
 #[derive(Parser)]
 #[command(

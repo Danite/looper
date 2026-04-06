@@ -6,32 +6,62 @@ use std::path::Path;
 fn env_dep(name: &str) -> ShadowDep {
     let mut meta = Metadata::new();
     meta.insert("required", json!(true));
-    ShadowDep::new(Category::EnvVar, name, Confidence::High, Location::new("a.ts", 1, 1))
-        .with_metadata(meta)
+    ShadowDep::new(
+        Category::EnvVar,
+        name,
+        Confidence::High,
+        Location::new("a.ts", 1, 1),
+    )
+    .with_metadata(meta)
 }
 
 fn optional_env_dep(name: &str, default: &str) -> ShadowDep {
     let mut meta = Metadata::new();
     meta.insert("required", json!(false));
     meta.insert("default_value", json!(default));
-    ShadowDep::new(Category::EnvVar, name, Confidence::High, Location::new("a.ts", 1, 1))
-        .with_metadata(meta)
+    ShadowDep::new(
+        Category::EnvVar,
+        name,
+        Confidence::High,
+        Location::new("a.ts", 1, 1),
+    )
+    .with_metadata(meta)
 }
 
 fn binary_dep(name: &str) -> ShadowDep {
-    ShadowDep::new(Category::Binary, name, Confidence::High, Location::new("a.ts", 2, 1))
+    ShadowDep::new(
+        Category::Binary,
+        name,
+        Confidence::High,
+        Location::new("a.ts", 2, 1),
+    )
 }
 
 fn fs_dep(path: &str) -> ShadowDep {
-    ShadowDep::new(Category::Filesystem, path, Confidence::High, Location::new("a.ts", 3, 1))
+    ShadowDep::new(
+        Category::Filesystem,
+        path,
+        Confidence::High,
+        Location::new("a.ts", 3, 1),
+    )
 }
 
 fn platform_dep() -> ShadowDep {
-    ShadowDep::new(Category::Platform, "process.platform", Confidence::High, Location::new("a.ts", 4, 1))
+    ShadowDep::new(
+        Category::Platform,
+        "process.platform",
+        Confidence::High,
+        Location::new("a.ts", 4, 1),
+    )
 }
 
 fn dynamic_env_dep() -> ShadowDep {
-    ShadowDep::new(Category::EnvVar, "<dynamic>", Confidence::Low, Location::new("a.ts", 5, 1))
+    ShadowDep::new(
+        Category::EnvVar,
+        "<dynamic>",
+        Confidence::Low,
+        Location::new("a.ts", 5, 1),
+    )
 }
 
 // --- Env var checks ---
@@ -154,8 +184,13 @@ fn filesystem_relative_to_scan_root() {
 fn port_dep(name: &str, direction: &str) -> ShadowDep {
     let mut meta = Metadata::new();
     meta.insert("direction", json!(direction));
-    ShadowDep::new(Category::Port, name, Confidence::High, Location::new("a.ts", 6, 1))
-        .with_metadata(meta)
+    ShadowDep::new(
+        Category::Port,
+        name,
+        Confidence::High,
+        Location::new("a.ts", 6, 1),
+    )
+    .with_metadata(meta)
 }
 
 #[test]
@@ -170,7 +205,10 @@ fn port_listen_available_passes() {
 
     assert_eq!(report.checks.len(), 1);
     assert_eq!(report.checks[0].category, "port");
-    assert!(report.checks[0].passed, "free port should be available for listen");
+    assert!(
+        report.checks[0].passed,
+        "free port should be available for listen"
+    );
     assert_eq!(report.checks[0].detail, "available");
 }
 
@@ -184,7 +222,10 @@ fn port_listen_in_use_fails() {
     let report = run_doctor(&deps, 500, Path::new("."));
 
     assert_eq!(report.checks[0].category, "port");
-    assert!(!report.checks[0].passed, "occupied port should fail listen check");
+    assert!(
+        !report.checks[0].passed,
+        "occupied port should fail listen check"
+    );
     assert_eq!(report.checks[0].detail, "in use");
     assert!(report.checks[0].suggestion.is_some());
 
@@ -222,7 +263,12 @@ fn port_connect_reachable() {
 // --- Network checks ---
 
 fn network_dep(host: &str) -> ShadowDep {
-    ShadowDep::new(Category::Network, host, Confidence::High, Location::new("a.ts", 7, 1))
+    ShadowDep::new(
+        Category::Network,
+        host,
+        Confidence::High,
+        Location::new("a.ts", 7, 1),
+    )
 }
 
 #[test]
@@ -254,8 +300,13 @@ fn network_localhost_dns_resolves() {
 fn network_dep_with_protocol(host: &str, protocol: &str) -> ShadowDep {
     let mut meta = Metadata::new();
     meta.insert("protocol", json!(protocol));
-    ShadowDep::new(Category::Network, host, Confidence::High, Location::new("a.ts", 8, 1))
-        .with_metadata(meta)
+    ShadowDep::new(
+        Category::Network,
+        host,
+        Confidence::High,
+        Location::new("a.ts", 8, 1),
+    )
+    .with_metadata(meta)
 }
 
 #[test]
@@ -268,7 +319,10 @@ fn network_http_protocol_uses_port_80() {
     // If TCP failed, the suggestion should mention port 80 (not 443)
     if !report.checks[0].passed {
         let suggestion = report.checks[0].suggestion.as_deref().unwrap_or("");
-        assert!(suggestion.contains("80"), "http protocol should use port 80: {suggestion}");
+        assert!(
+            suggestion.contains("80"),
+            "http protocol should use port 80: {suggestion}"
+        );
     } else {
         assert_eq!(detail, "reachable");
     }
@@ -276,7 +330,10 @@ fn network_http_protocol_uses_port_80() {
 
 #[test]
 fn network_wss_protocol_uses_port_443() {
-    let deps = vec![network_dep_with_protocol("this-host-should-never-exist-xyz.invalid", "wss")];
+    let deps = vec![network_dep_with_protocol(
+        "this-host-should-never-exist-xyz.invalid",
+        "wss",
+    )];
     let report = run_doctor(&deps, 200, Path::new("."));
 
     // Should fail DNS the same way — but the important thing is it doesn't crash

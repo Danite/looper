@@ -1,4 +1,6 @@
-use super::{extract_string_or_template_arg, extract_string_or_template_expr, Detector, DetectorContext};
+use super::{
+    extract_string_or_template_arg, extract_string_or_template_expr, Detector, DetectorContext,
+};
 use crate::resolver::BindingMap;
 use crate::types::{Category, Confidence, Location, Metadata, ShadowDep};
 use oxc_ast::ast::{CallExpression, Expression, ImportExpression};
@@ -6,28 +8,56 @@ use oxc_ast_visit::{walk, Visit};
 use oxc_span::GetSpan;
 use serde_json::json;
 
-const FS_MODULES: &[&str] = &["fs", "fs/promises", "node:fs", "node:fs/promises", "fs-extra", "graceful-fs"];
+const FS_MODULES: &[&str] = &[
+    "fs",
+    "fs/promises",
+    "node:fs",
+    "node:fs/promises",
+    "fs-extra",
+    "graceful-fs",
+];
 const PATH_MODULES: &[&str] = &["path", "node:path", "path/posix", "path/win32"];
 
 const FS_READ_METHODS: &[&str] = &[
-    "readFileSync", "readFile", "readdir", "readdirSync",
-    "readlink", "readlinkSync", "realpath", "realpathSync",
+    "readFileSync",
+    "readFile",
+    "readdir",
+    "readdirSync",
+    "readlink",
+    "readlinkSync",
+    "realpath",
+    "realpathSync",
 ];
 const FS_WRITE_METHODS: &[&str] = &[
-    "writeFileSync", "writeFile", "appendFileSync", "appendFile",
-    "copyFile", "copyFileSync", "rename", "renameSync",
-    "chmod", "chmodSync", "chown", "chownSync",
-    "symlink", "symlinkSync", "link", "linkSync",
+    "writeFileSync",
+    "writeFile",
+    "appendFileSync",
+    "appendFile",
+    "copyFile",
+    "copyFileSync",
+    "rename",
+    "renameSync",
+    "chmod",
+    "chmodSync",
+    "chown",
+    "chownSync",
+    "symlink",
+    "symlinkSync",
+    "link",
+    "linkSync",
 ];
 const FS_EXISTS_METHODS: &[&str] = &[
-    "existsSync", "accessSync", "access", "statSync", "stat",
-    "lstatSync", "lstat",
+    "existsSync",
+    "accessSync",
+    "access",
+    "statSync",
+    "stat",
+    "lstatSync",
+    "lstat",
 ];
 const FS_MKDIR_METHODS: &[&str] = &["mkdirSync", "mkdir", "mkdtempSync", "mkdtemp"];
 const FS_OPEN_METHODS: &[&str] = &["openSync", "open", "createReadStream", "createWriteStream"];
-const FS_DELETE_METHODS: &[&str] = &[
-    "unlink", "unlinkSync", "rm", "rmSync", "rmdir", "rmdirSync",
-];
+const FS_DELETE_METHODS: &[&str] = &["unlink", "unlinkSync", "rm", "rmSync", "rmdir", "rmdirSync"];
 const FS_WATCH_METHODS: &[&str] = &["watch", "watchFile", "unwatchFile"];
 
 pub struct FilesystemDetector;
@@ -128,9 +158,7 @@ impl FsCollector<'_> {
 
     fn handle_fs_call(&mut self, call: &CallExpression<'_>) {
         let (method_name, callee_obj) = match &call.callee {
-            Expression::StaticMemberExpression(m) => {
-                (m.property.name.as_str(), Some(&m.object))
-            }
+            Expression::StaticMemberExpression(m) => (m.property.name.as_str(), Some(&m.object)),
             Expression::Identifier(id) => (id.name.as_str(), None),
             _ => return,
         };
@@ -179,14 +207,11 @@ impl FsCollector<'_> {
         }
 
         let is_path = match &call.callee {
-            Expression::StaticMemberExpression(m) => {
-                self.is_bound_to_any(&m.object, PATH_MODULES)
-            }
-            Expression::Identifier(id) => {
-                self.bindings
-                    .get(id.name.as_str())
-                    .is_some_and(|b| PATH_MODULES.iter().any(|m| b.module_source == *m))
-            }
+            Expression::StaticMemberExpression(m) => self.is_bound_to_any(&m.object, PATH_MODULES),
+            Expression::Identifier(id) => self
+                .bindings
+                .get(id.name.as_str())
+                .is_some_and(|b| PATH_MODULES.iter().any(|m| b.module_source == *m)),
             _ => false,
         };
         if !is_path {

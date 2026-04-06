@@ -1,0 +1,1207 @@
+{
+  "schema_version": "1",
+  "tool_version": "baseline",
+  "scanned_at": "approved",
+  "root": ".",
+  "files_scanned": 142,
+  "scan_duration_ms": 0,
+  "deps": [
+    {
+      "id": "env_var::MW",
+      "category": "env_var",
+      "name": "MW",
+      "confidence": "high",
+      "metadata": {
+        "default_value": "1",
+        "source_pattern": "direct_access",
+        "required": false
+      },
+      "locations": [
+        {
+          "file": "./benchmarks/middleware.js",
+          "line": 7,
+          "col": 18
+        }
+      ]
+    },
+    {
+      "id": "env_var::NODE_ENV",
+      "category": "env_var",
+      "name": "NODE_ENV",
+      "confidence": "high",
+      "metadata": {
+        "source_pattern": "direct_access",
+        "required": true
+      },
+      "locations": [
+        {
+          "file": "./examples/route-map/index.js",
+          "line": 10,
+          "col": 15
+        },
+        {
+          "file": "./test/app.js",
+          "line": 76,
+          "col": 16
+        },
+        {
+          "file": "./test/app.js",
+          "line": 77,
+          "col": 5
+        },
+        {
+          "file": "./test/app.js",
+          "line": 81,
+          "col": 5
+        },
+        {
+          "file": "./test/app.js",
+          "line": 92,
+          "col": 16
+        },
+        {
+          "file": "./test/app.js",
+          "line": 93,
+          "col": 5
+        },
+        {
+          "file": "./test/app.js",
+          "line": 97,
+          "col": 5
+        },
+        {
+          "file": "./test/app.js",
+          "line": 108,
+          "col": 16
+        },
+        {
+          "file": "./test/app.js",
+          "line": 109,
+          "col": 5
+        },
+        {
+          "file": "./test/app.js",
+          "line": 113,
+          "col": 5
+        },
+        {
+          "file": "./examples/cookies/index.js",
+          "line": 13,
+          "col": 5
+        },
+        {
+          "file": "./examples/error-pages/index.js",
+          "line": 11,
+          "col": 14
+        },
+        {
+          "file": "./lib/application.js",
+          "line": 91,
+          "col": 13
+        },
+        {
+          "file": "./test/support/env.js",
+          "line": 2,
+          "col": 1
+        }
+      ]
+    },
+    {
+      "id": "env_var::NO_DEPRECATION",
+      "category": "env_var",
+      "name": "NO_DEPRECATION",
+      "confidence": "high",
+      "metadata": {
+        "required": true,
+        "source_pattern": "direct_access"
+      },
+      "locations": [
+        {
+          "file": "./test/support/env.js",
+          "line": 3,
+          "col": 1
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/% of dogs.txt",
+      "category": "filesystem",
+      "name": "*/% of dogs.txt",
+      "confidence": "medium",
+      "metadata": {
+        "operation": "read",
+        "is_absolute": false
+      },
+      "locations": [
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 50,
+          "col": 27
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/../controllers",
+      "category": "filesystem",
+      "name": "*/../controllers",
+      "confidence": "medium",
+      "metadata": {
+        "operation": "read",
+        "is_absolute": false
+      },
+      "locations": [
+        {
+          "file": "./examples/mvc/lib/boot.js",
+          "line": 12,
+          "col": 13
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/../controllers/*/views",
+      "category": "filesystem",
+      "name": "*/../controllers/*/views",
+      "confidence": "medium",
+      "metadata": {
+        "operation": "read",
+        "is_absolute": false
+      },
+      "locations": [
+        {
+          "file": "./examples/mvc/lib/boot.js",
+          "line": 28,
+          "col": 22
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/.name",
+      "category": "filesystem",
+      "name": "*/.name",
+      "confidence": "medium",
+      "metadata": {
+        "is_absolute": false,
+        "operation": "read"
+      },
+      "locations": [
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 459,
+          "col": 26
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 477,
+          "col": 26
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 495,
+          "col": 26
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*//fixtures",
+      "category": "filesystem",
+      "name": "*//fixtures",
+      "confidence": "medium",
+      "metadata": {
+        "operation": "read",
+        "is_absolute": false
+      },
+      "locations": [
+        {
+          "file": "./test/express.static.js",
+          "line": 11,
+          "col": 16
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/blog",
+      "category": "filesystem",
+      "name": "*/blog",
+      "confidence": "medium",
+      "metadata": {
+        "operation": "read",
+        "is_absolute": false
+      },
+      "locations": [
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 96,
+          "col": 27
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/client.js",
+      "category": "filesystem",
+      "name": "*/client.js",
+      "confidence": "medium",
+      "metadata": {
+        "operation": "read",
+        "is_absolute": false
+      },
+      "locations": [
+        {
+          "file": "./examples/search/index.js",
+          "line": 54,
+          "col": 16
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/does-no-exist",
+      "category": "filesystem",
+      "name": "*/does-no-exist",
+      "confidence": "medium",
+      "metadata": {
+        "is_absolute": false,
+        "operation": "read"
+      },
+      "locations": [
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 104,
+          "col": 27
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/does-not-exist",
+      "category": "filesystem",
+      "name": "*/does-not-exist",
+      "confidence": "medium",
+      "metadata": {
+        "operation": "read",
+        "is_absolute": false
+      },
+      "locations": [
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 270,
+          "col": 22
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 318,
+          "col": 24
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 571,
+          "col": 24
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/files",
+      "category": "filesystem",
+      "name": "*/files",
+      "confidence": "medium",
+      "metadata": {
+        "is_absolute": false,
+        "operation": "read"
+      },
+      "locations": [
+        {
+          "file": "./examples/downloads/index.js",
+          "line": 13,
+          "col": 17
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/fixtures",
+      "category": "filesystem",
+      "name": "*/fixtures",
+      "confidence": "medium",
+      "metadata": {
+        "operation": "read",
+        "is_absolute": false
+      },
+      "locations": [
+        {
+          "file": "./test/app.engine.js",
+          "line": 21,
+          "col": 24
+        },
+        {
+          "file": "./test/app.engine.js",
+          "line": 42,
+          "col": 24
+        },
+        {
+          "file": "./test/app.engine.js",
+          "line": 56,
+          "col": 24
+        },
+        {
+          "file": "./test/app.engine.js",
+          "line": 71,
+          "col": 24
+        },
+        {
+          "file": "./test/app.render.js",
+          "line": 38,
+          "col": 24
+        },
+        {
+          "file": "./test/app.render.js",
+          "line": 51,
+          "col": 24
+        },
+        {
+          "file": "./test/app.render.js",
+          "line": 86,
+          "col": 26
+        },
+        {
+          "file": "./test/app.render.js",
+          "line": 89,
+          "col": 96
+        },
+        {
+          "file": "./test/app.render.js",
+          "line": 99,
+          "col": 26
+        },
+        {
+          "file": "./test/app.render.js",
+          "line": 113,
+          "col": 26
+        },
+        {
+          "file": "./test/app.render.js",
+          "line": 128,
+          "col": 26
+        },
+        {
+          "file": "./test/app.render.js",
+          "line": 296,
+          "col": 24
+        },
+        {
+          "file": "./test/app.render.js",
+          "line": 310,
+          "col": 24
+        },
+        {
+          "file": "./test/app.render.js",
+          "line": 323,
+          "col": 24
+        },
+        {
+          "file": "./test/res.render.js",
+          "line": 70,
+          "col": 24
+        },
+        {
+          "file": "./test/res.render.js",
+          "line": 85,
+          "col": 24
+        },
+        {
+          "file": "./test/res.render.js",
+          "line": 100,
+          "col": 24
+        },
+        {
+          "file": "./test/res.render.js",
+          "line": 116,
+          "col": 26
+        },
+        {
+          "file": "./test/res.render.js",
+          "line": 137,
+          "col": 26
+        },
+        {
+          "file": "./test/res.render.js",
+          "line": 208,
+          "col": 24
+        },
+        {
+          "file": "./test/res.render.js",
+          "line": 224,
+          "col": 24
+        },
+        {
+          "file": "./test/res.render.js",
+          "line": 239,
+          "col": 24
+        },
+        {
+          "file": "./test/res.render.js",
+          "line": 254,
+          "col": 24
+        },
+        {
+          "file": "./test/res.render.js",
+          "line": 270,
+          "col": 24
+        },
+        {
+          "file": "./test/res.render.js",
+          "line": 286,
+          "col": 24
+        },
+        {
+          "file": "./test/res.render.js",
+          "line": 304,
+          "col": 24
+        },
+        {
+          "file": "./test/res.render.js",
+          "line": 324,
+          "col": 24
+        },
+        {
+          "file": "./test/res.render.js",
+          "line": 343,
+          "col": 26
+        },
+        {
+          "file": "./test/res.download.js",
+          "line": 13,
+          "col": 21
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 12,
+          "col": 16
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/fixtures/.name",
+      "category": "filesystem",
+      "name": "*/fixtures/.name",
+      "confidence": "medium",
+      "metadata": {
+        "operation": "read",
+        "is_absolute": false
+      },
+      "locations": [
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 126,
+          "col": 27
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/fixtures/broken.send",
+      "category": "filesystem",
+      "name": "*/fixtures/broken.send",
+      "confidence": "medium",
+      "metadata": {
+        "operation": "read",
+        "is_absolute": false
+      },
+      "locations": [
+        {
+          "file": "./test/res.render.js",
+          "line": 45,
+          "col": 20
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/fixtures/default_layout",
+      "category": "filesystem",
+      "name": "*/fixtures/default_layout",
+      "confidence": "medium",
+      "metadata": {
+        "operation": "read",
+        "is_absolute": false
+      },
+      "locations": [
+        {
+          "file": "./test/app.render.js",
+          "line": 142,
+          "col": 27
+        },
+        {
+          "file": "./test/app.render.js",
+          "line": 157,
+          "col": 13
+        },
+        {
+          "file": "./test/app.render.js",
+          "line": 174,
+          "col": 13
+        },
+        {
+          "file": "./test/app.render.js",
+          "line": 191,
+          "col": 13
+        },
+        {
+          "file": "./test/res.render.js",
+          "line": 153,
+          "col": 26
+        },
+        {
+          "file": "./test/res.render.js",
+          "line": 169,
+          "col": 13
+        },
+        {
+          "file": "./test/res.render.js",
+          "line": 187,
+          "col": 13
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/fixtures/local_layout",
+      "category": "filesystem",
+      "name": "*/fixtures/local_layout",
+      "confidence": "medium",
+      "metadata": {
+        "operation": "read",
+        "is_absolute": false
+      },
+      "locations": [
+        {
+          "file": "./test/app.render.js",
+          "line": 156,
+          "col": 13
+        },
+        {
+          "file": "./test/app.render.js",
+          "line": 173,
+          "col": 13
+        },
+        {
+          "file": "./test/app.render.js",
+          "line": 190,
+          "col": 13
+        },
+        {
+          "file": "./test/res.render.js",
+          "line": 168,
+          "col": 13
+        },
+        {
+          "file": "./test/res.render.js",
+          "line": 186,
+          "col": 13
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/fixtures/name.txt",
+      "category": "filesystem",
+      "name": "*/fixtures/name.txt",
+      "confidence": "medium",
+      "metadata": {
+        "is_absolute": false,
+        "operation": "read"
+      },
+      "locations": [
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 117,
+          "col": 27
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/fixtures/user",
+      "category": "filesystem",
+      "name": "*/fixtures/user",
+      "confidence": "medium",
+      "metadata": {
+        "is_absolute": false,
+        "operation": "read"
+      },
+      "locations": [
+        {
+          "file": "./test/app.render.js",
+          "line": 28,
+          "col": 18
+        },
+        {
+          "file": "./test/res.render.js",
+          "line": 31,
+          "col": 20
+        },
+        {
+          "file": "./test/res.render.js",
+          "line": 59,
+          "col": 20
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/fixtures/user.tmpl",
+      "category": "filesystem",
+      "name": "*/fixtures/user.tmpl",
+      "confidence": "medium",
+      "metadata": {
+        "is_absolute": false,
+        "operation": "read"
+      },
+      "locations": [
+        {
+          "file": "./test/app.render.js",
+          "line": 15,
+          "col": 18
+        },
+        {
+          "file": "./test/res.render.js",
+          "line": 16,
+          "col": 20
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/name.txt",
+      "category": "filesystem",
+      "name": "*/name.txt",
+      "confidence": "medium",
+      "metadata": {
+        "operation": "read",
+        "is_absolute": false
+      },
+      "locations": [
+        {
+          "file": "./test/res.download.js",
+          "line": 326,
+          "col": 56
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 42,
+          "col": 27
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 58,
+          "col": 27
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 67,
+          "col": 27
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 83,
+          "col": 27
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 138,
+          "col": 22
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 154,
+          "col": 24
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 179,
+          "col": 27
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 192,
+          "col": 24
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 215,
+          "col": 24
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 237,
+          "col": 22
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 250,
+          "col": 22
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 292,
+          "col": 24
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 341,
+          "col": 25
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 878,
+          "col": 80
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/nums.txt",
+      "category": "filesystem",
+      "name": "*/nums.txt",
+      "confidence": "medium",
+      "metadata": {
+        "operation": "read",
+        "is_absolute": false
+      },
+      "locations": [
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 352,
+          "col": 26
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 369,
+          "col": 26
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 386,
+          "col": 26
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 402,
+          "col": 26
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/public",
+      "category": "filesystem",
+      "name": "*/public",
+      "confidence": "medium",
+      "metadata": {
+        "is_absolute": false,
+        "operation": "read"
+      },
+      "locations": [
+        {
+          "file": "./examples/static-files/index.js",
+          "line": 22,
+          "col": 24
+        },
+        {
+          "file": "./examples/static-files/index.js",
+          "line": 30,
+          "col": 35
+        },
+        {
+          "file": "./examples/route-separation/index.js",
+          "line": 32,
+          "col": 24
+        },
+        {
+          "file": "./examples/mvc/index.js",
+          "line": 37,
+          "col": 24
+        },
+        {
+          "file": "./examples/search/index.js",
+          "line": 24,
+          "col": 24
+        },
+        {
+          "file": "./examples/ejs/index.js",
+          "line": 31,
+          "col": 24
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/public/css",
+      "category": "filesystem",
+      "name": "*/public/css",
+      "confidence": "medium",
+      "metadata": {
+        "is_absolute": false,
+        "operation": "read"
+      },
+      "locations": [
+        {
+          "file": "./examples/static-files/index.js",
+          "line": 36,
+          "col": 24
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/user.html",
+      "category": "filesystem",
+      "name": "*/user.html",
+      "confidence": "medium",
+      "metadata": {
+        "is_absolute": false,
+        "operation": "read"
+      },
+      "locations": [
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 421,
+          "col": 26
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 439,
+          "col": 26
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 514,
+          "col": 24
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 534,
+          "col": 24
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 553,
+          "col": 24
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 592,
+          "col": 26
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 610,
+          "col": 26
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 630,
+          "col": 26
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 646,
+          "col": 26
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 663,
+          "col": 26
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 679,
+          "col": 26
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 699,
+          "col": 24
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 715,
+          "col": 24
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 731,
+          "col": 24
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 747,
+          "col": 24
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 764,
+          "col": 26
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 783,
+          "col": 26
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 799,
+          "col": 26
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 815,
+          "col": 26
+        },
+        {
+          "file": "./test/res.sendFile.js",
+          "line": 831,
+          "col": 26
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/views",
+      "category": "filesystem",
+      "name": "*/views",
+      "confidence": "medium",
+      "metadata": {
+        "is_absolute": false,
+        "operation": "read"
+      },
+      "locations": [
+        {
+          "file": "./examples/auth/index.js",
+          "line": 17,
+          "col": 18
+        },
+        {
+          "file": "./examples/route-separation/index.js",
+          "line": 22,
+          "col": 18
+        },
+        {
+          "file": "./examples/mvc/index.js",
+          "line": 20,
+          "col": 18
+        },
+        {
+          "file": "./examples/view-locals/index.js",
+          "line": 12,
+          "col": 18
+        },
+        {
+          "file": "./examples/ejs/index.js",
+          "line": 27,
+          "col": 18
+        },
+        {
+          "file": "./examples/error-pages/index.js",
+          "line": 14,
+          "col": 18
+        },
+        {
+          "file": "./examples/markdown/index.js",
+          "line": 27,
+          "col": 18
+        }
+      ]
+    },
+    {
+      "id": "network::google.com",
+      "category": "network",
+      "name": "google.com",
+      "confidence": "high",
+      "metadata": {
+        "protocol": "http"
+      },
+      "locations": [
+        {
+          "file": "./test/res.location.js",
+          "line": 127,
+          "col": 24
+        }
+      ]
+    },
+    {
+      "id": "port::0::listen",
+      "category": "port",
+      "name": ":0",
+      "confidence": "high",
+      "metadata": {
+        "direction": "listen",
+        "protocol_hint": "http"
+      },
+      "locations": [
+        {
+          "file": "./test/app.listen.js",
+          "line": 10,
+          "col": 18
+        },
+        {
+          "file": "./test/app.listen.js",
+          "line": 18,
+          "col": 19
+        },
+        {
+          "file": "./test/app.listen.js",
+          "line": 29,
+          "col": 20
+        },
+        {
+          "file": "./test/app.listen.js",
+          "line": 46,
+          "col": 20
+        }
+      ]
+    },
+    {
+      "id": "port::3000::listen",
+      "category": "port",
+      "name": ":3000",
+      "confidence": "high",
+      "metadata": {
+        "direction": "listen",
+        "protocol_hint": "http"
+      },
+      "locations": [
+        {
+          "file": "./examples/session/redis.js",
+          "line": 38,
+          "col": 1
+        },
+        {
+          "file": "./examples/route-map/index.js",
+          "line": 73,
+          "col": 3
+        },
+        {
+          "file": "./examples/static-files/index.js",
+          "line": 38,
+          "col": 1
+        },
+        {
+          "file": "./examples/route-middleware/index.js",
+          "line": 88,
+          "col": 3
+        },
+        {
+          "file": "./examples/vhost/index.js",
+          "line": 51,
+          "col": 3
+        },
+        {
+          "file": "./examples/auth/index.js",
+          "line": 132,
+          "col": 3
+        },
+        {
+          "file": "./examples/route-separation/index.js",
+          "line": 53,
+          "col": 3
+        },
+        {
+          "file": "./examples/content-negotiation/index.js",
+          "line": 44,
+          "col": 3
+        },
+        {
+          "file": "./examples/mvc/index.js",
+          "line": 93,
+          "col": 3
+        },
+        {
+          "file": "./examples/view-constructor/index.js",
+          "line": 46,
+          "col": 3
+        },
+        {
+          "file": "./examples/cookie-sessions/index.js",
+          "line": 23,
+          "col": 3
+        },
+        {
+          "file": "./examples/cookies/index.js",
+          "line": 51,
+          "col": 3
+        },
+        {
+          "file": "./examples/search/index.js",
+          "line": 59,
+          "col": 3
+        },
+        {
+          "file": "./examples/downloads/index.js",
+          "line": 38,
+          "col": 3
+        },
+        {
+          "file": "./examples/view-locals/index.js",
+          "line": 153,
+          "col": 3
+        },
+        {
+          "file": "./examples/online/index.js",
+          "line": 59,
+          "col": 3
+        },
+        {
+          "file": "./examples/session/index.js",
+          "line": 35,
+          "col": 3
+        },
+        {
+          "file": "./examples/ejs/index.js",
+          "line": 55,
+          "col": 3
+        },
+        {
+          "file": "./examples/params/index.js",
+          "line": 72,
+          "col": 3
+        },
+        {
+          "file": "./examples/error/index.js",
+          "line": 51,
+          "col": 3
+        },
+        {
+          "file": "./examples/web-service/index.js",
+          "line": 115,
+          "col": 3
+        },
+        {
+          "file": "./examples/error-pages/index.js",
+          "line": 101,
+          "col": 3
+        },
+        {
+          "file": "./examples/hello-world/index.js",
+          "line": 13,
+          "col": 3
+        },
+        {
+          "file": "./examples/resource/index.js",
+          "line": 93,
+          "col": 3
+        },
+        {
+          "file": "./examples/markdown/index.js",
+          "line": 42,
+          "col": 3
+        },
+        {
+          "file": "./examples/multi-router/index.js",
+          "line": 16,
+          "col": 3
+        }
+      ]
+    },
+    {
+      "id": "port::3333::listen",
+      "category": "port",
+      "name": ":3333",
+      "confidence": "high",
+      "metadata": {
+        "direction": "listen",
+        "protocol_hint": "http"
+      },
+      "locations": [
+        {
+          "file": "./benchmarks/middleware.js",
+          "line": 20,
+          "col": 1
+        }
+      ]
+    }
+  ]
+}

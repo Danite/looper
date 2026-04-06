@@ -82,7 +82,10 @@ fn placeholder_for_url() {
 
 #[test]
 fn placeholder_for_port() {
-    let deps = vec![env_dep("REDIS_PORT", true, None), env_dep("PORT", true, None)];
+    let deps = vec![
+        env_dep("REDIS_PORT", true, None),
+        env_dep("PORT", true, None),
+    ];
     let result = generate_env(&deps);
     assert!(result.contains("REDIS_PORT=0"));
     assert!(result.contains("PORT=3000"));

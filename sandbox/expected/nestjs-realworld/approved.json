@@ -1,0 +1,27 @@
+{
+  "schema_version": "1",
+  "tool_version": "baseline",
+  "scanned_at": "approved",
+  "root": ".",
+  "files_scanned": 36,
+  "scan_duration_ms": 0,
+  "deps": [
+    {
+      "id": "port::3000::listen",
+      "category": "port",
+      "name": ":3000",
+      "confidence": "high",
+      "metadata": {
+        "direction": "listen",
+        "protocol_hint": "http"
+      },
+      "locations": [
+        {
+          "file": "./src/main.ts",
+          "line": 20,
+          "col": 9
+        }
+      ]
+    }
+  ]
+}

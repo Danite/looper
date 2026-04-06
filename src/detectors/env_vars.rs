@@ -28,10 +28,7 @@ impl Detector for EnvVarsDetector {
             if let Statement::ImportDeclaration(import) = stmt {
                 let src = import.source.value.as_str();
                 if src == "dotenv/config" || src == "dotenv" {
-                    let specifiers_empty = import
-                        .specifiers
-                        .as_ref()
-                        .is_none_or(|s| s.is_empty());
+                    let specifiers_empty = import.specifiers.as_ref().is_none_or(|s| s.is_empty());
                     if specifiers_empty {
                         collector.record(
                             "<dotenv>",
@@ -149,7 +146,12 @@ impl EnvVarCollector<'_> {
                     &default_val,
                 );
             } else {
-                self.record(key_name.as_ref(), p.span().start, Confidence::High, "envalid");
+                self.record(
+                    key_name.as_ref(),
+                    p.span().start,
+                    Confidence::High,
+                    "envalid",
+                );
             }
         }
     }
@@ -207,7 +209,12 @@ fn is_deno_env(expr: &Expression<'_>) -> bool {
 fn extract_default_value(expr: &Expression<'_>) -> Option<String> {
     match expr {
         Expression::StringLiteral(lit) => Some(lit.value.to_string()),
-        Expression::NumericLiteral(lit) => Some(lit.raw.as_ref().map(|r| r.to_string()).unwrap_or_else(|| lit.value.to_string())),
+        Expression::NumericLiteral(lit) => Some(
+            lit.raw
+                .as_ref()
+                .map(|r| r.to_string())
+                .unwrap_or_else(|| lit.value.to_string()),
+        ),
         Expression::BooleanLiteral(lit) => Some(lit.value.to_string()),
         Expression::NullLiteral(_) => Some("null".to_string()),
         _ => None,
@@ -367,10 +374,14 @@ impl<'a> Visit<'a> for EnvVarCollector<'a> {
             LogicalOperator::Or | LogicalOperator::Coalesce
         ) {
             if let Some(access) = extract_env_access(&expr.left) {
-                let default_str = extract_default_value(&expr.right)
-                    .unwrap_or_default();
+                let default_str = extract_default_value(&expr.right).unwrap_or_default();
                 if default_str.is_empty() {
-                    self.record(&access.name, access.offset, access.confidence, access.pattern);
+                    self.record(
+                        &access.name,
+                        access.offset,
+                        access.confidence,
+                        access.pattern,
+                    );
                 } else {
                     self.record_with_default(
                         &access.name,

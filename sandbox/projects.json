@@ -1,0 +1,22 @@
+{
+  "projects": [
+    {
+      "name": "express",
+      "repo": "https://github.com/expressjs/express",
+      "ref": "v5.2.1",
+      "description": "Minimal Node.js web framework -- exercises env_var, filesystem, network, ports detectors"
+    },
+    {
+      "name": "nestjs-realworld",
+      "repo": "https://github.com/lujakob/nestjs-realworld-example-app",
+      "ref": "c1c2cc4e448b279ff083272df1ac50d20c3304fa",
+      "description": "NestJS + TypeORM real-world CRUD app -- exercises config library and framework-specific patterns"
+    },
+    {
+      "name": "del-cli",
+      "repo": "https://github.com/sindresorhus/del-cli",
+      "ref": "v7.0.0",
+      "description": "File deletion CLI tool -- exercises filesystem, shell/binary, and platform detectors"
+    }
+  ]
+}

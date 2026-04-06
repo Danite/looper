@@ -49,7 +49,12 @@ fn merge_deps(deps: Vec<ShadowDep>) -> Vec<ShadowDep> {
             .or_insert(dep);
     }
     let mut result: Vec<ShadowDep> = map.into_values().collect();
-    result.sort_by(|a, b| a.category.label().cmp(b.category.label()).then(a.name.cmp(&b.name)));
+    result.sort_by(|a, b| {
+        a.category
+            .label()
+            .cmp(b.category.label())
+            .then(a.name.cmp(&b.name))
+    });
     result
 }
 
@@ -69,7 +74,10 @@ fn all_six_categories_detected() {
     let by_cat = deps_by_category(&deps);
 
     assert!(by_cat.contains_key(&Category::EnvVar), "missing EnvVar");
-    assert!(by_cat.contains_key(&Category::Filesystem), "missing Filesystem");
+    assert!(
+        by_cat.contains_key(&Category::Filesystem),
+        "missing Filesystem"
+    );
     assert!(by_cat.contains_key(&Category::Network), "missing Network");
     assert!(by_cat.contains_key(&Category::Binary), "missing Binary");
     assert!(by_cat.contains_key(&Category::Port), "missing Port");
@@ -171,18 +179,10 @@ fn platform_detected() {
 
     assert!(!platform_deps.is_empty());
 
-    let has_darwin = platform_deps
-        .iter()
-        .any(|d| d.name.contains("darwin"));
-    let has_linux = platform_deps
-        .iter()
-        .any(|d| d.name.contains("linux"));
-    let has_homedir = platform_deps
-        .iter()
-        .any(|d| d.name.contains("homedir"));
-    let has_dev_null = platform_deps
-        .iter()
-        .any(|d| d.name.contains("/dev/null"));
+    let has_darwin = platform_deps.iter().any(|d| d.name.contains("darwin"));
+    let has_linux = platform_deps.iter().any(|d| d.name.contains("linux"));
+    let has_homedir = platform_deps.iter().any(|d| d.name.contains("homedir"));
+    let has_dev_null = platform_deps.iter().any(|d| d.name.contains("/dev/null"));
 
     assert!(has_darwin || has_linux, "missing process.platform guard");
     assert!(has_homedir, "missing os.homedir()");
@@ -215,12 +215,27 @@ fn mixed_fixture_has_all_categories() {
     }
 
     let by_cat = deps_by_category(&all_deps);
-    assert!(by_cat.contains_key(&Category::EnvVar), "mixed: missing EnvVar");
-    assert!(by_cat.contains_key(&Category::Filesystem), "mixed: missing Filesystem");
-    assert!(by_cat.contains_key(&Category::Network), "mixed: missing Network");
-    assert!(by_cat.contains_key(&Category::Binary), "mixed: missing Binary");
+    assert!(
+        by_cat.contains_key(&Category::EnvVar),
+        "mixed: missing EnvVar"
+    );
+    assert!(
+        by_cat.contains_key(&Category::Filesystem),
+        "mixed: missing Filesystem"
+    );
+    assert!(
+        by_cat.contains_key(&Category::Network),
+        "mixed: missing Network"
+    );
+    assert!(
+        by_cat.contains_key(&Category::Binary),
+        "mixed: missing Binary"
+    );
     assert!(by_cat.contains_key(&Category::Port), "mixed: missing Port");
-    assert!(by_cat.contains_key(&Category::Platform), "mixed: missing Platform");
+    assert!(
+        by_cat.contains_key(&Category::Platform),
+        "mixed: missing Platform"
+    );
 }
 
 // --- Error handling ---
@@ -235,9 +250,17 @@ fn no_files_returns_error() {
 #[test]
 fn binary_file_in_scan_does_not_crash() {
     let dir = tempfile::TempDir::new().unwrap();
-    std::fs::write(dir.path().join("valid.ts"), "const url = process.env.API_KEY;").unwrap();
+    std::fs::write(
+        dir.path().join("valid.ts"),
+        "const url = process.env.API_KEY;",
+    )
+    .unwrap();
     // Non-UTF-8 bytes with a .js extension
-    std::fs::write(dir.path().join("binary.js"), &[0xFF, 0xFE, 0x00, 0xD8, 0x80]).unwrap();
+    std::fs::write(
+        dir.path().join("binary.js"),
+        &[0xFF, 0xFE, 0x00, 0xD8, 0x80],
+    )
+    .unwrap();
 
     let roots = vec![dir.path().to_path_buf()];
     let walk_result = discover_files(&roots, &WalkOptions::default()).unwrap();
@@ -277,7 +300,11 @@ fn binary_file_in_scan_does_not_crash() {
 #[test]
 fn large_file_skipped_in_scan() {
     let dir = tempfile::TempDir::new().unwrap();
-    std::fs::write(dir.path().join("valid.ts"), "const url = process.env.API_KEY;").unwrap();
+    std::fs::write(
+        dir.path().join("valid.ts"),
+        "const url = process.env.API_KEY;",
+    )
+    .unwrap();
 
     // Create a file just over 10MB with a .js extension containing valid env access
     let large_path = dir.path().join("huge.js");
@@ -321,8 +348,14 @@ fn large_file_skipped_in_scan() {
         all_deps.extend(registry.run_all(&ctx));
     }
 
-    assert!(all_deps.iter().any(|d| d.name == "API_KEY"), "valid.ts should still be scanned");
-    assert!(!all_deps.iter().any(|d| d.name == "HUGE_VAR"), "huge.js should be skipped");
+    assert!(
+        all_deps.iter().any(|d| d.name == "API_KEY"),
+        "valid.ts should still be scanned"
+    );
+    assert!(
+        !all_deps.iter().any(|d| d.name == "HUGE_VAR"),
+        "huge.js should be skipped"
+    );
 }
 
 #[test]

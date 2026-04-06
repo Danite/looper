@@ -202,7 +202,8 @@ fn resolve_network_port(host: &str, metadata: &crate::types::Metadata) -> u16 {
 
 fn check_network(host: &str, metadata: &crate::types::Metadata, timeout: Duration) -> DoctorCheck {
     let port = resolve_network_port(host, metadata);
-    let clean_host = host.rfind(':')
+    let clean_host = host
+        .rfind(':')
         .and_then(|i| host[i + 1..].parse::<u16>().ok().map(|_| &host[..i]))
         .unwrap_or(host);
     let lookup = format!("{clean_host}:{port}");
@@ -222,7 +223,9 @@ fn check_network(host: &str, metadata: &crate::types::Metadata, timeout: Duratio
                         name: host.into(),
                         passed: false,
                         detail: "DNS resolves but connection refused".into(),
-                        suggestion: Some(format!("host {clean_host} resolves but port {port} is not reachable")),
+                        suggestion: Some(format!(
+                            "host {clean_host} resolves but port {port} is not reachable"
+                        )),
                     },
                 }
             } else {

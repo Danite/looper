@@ -17,7 +17,10 @@ fn make_infra(
         binaries: binaries.iter().map(|s| s.to_string()).collect(),
         exposed_ports: ports
             .iter()
-            .map(|(p, s)| InfraPort { port: *p, source: s.to_string() })
+            .map(|(p, s)| InfraPort {
+                port: *p,
+                source: s.to_string(),
+            })
             .collect(),
         services: services
             .iter()
@@ -36,29 +39,59 @@ fn make_infra(
 }
 
 fn env_dep(name: &str) -> ShadowDep {
-    ShadowDep::new(Category::EnvVar, name, Confidence::High, Location::new("app.ts", 1, 1))
+    ShadowDep::new(
+        Category::EnvVar,
+        name,
+        Confidence::High,
+        Location::new("app.ts", 1, 1),
+    )
 }
 
 fn binary_dep(name: &str) -> ShadowDep {
-    ShadowDep::new(Category::Binary, name, Confidence::High, Location::new("app.ts", 2, 1))
+    ShadowDep::new(
+        Category::Binary,
+        name,
+        Confidence::High,
+        Location::new("app.ts", 2, 1),
+    )
 }
 
 fn port_dep(port: u16) -> ShadowDep {
-    let mut dep = ShadowDep::new(Category::Port, format!(":{port}"), Confidence::High, Location::new("app.ts", 3, 1));
+    let mut dep = ShadowDep::new(
+        Category::Port,
+        format!(":{port}"),
+        Confidence::High,
+        Location::new("app.ts", 3, 1),
+    );
     dep.id = format!("port::{port}::connect");
     dep
 }
 
 fn network_dep(host: &str) -> ShadowDep {
-    ShadowDep::new(Category::Network, host, Confidence::High, Location::new("app.ts", 4, 1))
+    ShadowDep::new(
+        Category::Network,
+        host,
+        Confidence::High,
+        Location::new("app.ts", 4, 1),
+    )
 }
 
 fn fs_dep(path: &str) -> ShadowDep {
-    ShadowDep::new(Category::Filesystem, path, Confidence::High, Location::new("app.ts", 5, 1))
+    ShadowDep::new(
+        Category::Filesystem,
+        path,
+        Confidence::High,
+        Location::new("app.ts", 5, 1),
+    )
 }
 
 fn platform_dep() -> ShadowDep {
-    ShadowDep::new(Category::Platform, "process.platform === \"darwin\"", Confidence::High, Location::new("app.ts", 6, 1))
+    ShadowDep::new(
+        Category::Platform,
+        "process.platform === \"darwin\"",
+        Confidence::High,
+        Location::new("app.ts", 6, 1),
+    )
 }
 
 // --- Env var comparison ---
@@ -86,7 +119,12 @@ fn env_var_missing() {
 
 #[test]
 fn env_var_unused() {
-    let infra = make_infra(&[("OLD_VAR", ".env line 5"), ("DB_URL", ".env line 1")], &[], &[], &[]);
+    let infra = make_infra(
+        &[("OLD_VAR", ".env line 5"), ("DB_URL", ".env line 1")],
+        &[],
+        &[],
+        &[],
+    );
     let deps = vec![env_dep("DB_URL")];
     let report = compare(&deps, &infra);
 
@@ -125,7 +163,11 @@ fn port_covered() {
     let report = compare(&deps, &infra);
 
     assert_eq!(report.covered.len(), 1);
-    assert!(report.covered[0].infra_source.as_ref().unwrap().contains("redis"));
+    assert!(report.covered[0]
+        .infra_source
+        .as_ref()
+        .unwrap()
+        .contains("redis"));
 }
 
 #[test]
@@ -167,7 +209,11 @@ fn network_internal_bare_name_covered() {
     let report = compare(&deps, &infra);
 
     assert_eq!(report.covered.len(), 1);
-    assert!(report.covered[0].infra_source.as_ref().unwrap().contains("redis"));
+    assert!(report.covered[0]
+        .infra_source
+        .as_ref()
+        .unwrap()
+        .contains("redis"));
 }
 
 #[test]
@@ -288,8 +334,14 @@ fn dynamic_env_var_skipped() {
     let report = compare(&deps, &infra);
 
     let names: Vec<&str> = report.missing.iter().map(|d| d.name.as_str()).collect();
-    assert!(!names.contains(&"<dynamic>"), "<dynamic> should be skipped in drift");
-    assert!(names.contains(&"REAL_VAR"), "real env vars should still appear");
+    assert!(
+        !names.contains(&"<dynamic>"),
+        "<dynamic> should be skipped in drift"
+    );
+    assert!(
+        names.contains(&"REAL_VAR"),
+        "real env vars should still appear"
+    );
 }
 
 #[test]

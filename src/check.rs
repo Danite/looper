@@ -67,7 +67,13 @@ pub fn print_check_report(result: &CheckResult) {
                 .first()
                 .map(|l| format!("({}:{})", l.file, l.line))
                 .unwrap_or_default();
-            eprintln!("  {} {}: {}  {}", "+".green(), dep.category, dep.name, loc.dimmed());
+            eprintln!(
+                "  {} {}: {}  {}",
+                "+".green(),
+                dep.category,
+                dep.name,
+                loc.dimmed()
+            );
         }
         eprintln!();
     }
@@ -89,8 +95,5 @@ pub fn print_check_report(result: &CheckResult) {
         eprintln!();
     }
 
-    eprintln!(
-        "Update the manifest:  {}",
-        "looper check --update".bold()
-    );
+    eprintln!("Update the manifest:  {}", "looper check --update".bold());
 }

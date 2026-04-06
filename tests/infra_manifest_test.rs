@@ -45,7 +45,11 @@ fn services_from_compose() {
 fn service_image_resolution() {
     let manifest = build_infra_manifest(Path::new("tests/fixtures/infra"));
 
-    let redis = manifest.services.iter().find(|s| s.name == "redis").unwrap();
+    let redis = manifest
+        .services
+        .iter()
+        .find(|s| s.name == "redis")
+        .unwrap();
     assert_eq!(redis.protocol_hint.as_deref(), Some("redis"));
     assert_eq!(redis.default_port, Some(6379));
 
@@ -124,7 +128,11 @@ fn empty_project_returns_empty_manifest() {
 #[test]
 fn only_env_file() {
     let dir = TempDir::new().unwrap();
-    fs::write(dir.path().join(".env"), "DB_URL=postgres://localhost\nAPI_KEY=secret\n").unwrap();
+    fs::write(
+        dir.path().join(".env"),
+        "DB_URL=postgres://localhost\nAPI_KEY=secret\n",
+    )
+    .unwrap();
 
     let manifest = build_infra_manifest(dir.path());
     assert_eq!(manifest.env_vars.len(), 2);
@@ -150,7 +158,11 @@ fn only_compose_file() {
 #[test]
 fn only_dockerfile() {
     let dir = TempDir::new().unwrap();
-    fs::write(dir.path().join("Dockerfile"), "FROM node:20\nRUN apt-get install -y git\nEXPOSE 3000\n").unwrap();
+    fs::write(
+        dir.path().join("Dockerfile"),
+        "FROM node:20\nRUN apt-get install -y git\nEXPOSE 3000\n",
+    )
+    .unwrap();
 
     let manifest = build_infra_manifest(dir.path());
     assert!(manifest.binaries.contains("node"));

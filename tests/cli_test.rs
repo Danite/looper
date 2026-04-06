@@ -60,7 +60,10 @@ fn implicit_scan_shorthand() {
         .output()
         .unwrap();
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("shadow deps"), "implicit scan should work: {stdout}");
+    assert!(
+        stdout.contains("shadow deps"),
+        "implicit scan should work: {stdout}"
+    );
 }
 
 #[test]
@@ -71,7 +74,11 @@ fn scan_quiet_one_line() {
         .unwrap();
     let stdout = String::from_utf8_lossy(&output.stdout);
     let lines: Vec<&str> = stdout.trim().lines().collect();
-    assert_eq!(lines.len(), 1, "quiet mode should produce one line: {stdout}");
+    assert_eq!(
+        lines.len(),
+        1,
+        "quiet mode should produce one line: {stdout}"
+    );
     assert!(stdout.contains("looper v"));
 }
 

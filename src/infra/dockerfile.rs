@@ -4,7 +4,10 @@ use std::path::Path;
 /// Package name -> binary names it provides.
 pub const PACKAGE_TO_BINARIES: &[(&str, &[&str])] = &[
     ("ffmpeg", &["ffmpeg", "ffprobe"]),
-    ("imagemagick", &["convert", "mogrify", "identify", "composite"]),
+    (
+        "imagemagick",
+        &["convert", "mogrify", "identify", "composite"],
+    ),
     ("graphicsmagick", &["gm"]),
     ("git", &["git"]),
     ("curl", &["curl"]),
@@ -184,7 +187,11 @@ fn extract_install_packages(cmd: &str, result: &mut DockerfileResult) {
 
     // Detect: apt-get install, apt install, apk add, yum install, dnf install, pacman -S
     let is_install = match tokens.as_slice() {
-        [cmd, "install", ..] if *cmd == "apt-get" || *cmd == "apt" || *cmd == "yum" || *cmd == "dnf" => true,
+        [cmd, "install", ..]
+            if *cmd == "apt-get" || *cmd == "apt" || *cmd == "yum" || *cmd == "dnf" =>
+        {
+            true
+        }
         [cmd, "add", ..] if *cmd == "apk" => true,
         [cmd, flag, ..] if *cmd == "pacman" && flag.contains('S') => true,
         _ => false,

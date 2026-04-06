@@ -19,11 +19,15 @@ pub(crate) fn cmd_drift(args: DriftArgs) -> i32 {
         return 2;
     }
 
-    let scan_paths = args
-        .scan_paths
-        .unwrap_or_else(|| vec![PathBuf::from(".")]);
+    let scan_paths = args.scan_paths.unwrap_or_else(|| vec![PathBuf::from(".")]);
 
-    let scan = match run_scan(&scan_paths, false, Vec::new(), args.verbose, args.config.as_deref()) {
+    let scan = match run_scan(
+        &scan_paths,
+        false,
+        Vec::new(),
+        args.verbose,
+        args.config.as_deref(),
+    ) {
         Ok(s) => s,
         Err(code) => return code,
     };
@@ -58,9 +62,10 @@ pub(crate) fn cmd_drift(args: DriftArgs) -> i32 {
         match looper::infra::envfile::parse_env_file(env_path) {
             Ok(result) => {
                 for (name, entry) in &result.entries {
-                    infra.env_vars.entry(name.clone()).or_insert_with(|| {
-                        format!("{} line {}", entry.source_file, entry.line)
-                    });
+                    infra
+                        .env_vars
+                        .entry(name.clone())
+                        .or_insert_with(|| format!("{} line {}", entry.source_file, entry.line));
                 }
             }
             Err(e) => eprintln!("  {} {e}", "warning:".yellow()),
@@ -113,7 +118,12 @@ fn format_drift_terminal(report: &looper::drift::DriftReport) -> String {
     use std::fmt::Write;
     let mut out = String::new();
 
-    writeln!(out, "{}", "looper drift — comparing code vs infrastructure".bold()).unwrap();
+    writeln!(
+        out,
+        "{}",
+        "looper drift — comparing code vs infrastructure".bold()
+    )
+    .unwrap();
 
     if !report.missing.is_empty() {
         writeln!(
@@ -124,10 +134,22 @@ fn format_drift_terminal(report: &looper::drift::DriftReport) -> String {
             report.missing.len()
         )
         .unwrap();
-        writeln!(out, " {}", "──────────────────────────────────────────────────".dimmed()).unwrap();
+        writeln!(
+            out,
+            " {}",
+            "──────────────────────────────────────────────────".dimmed()
+        )
+        .unwrap();
         for item in &report.missing {
             let src = item.code_source.as_deref().unwrap_or("");
-            writeln!(out, "  {:<10} {:<25} {}", item.category, item.name, src.dimmed()).unwrap();
+            writeln!(
+                out,
+                "  {:<10} {:<25} {}",
+                item.category,
+                item.name,
+                src.dimmed()
+            )
+            .unwrap();
         }
     }
 
@@ -139,9 +161,21 @@ fn format_drift_terminal(report: &looper::drift::DriftReport) -> String {
             report.external.len()
         )
         .unwrap();
-        writeln!(out, " {}", "──────────────────────────────────────────────────".dimmed()).unwrap();
+        writeln!(
+            out,
+            " {}",
+            "──────────────────────────────────────────────────".dimmed()
+        )
+        .unwrap();
         for item in &report.external {
-            writeln!(out, "  {:<10} {:<25} {}", item.category, item.name, "external API".dimmed()).unwrap();
+            writeln!(
+                out,
+                "  {:<10} {:<25} {}",
+                item.category,
+                item.name,
+                "external API".dimmed()
+            )
+            .unwrap();
         }
     }
 
@@ -154,10 +188,22 @@ fn format_drift_terminal(report: &looper::drift::DriftReport) -> String {
             report.unused.len()
         )
         .unwrap();
-        writeln!(out, " {}", "──────────────────────────────────────────────────".dimmed()).unwrap();
+        writeln!(
+            out,
+            " {}",
+            "──────────────────────────────────────────────────".dimmed()
+        )
+        .unwrap();
         for item in &report.unused {
             let src = item.infra_source.as_deref().unwrap_or("");
-            writeln!(out, "  {:<10} {:<25} {}", item.category, item.name, src.dimmed()).unwrap();
+            writeln!(
+                out,
+                "  {:<10} {:<25} {}",
+                item.category,
+                item.name,
+                src.dimmed()
+            )
+            .unwrap();
         }
     }
 
@@ -169,10 +215,22 @@ fn format_drift_terminal(report: &looper::drift::DriftReport) -> String {
             report.covered.len()
         )
         .unwrap();
-        writeln!(out, " {}", "──────────────────────────────────────────────────".dimmed()).unwrap();
+        writeln!(
+            out,
+            " {}",
+            "──────────────────────────────────────────────────".dimmed()
+        )
+        .unwrap();
         for item in &report.covered {
             let src = item.infra_source.as_deref().unwrap_or("");
-            writeln!(out, "  {:<10} {:<25} {}", item.category, item.name, src.dimmed()).unwrap();
+            writeln!(
+                out,
+                "  {:<10} {:<25} {}",
+                item.category,
+                item.name,
+                src.dimmed()
+            )
+            .unwrap();
         }
     }
 

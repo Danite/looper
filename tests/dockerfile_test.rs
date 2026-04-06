@@ -51,7 +51,10 @@ fn extracts_expose_ports() {
 #[test]
 fn extracts_copy_sources() {
     let result = parse_dockerfile(Path::new("tests/fixtures/infra/Dockerfile")).unwrap();
-    assert!(result.copy_sources.iter().any(|s| s.contains("package.json")));
+    assert!(result
+        .copy_sources
+        .iter()
+        .any(|s| s.contains("package.json")));
     assert!(result.copy_sources.iter().any(|s| s.contains("src/")));
 }
 
@@ -61,7 +64,11 @@ fn extracts_copy_sources() {
 fn parses_apt_get_install() {
     let dir = TempDir::new().unwrap();
     let path = dir.path().join("Dockerfile");
-    fs::write(&path, "FROM ubuntu:22.04\nRUN apt-get update && apt-get install -y wget jq\n").unwrap();
+    fs::write(
+        &path,
+        "FROM ubuntu:22.04\nRUN apt-get update && apt-get install -y wget jq\n",
+    )
+    .unwrap();
 
     let result = parse_dockerfile(&path).unwrap();
     assert!(result.binaries.contains("wget"));
@@ -85,7 +92,11 @@ fn parses_yum_install() {
 fn handles_continuation_lines() {
     let dir = TempDir::new().unwrap();
     let path = dir.path().join("Dockerfile");
-    fs::write(&path, "FROM alpine\nRUN apk add \\\n    ffmpeg \\\n    git\n").unwrap();
+    fs::write(
+        &path,
+        "FROM alpine\nRUN apk add \\\n    ffmpeg \\\n    git\n",
+    )
+    .unwrap();
 
     let result = parse_dockerfile(&path).unwrap();
     assert!(result.binaries.contains("ffmpeg"));
@@ -161,9 +172,13 @@ fn find_and_parse_returns_empty_when_missing() {
 fn parses_json_exec_form_install() {
     let dir = TempDir::new().unwrap();
     let path = dir.path().join("Dockerfile");
-    fs::write(&path, r#"FROM alpine
+    fs::write(
+        &path,
+        r#"FROM alpine
 RUN ["apt-get", "install", "-y", "curl", "git"]
-"#).unwrap();
+"#,
+    )
+    .unwrap();
 
     let result = parse_dockerfile(&path).unwrap();
     assert!(result.binaries.contains("curl"));
@@ -174,9 +189,13 @@ RUN ["apt-get", "install", "-y", "curl", "git"]
 fn parses_json_exec_form_apk() {
     let dir = TempDir::new().unwrap();
     let path = dir.path().join("Dockerfile");
-    fs::write(&path, r#"FROM alpine
+    fs::write(
+        &path,
+        r#"FROM alpine
 RUN ["apk", "add", "ffmpeg"]
-"#).unwrap();
+"#,
+    )
+    .unwrap();
 
     let result = parse_dockerfile(&path).unwrap();
     assert!(result.binaries.contains("ffmpeg"));
@@ -187,9 +206,13 @@ RUN ["apk", "add", "ffmpeg"]
 fn json_exec_form_non_install_ignored() {
     let dir = TempDir::new().unwrap();
     let path = dir.path().join("Dockerfile");
-    fs::write(&path, r#"FROM node:20
+    fs::write(
+        &path,
+        r#"FROM node:20
 RUN ["node", "build.js"]
-"#).unwrap();
+"#,
+    )
+    .unwrap();
 
     let result = parse_dockerfile(&path).unwrap();
     assert!(!result.binaries.contains("build.js"));

@@ -1,5 +1,5 @@
-use looper::detectors::{DetectorContext, DetectorRegistry};
 use looper::detectors::network::NetworkDetector;
+use looper::detectors::{DetectorContext, DetectorRegistry};
 use looper::resolver::{resolve_bindings, BindingMap};
 use looper::types::{Category, Confidence, ShadowDep};
 use oxc_allocator::Allocator;
@@ -50,7 +50,10 @@ fn fetch_with_url() {
     assert_eq!(names(&deps), vec!["api.stripe.com"]);
     assert_eq!(deps[0].confidence, Confidence::High);
     assert_eq!(deps[0].metadata.get_str("protocol"), Some("https"));
-    assert_eq!(deps[0].metadata.get_str("path_pattern"), Some("/v1/charges"));
+    assert_eq!(
+        deps[0].metadata.get_str("path_pattern"),
+        Some("/v1/charges")
+    );
 }
 
 #[test]
@@ -85,47 +88,57 @@ fn axios_direct_call() {
 
 #[test]
 fn http_request_with_hostname() {
-    let deps = detect_net(r#"
+    let deps = detect_net(
+        r#"
         import http from 'http';
         http.request({ hostname: "db.example.com", port: 3000 });
-    "#);
+    "#,
+    );
     assert_eq!(names(&deps), vec!["db.example.com"]);
     assert_eq!(deps[0].metadata.get_str("protocol"), Some("http"));
 }
 
 #[test]
 fn http_request_with_host() {
-    let deps = detect_net(r#"
+    let deps = detect_net(
+        r#"
         import http from 'http';
         http.request({ host: "api.internal" });
-    "#);
+    "#,
+    );
     assert_eq!(names(&deps), vec!["api.internal"]);
 }
 
 #[test]
 fn http_request_without_binding_ignored() {
-    let deps = detect_net(r#"
+    let deps = detect_net(
+        r#"
         const http = { request: () => {} };
         http.request({ hostname: "not-real.com" });
-    "#);
+    "#,
+    );
     assert!(deps.is_empty());
 }
 
 #[test]
 fn http_request_string_url() {
-    let deps = detect_net(r#"
+    let deps = detect_net(
+        r#"
         import http from 'http';
         http.request("http://api.internal.service/health");
-    "#);
+    "#,
+    );
     assert_eq!(names(&deps), vec!["api.internal.service"]);
 }
 
 #[test]
 fn https_get_string_url() {
-    let deps = detect_net(r#"
+    let deps = detect_net(
+        r#"
         import https from 'https';
         https.get("https://registry.npmjs.org/looper");
-    "#);
+    "#,
+    );
     assert_eq!(names(&deps), vec!["registry.npmjs.org"]);
 }
 
@@ -165,7 +178,8 @@ fn new_websocket_wss() {
 
 #[test]
 fn jsx_script_src() {
-    let deps = detect_net_jsx(r#"const x = <script src="https://analytics.example.com/track.js" />;"#);
+    let deps =
+        detect_net_jsx(r#"const x = <script src="https://analytics.example.com/track.js" />;"#);
     assert_eq!(names(&deps), vec!["analytics.example.com"]);
 }
 
@@ -221,11 +235,13 @@ fn id_format() {
 
 #[test]
 fn multiple_endpoints() {
-    let deps = detect_net(r#"
+    let deps = detect_net(
+        r#"
         fetch("https://api.stripe.com/v1");
         fetch("https://sentry.io/api/store");
         new WebSocket("wss://realtime.app.com");
-    "#);
+    "#,
+    );
     assert_eq!(deps.len(), 3);
     let n = names(&deps);
     assert!(n.contains(&"api.stripe.com"));
@@ -249,55 +265,67 @@ fn localhost_detected() {
 
 #[test]
 fn got_get() {
-    let deps = detect_net(r#"
+    let deps = detect_net(
+        r#"
         import got from 'got';
         got.get("https://api.example.com/data");
-    "#);
+    "#,
+    );
     assert_eq!(names(&deps), vec!["api.example.com"]);
 }
 
 #[test]
 fn got_direct_call() {
-    let deps = detect_net(r#"
+    let deps = detect_net(
+        r#"
         import got from 'got';
         got("https://hooks.slack.com/trigger");
-    "#);
+    "#,
+    );
     assert_eq!(names(&deps), vec!["hooks.slack.com"]);
 }
 
 #[test]
 fn node_fetch_call() {
-    let deps = detect_net(r#"
+    let deps = detect_net(
+        r#"
         import fetch from 'node-fetch';
         fetch("https://api.github.com/repos");
-    "#);
+    "#,
+    );
     assert_eq!(names(&deps), vec!["api.github.com"]);
 }
 
 #[test]
 fn ky_post() {
-    let deps = detect_net(r#"
+    let deps = detect_net(
+        r#"
         import ky from 'ky';
         ky.post("https://analytics.example.com/events");
-    "#);
+    "#,
+    );
     assert_eq!(names(&deps), vec!["analytics.example.com"]);
 }
 
 #[test]
 fn superagent_get() {
-    let deps = detect_net(r#"
+    let deps = detect_net(
+        r#"
         import superagent from 'superagent';
         superagent.get("https://api.weather.com/forecast");
-    "#);
+    "#,
+    );
     assert_eq!(names(&deps), vec!["api.weather.com"]);
 }
 
 #[test]
 fn undici_request() {
-    let deps = detect_net(r#"
+    let deps = detect_net(
+        r#"
         import { request } from 'undici';
         request("https://cdn.example.com/assets");
-    "#);
+    "#,
+    );
     assert_eq!(names(&deps), vec!["cdn.example.com"]);
 }
 

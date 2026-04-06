@@ -2,6 +2,11 @@
 /working/
 .looper-cache
 
+# Sandbox
+sandbox/repos/
+sandbox/results/
+sandbox/reports/
+
 # Beads / Dolt files (added by bd init)
 .dolt/
 *.db

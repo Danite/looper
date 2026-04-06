@@ -119,7 +119,6 @@ fn extract_var_name(line: &str) -> Option<String> {
 }
 
 fn is_valid_env_name(name: &str) -> bool {
-    name.chars()
-        .all(|c| c.is_ascii_alphanumeric() || c == '_')
+    name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
         && name.chars().next().is_some_and(|c| !c.is_ascii_digit())
 }

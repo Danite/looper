@@ -22,16 +22,22 @@ pub fn generate_dockerfile(deps: &[ShadowDep], project_root: &Path) -> String {
 
     for dep in deps {
         match dep.category {
-            Category::Binary => {
-                match resolve_package(&dep.name) {
-                    Some(pkg) => { packages.insert(pkg.to_string()); }
-                    None => { unresolved.insert(dep.name.clone()); }
+            Category::Binary => match resolve_package(&dep.name) {
+                Some(pkg) => {
+                    packages.insert(pkg.to_string());
                 }
-            }
+                None => {
+                    unresolved.insert(dep.name.clone());
+                }
+            },
             Category::Port => {
                 let direction = dep.metadata.get_str("direction").unwrap_or("");
                 if direction == "listen" {
-                    if let Some(port) = dep.name.strip_prefix(':').and_then(|s| s.parse::<u16>().ok()) {
+                    if let Some(port) = dep
+                        .name
+                        .strip_prefix(':')
+                        .and_then(|s| s.parse::<u16>().ok())
+                    {
                         expose_ports.insert(port);
                     }
                 }
@@ -53,7 +59,11 @@ pub fn generate_dockerfile(deps: &[ShadowDep], project_root: &Path) -> String {
 
     if !packages.is_empty() {
         writeln!(out).unwrap();
-        writeln!(out, "RUN apt-get update && apt-get install -y --no-install-recommends \\").unwrap();
+        writeln!(
+            out,
+            "RUN apt-get update && apt-get install -y --no-install-recommends \\"
+        )
+        .unwrap();
         for pkg in &packages {
             writeln!(out, "    {pkg} \\").unwrap();
         }
@@ -62,8 +72,16 @@ pub fn generate_dockerfile(deps: &[ShadowDep], project_root: &Path) -> String {
 
     if !unresolved.is_empty() {
         writeln!(out).unwrap();
-        writeln!(out, "# TODO: The following binaries were detected but have no known package mapping.").unwrap();
-        writeln!(out, "# Install them manually or add to the RUN command above.").unwrap();
+        writeln!(
+            out,
+            "# TODO: The following binaries were detected but have no known package mapping."
+        )
+        .unwrap();
+        writeln!(
+            out,
+            "# Install them manually or add to the RUN command above."
+        )
+        .unwrap();
         for name in &unresolved {
             writeln!(out, "# - {name}").unwrap();
         }

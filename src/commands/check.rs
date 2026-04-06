@@ -26,8 +26,12 @@ pub(crate) fn cmd_check(args: CheckArgs) -> i32 {
     log_scan_errors(&scan.errors, args.verbose);
 
     if args.update {
-        let new_manifest =
-            looper::output::build_manifest(&scan.root, scan.file_count, scan.duration_ms, scan.deps);
+        let new_manifest = looper::output::build_manifest(
+            &scan.root,
+            scan.file_count,
+            scan.duration_ms,
+            scan.deps,
+        );
         match looper::output::json::format_json(&new_manifest) {
             Ok(json) => {
                 if let Err(e) = std::fs::write(&args.manifest, &json) {

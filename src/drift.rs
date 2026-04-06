@@ -149,9 +149,10 @@ pub fn compare(code_deps: &[ShadowDep], infra: &InfraManifest) -> DriftReport {
 
             Category::Filesystem => {
                 let code_src = first_location(dep);
-                let is_covered = infra.volumes.iter().any(|v| {
-                    dep.name.starts_with(v.as_str()) || v.starts_with(dep.name.as_str())
-                });
+                let is_covered = infra
+                    .volumes
+                    .iter()
+                    .any(|v| dep.name.starts_with(v.as_str()) || v.starts_with(dep.name.as_str()));
                 if is_covered {
                     covered.push(DriftItem {
                         category: dep.category.to_string(),

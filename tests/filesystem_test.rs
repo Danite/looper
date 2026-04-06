@@ -1,5 +1,5 @@
-use looper::detectors::{DetectorContext, DetectorRegistry};
 use looper::detectors::filesystem::FilesystemDetector;
+use looper::detectors::{DetectorContext, DetectorRegistry};
 use looper::resolver::resolve_bindings;
 use looper::types::{Category, Confidence, ShadowDep};
 use oxc_allocator::Allocator;
@@ -46,10 +46,12 @@ fn names(deps: &[ShadowDep]) -> Vec<&str> {
 
 #[test]
 fn fs_read_file_sync_esm() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         import fs from 'fs';
         const data = fs.readFileSync('./config.json');
-    "#);
+    "#,
+    );
     assert_eq!(names(&deps), vec!["./config.json"]);
     assert_eq!(deps[0].metadata.get_str("operation"), Some("read"));
     assert_eq!(deps[0].metadata.get_bool("is_absolute"), Some(false));
@@ -58,10 +60,12 @@ fn fs_read_file_sync_esm() {
 
 #[test]
 fn fs_read_file_sync_cjs() {
-    let deps = detect_fs_cjs(r#"
+    let deps = detect_fs_cjs(
+        r#"
         const fs = require('fs');
         const data = fs.readFileSync('/etc/ssl/certs/ca.pem');
-    "#);
+    "#,
+    );
     assert_eq!(names(&deps), vec!["/etc/ssl/certs/ca.pem"]);
     assert_eq!(deps[0].metadata.get_bool("is_absolute"), Some(true));
 }
@@ -70,10 +74,12 @@ fn fs_read_file_sync_cjs() {
 
 #[test]
 fn fs_promises_read_file() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         import fs from 'fs';
         const data = await fs.promises.readFile('./data.json');
-    "#);
+    "#,
+    );
     assert_eq!(names(&deps), vec!["./data.json"]);
     assert_eq!(deps[0].metadata.get_str("operation"), Some("read"));
 }
@@ -82,10 +88,12 @@ fn fs_promises_read_file() {
 
 #[test]
 fn fs_write_file_sync() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         import fs from 'fs';
         fs.writeFileSync('/tmp/cache.json', data);
-    "#);
+    "#,
+    );
     assert_eq!(names(&deps), vec!["/tmp/cache.json"]);
     assert_eq!(deps[0].metadata.get_str("operation"), Some("write"));
     assert_eq!(deps[0].metadata.get_bool("is_absolute"), Some(true));
@@ -95,10 +103,12 @@ fn fs_write_file_sync() {
 
 #[test]
 fn fs_exists_sync() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         import fs from 'fs';
         if (fs.existsSync('./config')) {}
-    "#);
+    "#,
+    );
     assert_eq!(names(&deps), vec!["./config"]);
     assert_eq!(deps[0].metadata.get_str("operation"), Some("exists"));
 }
@@ -107,10 +117,12 @@ fn fs_exists_sync() {
 
 #[test]
 fn fs_mkdir_sync() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         import fs from 'fs';
         fs.mkdirSync('./uploads');
-    "#);
+    "#,
+    );
     assert_eq!(names(&deps), vec!["./uploads"]);
     assert_eq!(deps[0].metadata.get_str("operation"), Some("mkdir"));
 }
@@ -119,10 +131,12 @@ fn fs_mkdir_sync() {
 
 #[test]
 fn named_import_read_file_sync() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         import { readFileSync } from 'fs';
         const data = readFileSync('./settings.yaml');
-    "#);
+    "#,
+    );
     assert_eq!(names(&deps), vec!["./settings.yaml"]);
 }
 
@@ -130,10 +144,12 @@ fn named_import_read_file_sync() {
 
 #[test]
 fn path_join_with_literals() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         import path from 'path';
         const p = path.join('src', 'config', 'app.json');
-    "#);
+    "#,
+    );
     assert_eq!(deps.len(), 1);
     assert!(deps[0].name.contains("src"));
     assert!(deps[0].name.contains("app.json"));
@@ -142,10 +158,12 @@ fn path_join_with_literals() {
 
 #[test]
 fn path_join_with_dynamic_part() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         import path from 'path';
         const p = path.join('locales', lang, 'messages.json');
-    "#);
+    "#,
+    );
     assert_eq!(deps.len(), 1);
     assert!(deps[0].name.contains("locales"));
     assert!(deps[0].name.contains("*"));
@@ -156,10 +174,12 @@ fn path_join_with_dynamic_part() {
 
 #[test]
 fn path_resolve() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         import path from 'path';
         const p = path.resolve('./data');
-    "#);
+    "#,
+    );
     assert_eq!(deps.len(), 1);
     assert!(deps[0].name.contains("data"));
 }
@@ -168,9 +188,11 @@ fn path_resolve() {
 
 #[test]
 fn deno_read_text_file() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         const data = Deno.readTextFile('./config.json');
-    "#);
+    "#,
+    );
     assert_eq!(names(&deps), vec!["./config.json"]);
     assert_eq!(deps[0].metadata.get_str("operation"), Some("read"));
 }
@@ -179,9 +201,11 @@ fn deno_read_text_file() {
 
 #[test]
 fn bun_file() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         const file = Bun.file('./data.json');
-    "#);
+    "#,
+    );
     assert_eq!(names(&deps), vec!["./data.json"]);
     assert_eq!(deps[0].metadata.get_str("operation"), Some("read"));
 }
@@ -190,10 +214,12 @@ fn bun_file() {
 
 #[test]
 fn node_prefix_fs() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         import fs from 'node:fs';
         fs.readFileSync('./app.config');
-    "#);
+    "#,
+    );
     assert_eq!(names(&deps), vec!["./app.config"]);
 }
 
@@ -201,19 +227,23 @@ fn node_prefix_fs() {
 
 #[test]
 fn no_findings_without_fs_import() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         const fs = { readFileSync: () => {} };
         fs.readFileSync('./config.json');
-    "#);
+    "#,
+    );
     assert!(deps.is_empty());
 }
 
 #[test]
 fn no_findings_for_dynamic_path() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         import fs from 'fs';
         fs.readFileSync(dynamicVariable);
-    "#);
+    "#,
+    );
     assert!(deps.is_empty());
 }
 
@@ -225,61 +255,76 @@ fn empty_source() {
 
 #[test]
 fn category_is_filesystem() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         import fs from 'fs';
         fs.readFileSync('./test');
-    "#);
+    "#,
+    );
     assert_eq!(deps[0].category, Category::Filesystem);
 }
 
 #[test]
 fn id_format() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         import fs from 'fs';
         fs.readFileSync('./config.json');
-    "#);
+    "#,
+    );
     assert_eq!(deps[0].id, "filesystem::./config.json");
 }
 
 #[test]
 fn multiple_fs_calls() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         import fs from 'fs';
         fs.readFileSync('./a.json');
         fs.writeFileSync('./b.json', data);
         fs.existsSync('./c');
-    "#);
+    "#,
+    );
     assert_eq!(deps.len(), 3);
     assert_eq!(names(&deps), vec!["./a.json", "./b.json", "./c"]);
 }
 
 #[test]
 fn fs_extra_detected() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         import fs from 'fs-extra';
         fs.readFileSync('./config.json');
         fs.copySync('./src', './dist');
-    "#);
-    assert!(!deps.is_empty(), "fs-extra should be detected as filesystem module");
+    "#,
+    );
+    assert!(
+        !deps.is_empty(),
+        "fs-extra should be detected as filesystem module"
+    );
     assert!(deps.iter().any(|d| d.name == "./config.json"));
 }
 
 #[test]
 fn graceful_fs_detected() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         import fs from 'graceful-fs';
         fs.readFileSync('./settings.yaml');
-    "#);
+    "#,
+    );
     assert_eq!(deps.len(), 1);
     assert_eq!(deps[0].name, "./settings.yaml");
 }
 
 #[test]
 fn copy_file_detected() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         import fs from 'fs';
         fs.copyFileSync('./src.txt', './dest.txt');
-    "#);
+    "#,
+    );
     assert_eq!(deps.len(), 1);
     assert_eq!(deps[0].name, "./src.txt");
     assert_eq!(deps[0].metadata.get_str("operation"), Some("write"));
@@ -287,20 +332,24 @@ fn copy_file_detected() {
 
 #[test]
 fn rename_detected() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         import fs from 'fs';
         fs.renameSync('./old.json', './new.json');
-    "#);
+    "#,
+    );
     assert_eq!(deps.len(), 1);
     assert_eq!(deps[0].metadata.get_str("operation"), Some("write"));
 }
 
 #[test]
 fn unlink_detected() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         import fs from 'fs';
         fs.unlinkSync('./temp.lock');
-    "#);
+    "#,
+    );
     assert_eq!(deps.len(), 1);
     assert_eq!(deps[0].name, "./temp.lock");
     assert_eq!(deps[0].metadata.get_str("operation"), Some("delete"));
@@ -308,20 +357,24 @@ fn unlink_detected() {
 
 #[test]
 fn rm_detected() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         import fs from 'fs';
         fs.rmSync('./cache');
-    "#);
+    "#,
+    );
     assert_eq!(deps.len(), 1);
     assert_eq!(deps[0].metadata.get_str("operation"), Some("delete"));
 }
 
 #[test]
 fn watch_detected() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         import fs from 'fs';
         fs.watch('./src');
-    "#);
+    "#,
+    );
     assert_eq!(deps.len(), 1);
     assert_eq!(deps[0].name, "./src");
     assert_eq!(deps[0].metadata.get_str("operation"), Some("watch"));
@@ -329,30 +382,36 @@ fn watch_detected() {
 
 #[test]
 fn chmod_detected() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         import fs from 'fs';
         fs.chmodSync('./script.sh', 0o755);
-    "#);
+    "#,
+    );
     assert_eq!(deps.len(), 1);
     assert_eq!(deps[0].metadata.get_str("operation"), Some("write"));
 }
 
 #[test]
 fn realpath_detected() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         import fs from 'fs';
         fs.realpathSync('./link');
-    "#);
+    "#,
+    );
     assert_eq!(deps.len(), 1);
     assert_eq!(deps[0].metadata.get_str("operation"), Some("read"));
 }
 
 #[test]
 fn lstat_detected() {
-    let deps = detect_fs(r#"
+    let deps = detect_fs(
+        r#"
         import fs from 'fs';
         fs.lstatSync('./maybe-symlink');
-    "#);
+    "#,
+    );
     assert_eq!(deps.len(), 1);
     assert_eq!(deps[0].metadata.get_str("operation"), Some("exists"));
 }

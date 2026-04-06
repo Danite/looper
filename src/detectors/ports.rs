@@ -9,7 +9,14 @@ use serde_json::json;
 use std::sync::LazyLock;
 
 const NET_MODULES: &[&str] = &["net", "node:net"];
-const HTTP_MODULES: &[&str] = &["http", "https", "node:http", "node:https", "http2", "node:http2"];
+const HTTP_MODULES: &[&str] = &[
+    "http",
+    "https",
+    "node:http",
+    "node:https",
+    "http2",
+    "node:http2",
+];
 
 static CONN_STRING_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"^(?P<proto>[a-z][a-z0-9+\-.]*?)://(?:[^@/]*@)?(?P<host>[^/:]+?)(?::(?P<port>\d+))?(?:/|$)")
@@ -60,13 +67,7 @@ impl PortCollector<'_> {
         crate::types::line_col(self.source_text, offset)
     }
 
-    fn record_port(
-        &mut self,
-        port: u16,
-        offset: u32,
-        direction: &str,
-        protocol_hint: &str,
-    ) {
+    fn record_port(&mut self, port: u16, offset: u32, direction: &str, protocol_hint: &str) {
         let (line, col) = self.line_col(offset);
         let name = format!(":{port}");
         let id = format!("port::{port}::{direction}");
@@ -76,16 +77,14 @@ impl PortCollector<'_> {
             meta.insert("protocol_hint", json!(protocol_hint));
         }
 
-        self.findings.push(
-            ShadowDep {
-                id,
-                category: Category::Port,
-                name,
-                confidence: Confidence::High,
-                metadata: meta,
-                locations: vec![Location::new(self.file_path, line, col)],
-            },
-        );
+        self.findings.push(ShadowDep {
+            id,
+            category: Category::Port,
+            name,
+            confidence: Confidence::High,
+            metadata: meta,
+            locations: vec![Location::new(self.file_path, line, col)],
+        });
     }
 
     fn record_network_from_conn_string(&mut self, host: &str, offset: u32, protocol: &str) {
@@ -187,7 +186,11 @@ impl PortCollector<'_> {
         }
     }
 
-    fn handle_connection_string_args(&mut self, args: &oxc_allocator::Vec<'_, Argument<'_>>, offset: u32) {
+    fn handle_connection_string_args(
+        &mut self,
+        args: &oxc_allocator::Vec<'_, Argument<'_>>,
+        offset: u32,
+    ) {
         let Some(Argument::StringLiteral(lit)) = args.first() else {
             return;
         };

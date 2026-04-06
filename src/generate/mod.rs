@@ -40,7 +40,11 @@ impl GenerateTarget {
 }
 
 /// Generate output for a specific target from shadow deps.
-pub fn generate(target: GenerateTarget, deps: &[ShadowDep], project_root: &std::path::Path) -> String {
+pub fn generate(
+    target: GenerateTarget,
+    deps: &[ShadowDep],
+    project_root: &std::path::Path,
+) -> String {
     match target {
         GenerateTarget::Env => env::generate_env(deps),
         GenerateTarget::Compose => compose::generate_compose(deps),

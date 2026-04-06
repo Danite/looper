@@ -1,0 +1,76 @@
+{
+  "schema_version": "1",
+  "tool_version": "baseline",
+  "scanned_at": "approved",
+  "root": ".",
+  "files_scanned": 2,
+  "scan_duration_ms": 0,
+  "deps": [
+    {
+      "id": "binary::./cli.js",
+      "category": "binary",
+      "name": "./cli.js",
+      "confidence": "high",
+      "metadata": {
+        "args_pattern": "--force *"
+      },
+      "locations": [
+        {
+          "file": "./test.js",
+          "line": 8,
+          "col": 8
+        },
+        {
+          "file": "./test.js",
+          "line": 14,
+          "col": 25
+        },
+        {
+          "file": "./test.js",
+          "line": 19,
+          "col": 25
+        },
+        {
+          "file": "./test.js",
+          "line": 25,
+          "col": 25
+        },
+        {
+          "file": "./test.js",
+          "line": 32,
+          "col": 25
+        },
+        {
+          "file": "./test.js",
+          "line": 38,
+          "col": 25
+        },
+        {
+          "file": "./test.js",
+          "line": 46,
+          "col": 25
+        },
+        {
+          "file": "./test.js",
+          "line": 57,
+          "col": 3
+        },
+        {
+          "file": "./test.js",
+          "line": 78,
+          "col": 34
+        },
+        {
+          "file": "./test.js",
+          "line": 82,
+          "col": 34
+        },
+        {
+          "file": "./test.js",
+          "line": 103,
+          "col": 8
+        }
+      ]
+    }
+  ]
+}
