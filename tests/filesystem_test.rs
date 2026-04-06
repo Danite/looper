@@ -356,3 +356,114 @@ fn lstat_detected() {
     assert_eq!(deps.len(), 1);
     assert_eq!(deps[0].metadata.get_str("operation"), Some("exists"));
 }
+
+// --- Template literal support ---
+
+#[test]
+fn template_literal_in_fs_call() {
+    let deps = detect_fs(
+        r#"
+        import fs from 'fs';
+        fs.readFileSync(`./config/${name}.json`);
+        "#,
+    );
+    assert_eq!(deps.len(), 1);
+    assert_eq!(deps[0].name, "./config/*.json");
+    assert_eq!(deps[0].confidence, Confidence::Medium);
+    assert_eq!(deps[0].metadata.get_str("operation"), Some("read"));
+}
+
+#[test]
+fn pure_string_template_literal_is_high_confidence() {
+    let deps = detect_fs(
+        r#"
+        import fs from 'fs';
+        fs.readFileSync(`./config.json`);
+        "#,
+    );
+    assert_eq!(deps.len(), 1);
+    assert_eq!(deps[0].name, "./config.json");
+    assert_eq!(deps[0].confidence, Confidence::High);
+}
+
+#[test]
+fn template_literal_in_path_join() {
+    let deps = detect_fs(
+        r#"
+        import path from 'path';
+        path.join(__dirname, `config/${name}.json`);
+        "#,
+    );
+    assert_eq!(deps.len(), 1);
+    assert_eq!(deps[0].name, "*/config/*.json");
+    assert_eq!(deps[0].confidence, Confidence::Medium);
+}
+
+#[test]
+fn dynamic_require_with_template() {
+    let deps = detect_fs_cjs(
+        r#"
+        const mod = require(`./locales/${lang}.json`);
+        "#,
+    );
+    assert_eq!(deps.len(), 1);
+    assert_eq!(deps[0].name, "./locales/*.json");
+    assert_eq!(deps[0].confidence, Confidence::Medium);
+    assert_eq!(deps[0].metadata.get_str("operation"), Some("read"));
+}
+
+#[test]
+fn dynamic_require_pure_string_ignored() {
+    let deps = detect_fs_cjs(
+        r#"
+        const mod = require('./locales/en.json');
+        "#,
+    );
+    assert!(deps.is_empty());
+}
+
+#[test]
+fn dynamic_import_with_template() {
+    let deps = detect_fs(
+        r#"
+        const plugin = import(`./plugins/${name}.js`);
+        "#,
+    );
+    assert_eq!(deps.len(), 1);
+    assert_eq!(deps[0].name, "./plugins/*.js");
+    assert_eq!(deps[0].confidence, Confidence::Medium);
+}
+
+#[test]
+fn dynamic_import_pure_string_ignored() {
+    let deps = detect_fs(
+        r#"
+        const mod = import('./utils/helper.js');
+        "#,
+    );
+    assert!(deps.is_empty());
+}
+
+#[test]
+fn template_literal_deno_fs() {
+    let deps = detect_fs(
+        r#"
+        Deno.readTextFile(`./data/${id}.json`);
+        "#,
+    );
+    assert_eq!(deps.len(), 1);
+    assert_eq!(deps[0].name, "./data/*.json");
+    assert_eq!(deps[0].confidence, Confidence::Medium);
+}
+
+#[test]
+fn template_literal_bun_file() {
+    let deps = detect_fs(
+        r#"
+        Bun.file(`./cache/${key}.bin`);
+        "#,
+    );
+    assert_eq!(deps.len(), 1);
+    assert_eq!(deps[0].name, "./cache/*.bin");
+    assert_eq!(deps[0].confidence, Confidence::Medium);
+}

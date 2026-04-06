@@ -1,7 +1,7 @@
-use super::{Detector, DetectorContext};
+use super::{extract_string_or_template_arg, extract_string_or_template_expr, Detector, DetectorContext};
 use crate::resolver::BindingMap;
 use crate::types::{Category, Confidence, Location, Metadata, ShadowDep};
-use oxc_ast::ast::{Argument, CallExpression, Expression};
+use oxc_ast::ast::{CallExpression, Expression, ImportExpression};
 use oxc_ast_visit::{walk, Visit};
 use oxc_span::GetSpan;
 use serde_json::json;
@@ -155,8 +155,15 @@ impl FsCollector<'_> {
             return;
         }
 
-        if let Some(path_str) = first_string_arg(call) {
-            self.record(&path_str, call.span().start, Confidence::High, operation);
+        if let Some(first) = call.arguments.first() {
+            if let Some(result) = extract_string_or_template_arg(first) {
+                let confidence = if result.has_expressions {
+                    Confidence::Medium
+                } else {
+                    Confidence::High
+                };
+                self.record(&result.value, call.span().start, confidence, operation);
+            }
         }
     }
 
@@ -189,9 +196,10 @@ impl FsCollector<'_> {
         let parts: Vec<String> = call
             .arguments
             .iter()
-            .map(|arg| match arg {
-                Argument::StringLiteral(lit) => lit.value.to_string(),
-                _ => "*".to_string(),
+            .map(|arg| {
+                extract_string_or_template_arg(arg)
+                    .map(|r| r.value)
+                    .unwrap_or_else(|| "*".to_string())
             })
             .collect();
 
@@ -232,8 +240,15 @@ impl FsCollector<'_> {
             _ => return,
         };
 
-        if let Some(path_str) = first_string_arg(call) {
-            self.record(&path_str, call.span().start, Confidence::High, operation);
+        if let Some(first) = call.arguments.first() {
+            if let Some(result) = extract_string_or_template_arg(first) {
+                let confidence = if result.has_expressions {
+                    Confidence::Medium
+                } else {
+                    Confidence::High
+                };
+                self.record(&result.value, call.span().start, confidence, operation);
+            }
         }
     }
 
@@ -249,17 +264,35 @@ impl FsCollector<'_> {
             return;
         }
 
-        if let Some(path_str) = first_string_arg(call) {
-            self.record(&path_str, call.span().start, Confidence::High, "read");
+        if let Some(first) = call.arguments.first() {
+            if let Some(result) = extract_string_or_template_arg(first) {
+                let confidence = if result.has_expressions {
+                    Confidence::Medium
+                } else {
+                    Confidence::High
+                };
+                self.record(&result.value, call.span().start, confidence, "read");
+            }
         }
     }
-}
 
-fn first_string_arg(call: &CallExpression<'_>) -> Option<String> {
-    let arg = call.arguments.first()?;
-    match arg {
-        Argument::StringLiteral(lit) => Some(lit.value.to_string()),
-        _ => None,
+    fn handle_dynamic_require(&mut self, call: &CallExpression<'_>) {
+        let Expression::Identifier(id) = &call.callee else {
+            return;
+        };
+        if id.name != "require" {
+            return;
+        }
+        let Some(first) = call.arguments.first() else {
+            return;
+        };
+        let Some(result) = extract_string_or_template_arg(first) else {
+            return;
+        };
+        if !result.has_expressions {
+            return;
+        }
+        self.record(&result.value, call.span().start, Confidence::Medium, "read");
     }
 }
 
@@ -269,7 +302,17 @@ impl<'a> Visit<'a> for FsCollector<'a> {
         self.handle_path_call(call);
         self.handle_deno_fs(call);
         self.handle_bun_file(call);
+        self.handle_dynamic_require(call);
 
         walk::walk_call_expression(self, call);
+    }
+
+    fn visit_import_expression(&mut self, import: &ImportExpression<'a>) {
+        if let Some(result) = extract_string_or_template_expr(&import.source) {
+            if result.has_expressions {
+                self.record(&result.value, import.span.start, Confidence::Medium, "read");
+            }
+        }
+        walk::walk_import_expression(self, import);
     }
 }
