@@ -44,6 +44,10 @@ impl Detector for EnvVarsDetector {
             }
         }
 
+        if is_next_config(ctx.file_path) {
+            extract_next_config_env(ctx.program, &mut collector);
+        }
+
         collector.visit_program(ctx.program);
         collector.findings
     }
@@ -278,6 +282,74 @@ fn extract_envalid_default(expr: &Expression<'_>) -> Option<String> {
         }
     }
     None
+}
+
+const NEXT_CONFIG_NAMES: &[&str] = &[
+    "next.config.js",
+    "next.config.mjs",
+    "next.config.ts",
+    "next.config.mts",
+];
+
+fn is_next_config(file_path: &str) -> bool {
+    NEXT_CONFIG_NAMES
+        .iter()
+        .any(|name| file_path == *name || file_path.ends_with(&format!("/{name}")))
+}
+
+fn extract_next_config_env(
+    program: &oxc_ast::ast::Program<'_>,
+    collector: &mut EnvVarCollector<'_>,
+) {
+    for stmt in &program.body {
+        match stmt {
+            Statement::ExpressionStatement(expr_stmt) => {
+                if let Expression::AssignmentExpression(assign) = &expr_stmt.expression {
+                    if let Expression::ObjectExpression(obj) = &assign.right {
+                        extract_env_keys_from_config(obj, collector);
+                    }
+                }
+            }
+            Statement::ExportDefaultDeclaration(export) => {
+                if let oxc_ast::ast::ExportDefaultDeclarationKind::ObjectExpression(obj) =
+                    &export.declaration
+                {
+                    extract_env_keys_from_config(obj, collector);
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
+fn extract_env_keys_from_config(
+    obj: &oxc_ast::ast::ObjectExpression<'_>,
+    collector: &mut EnvVarCollector<'_>,
+) {
+    for prop in &obj.properties {
+        let oxc_ast::ast::ObjectPropertyKind::ObjectProperty(p) = prop else {
+            continue;
+        };
+        if p.key.name().is_none_or(|k| k.as_ref() != "env") {
+            continue;
+        }
+        let Expression::ObjectExpression(env_obj) = &p.value else {
+            continue;
+        };
+        for env_prop in &env_obj.properties {
+            let oxc_ast::ast::ObjectPropertyKind::ObjectProperty(ep) = env_prop else {
+                continue;
+            };
+            if let Some(key_name) = ep.key.name() {
+                collector.record(
+                    key_name.as_ref(),
+                    ep.span().start,
+                    Confidence::High,
+                    "nextjs_config",
+                );
+            }
+        }
+    }
 }
 
 struct EnvAccess {

@@ -387,3 +387,137 @@ fn envalid_not_triggered_by_random_cleanenv() {
         .collect();
     assert!(envalid_deps.is_empty());
 }
+
+// --- Next.js config env declarations ---
+
+fn detect_env_vars_as_file(source: &str, file_path: &str) -> Vec<ShadowDep> {
+    let allocator = Allocator::new();
+    let ret = Parser::new(&allocator, source, SourceType::mjs()).parse();
+    let program = allocator.alloc(ret.program);
+    let bindings = BindingMap::new();
+    let ctx = DetectorContext {
+        program,
+        source_text: source,
+        file_path,
+        bindings: &bindings,
+    };
+    let registry = default_registry();
+    registry
+        .run_all(&ctx)
+        .into_iter()
+        .filter(|d| d.category == Category::EnvVar)
+        .collect()
+}
+
+#[test]
+fn nextjs_config_cjs_env_keys() {
+    let deps = detect_env_vars_as_file(
+        r#"
+        module.exports = {
+            env: {
+                CUSTOM_KEY: process.env.CUSTOM_KEY,
+                API_URL: "https://api.example.com",
+            },
+        };
+        "#,
+        "next.config.js",
+    );
+    let nextjs: Vec<_> = deps
+        .iter()
+        .filter(|d| d.metadata.get_str("source_pattern") == Some("nextjs_config"))
+        .collect();
+    assert_eq!(nextjs.len(), 2);
+    let nextjs_names: Vec<&str> = nextjs.iter().map(|d| d.name.as_str()).collect();
+    assert!(nextjs_names.contains(&"CUSTOM_KEY"));
+    assert!(nextjs_names.contains(&"API_URL"));
+}
+
+#[test]
+fn nextjs_config_esm_env_keys() {
+    let deps = detect_env_vars_as_file(
+        r#"
+        export default {
+            env: {
+                PUBLIC_API: process.env.PUBLIC_API,
+            },
+        };
+        "#,
+        "next.config.mjs",
+    );
+    let nextjs: Vec<_> = deps
+        .iter()
+        .filter(|d| d.metadata.get_str("source_pattern") == Some("nextjs_config"))
+        .collect();
+    assert_eq!(nextjs.len(), 1);
+    assert_eq!(nextjs[0].name, "PUBLIC_API");
+    assert_eq!(nextjs[0].confidence, Confidence::High);
+}
+
+#[test]
+fn nextjs_config_not_triggered_in_regular_file() {
+    let deps = detect_env_vars_as_file(
+        r#"
+        module.exports = {
+            env: { SOME_KEY: "value" },
+        };
+        "#,
+        "src/config.js",
+    );
+    let nextjs: Vec<_> = deps
+        .iter()
+        .filter(|d| d.metadata.get_str("source_pattern") == Some("nextjs_config"))
+        .collect();
+    assert!(nextjs.is_empty());
+}
+
+#[test]
+fn nextjs_config_ts_variant() {
+    let deps = detect_env_vars_as_file(
+        r#"
+        export default {
+            env: { MY_VAR: process.env.MY_VAR },
+        };
+        "#,
+        "next.config.ts",
+    );
+    let nextjs: Vec<_> = deps
+        .iter()
+        .filter(|d| d.metadata.get_str("source_pattern") == Some("nextjs_config"))
+        .collect();
+    assert_eq!(nextjs.len(), 1);
+    assert_eq!(nextjs[0].name, "MY_VAR");
+}
+
+#[test]
+fn nextjs_config_no_env_property() {
+    let deps = detect_env_vars_as_file(
+        r#"
+        module.exports = {
+            reactStrictMode: true,
+        };
+        "#,
+        "next.config.js",
+    );
+    let nextjs: Vec<_> = deps
+        .iter()
+        .filter(|d| d.metadata.get_str("source_pattern") == Some("nextjs_config"))
+        .collect();
+    assert!(nextjs.is_empty());
+}
+
+#[test]
+fn nextjs_config_nested_path() {
+    let deps = detect_env_vars_as_file(
+        r#"
+        export default {
+            env: { APP_NAME: "looper" },
+        };
+        "#,
+        "apps/web/next.config.mjs",
+    );
+    let nextjs: Vec<_> = deps
+        .iter()
+        .filter(|d| d.metadata.get_str("source_pattern") == Some("nextjs_config"))
+        .collect();
+    assert_eq!(nextjs.len(), 1);
+}
