@@ -366,9 +366,9 @@ fn broken_file_yields_partial_findings() {
 // --- Registry ---
 
 #[test]
-fn default_registry_has_all_six_detectors() {
+fn default_registry_has_all_detectors() {
     let registry = default_registry();
-    assert_eq!(registry.detector_count(), 6);
+    assert_eq!(registry.detector_count(), 7);
     let names = registry.detector_names();
     assert!(names.contains(&"env_vars"));
     assert!(names.contains(&"filesystem"));
@@ -376,4 +376,5 @@ fn default_registry_has_all_six_detectors() {
     assert!(names.contains(&"shell"));
     assert!(names.contains(&"ports"));
     assert!(names.contains(&"platform"));
+    assert!(names.contains(&"config_access"));
 }

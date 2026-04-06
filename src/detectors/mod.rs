@@ -1,3 +1,4 @@
+pub mod config_access;
 pub mod env_vars;
 pub mod filesystem;
 pub mod network;
@@ -144,5 +145,6 @@ pub fn default_registry() -> DetectorRegistry {
     registry.register(Box::new(shell::ShellDetector));
     registry.register(Box::new(ports::PortsDetector));
     registry.register(Box::new(platform::PlatformDetector));
+    registry.register(Box::new(config_access::ConfigAccessDetector));
     registry
 }
