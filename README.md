@@ -85,7 +85,7 @@ jobs:
 When a PR adds `process.env.NEW_KEY` without updating the manifest, the check fails:
 
 ```
-ERROR: 1 undeclared shadow dependency found
+error: 1 undeclared shadow dependency found
 
   + env_var: NEW_KEY  (src/feature.ts:42)
 

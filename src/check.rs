@@ -53,7 +53,7 @@ pub fn print_check_report(result: &CheckResult) {
     if !result.added.is_empty() {
         eprintln!(
             "{} {} undeclared shadow {} found\n",
-            "ERROR:".red().bold(),
+            "error:".red().bold(),
             result.added.len(),
             if result.added.len() == 1 {
                 "dependency"
@@ -81,7 +81,7 @@ pub fn print_check_report(result: &CheckResult) {
     if !result.removed.is_empty() {
         eprintln!(
             "{} {} declared {} no longer found\n",
-            "WARNING:".yellow().bold(),
+            "warning:".yellow().bold(),
             result.removed.len(),
             if result.removed.len() == 1 {
                 "dependency"

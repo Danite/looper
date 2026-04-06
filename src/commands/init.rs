@@ -46,7 +46,7 @@ pub(crate) fn cmd_init(args: InitArgs) -> i32 {
                         "{} scan failed, skipping .env.example generation",
                         "warning:".yellow()
                     );
-                    return 0;
+                    return 1;
                 }
             };
 

@@ -8,8 +8,8 @@ Detailed workflows and reference for looper. For a quick overview, see [README.m
 |---------|---|---|---|
 | `scan` | Success | Parse errors present | No files found |
 | `check` | Clean | Undeclared deps found | Manifest not found |
-| `diff` | Always | -- | -- |
-| `init` | Success | Write error | -- |
+| `diff` | Success | JSON serialization error | Manifest not found or invalid |
+| `init` | Success | Write or scan error | -- |
 | `drift` | No missing (or flag not set) | Missing items (with `--fail-on-missing`) | No infra files |
 | `doctor` | All pass (or flag not set) | Checks failed (with `--fail-on-error`) | No deps found |
 | `generate` | Success | Error (invalid target, write failure) | No deps found |

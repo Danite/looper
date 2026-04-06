@@ -57,12 +57,13 @@ pub(crate) fn cmd_generate(args: GenerateArgs) -> i32 {
     deps.retain(|d| d.name != "<dynamic>");
 
     let project_root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    let mut skipped = 0usize;
+    let mut written = 0usize;
 
     for target in &targets {
         let content = looper::generate::generate(*target, &deps, &project_root);
 
         let output_path = if targets.len() > 1 {
-            // "all" mode: use default filenames unless --output is set
             if args.output.is_some() {
                 eprintln!(
                     "{} --output cannot be used with 'all' target (use individual targets instead)",
@@ -82,6 +83,7 @@ pub(crate) fn cmd_generate(args: GenerateArgs) -> i32 {
                     "warning:".yellow(),
                     path.display()
                 );
+                skipped += 1;
                 continue;
             }
             if let Err(e) = std::fs::write(path, &content) {
@@ -89,9 +91,15 @@ pub(crate) fn cmd_generate(args: GenerateArgs) -> i32 {
                 return 1;
             }
             eprintln!("  {} {}", "created".green(), path.display());
+            written += 1;
         } else {
             print!("{content}");
+            written += 1;
         }
+    }
+
+    if written == 0 && skipped > 0 {
+        return 1;
     }
 
     0

@@ -7,7 +7,7 @@ pub(crate) fn cmd_diff(args: DiffArgs) -> i32 {
         Ok(m) => m,
         Err(e) => {
             eprintln!("{} {e}", "error:".red());
-            return 1;
+            return 2;
         }
     };
 
@@ -15,7 +15,7 @@ pub(crate) fn cmd_diff(args: DiffArgs) -> i32 {
         Ok(m) => m,
         Err(e) => {
             eprintln!("{} {e}", "error:".red());
-            return 1;
+            return 2;
         }
     };
 
