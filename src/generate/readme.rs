@@ -12,7 +12,7 @@ pub fn generate_readme(deps: &[ShadowDep]) -> String {
     writeln!(out, "# Requirements\n").unwrap();
     writeln!(
         out,
-        "Shadow dependencies detected by [looper](https://github.com/example/looper).\n"
+        "Shadow dependencies detected by [looper](https://github.com/Danite/looper).\n"
     )
     .unwrap();
 
