@@ -87,7 +87,7 @@ expression: parsed
       ],
       "tool": {
         "driver": {
-          "informationUri": "https://github.com/user/looper",
+          "informationUri": "https://github.com/Danite/looper",
           "name": "looper",
           "rules": [
             {

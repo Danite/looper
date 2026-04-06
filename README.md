@@ -61,7 +61,7 @@ looper diff old.json new.json               # diff two manifests
 looper drift --fail-on-missing              # fail if code needs something infra doesn't provide
 looper doctor                               # runtime check: are env vars set? binaries installed?
 looper generate env -o .env.example         # generate infra files from scan results
-looper init                                 # create config file and initial manifest
+looper init                                 # create config file for project setup
 ```
 
 Run `looper --help` or `looper <command> --help` for full option reference.
@@ -94,7 +94,7 @@ Update the manifest:  looper check --update
 
 ## Configuration
 
-`looper init` generates a `looper.config.json` in your project root. It controls include/exclude paths, ignored values per category, and the default confidence threshold. See `looper init --help` and [USAGE.md](USAGE.md) for details.
+`looper init` generates a `looper.config.json` in your project root. It controls include/exclude paths, ignored values per category, the default confidence threshold, and the manifest path. See `looper init --help` and [USAGE.md](USAGE.md) for details.
 
 ## License
 

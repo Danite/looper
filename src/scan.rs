@@ -447,13 +447,19 @@ pub(crate) fn cmd_scan(args: ScanArgs) -> i32 {
         merged.retain(|d| !excluded.contains(&d.category));
     }
 
-    match looper::types::Confidence::parse(&args.min_confidence) {
+    let min_confidence = args
+        .min_confidence
+        .as_deref()
+        .or(config.as_ref().and_then(|c| c.min_confidence.as_deref()))
+        .unwrap_or("low");
+
+    match looper::types::Confidence::parse(min_confidence) {
         Some(min) => merged.retain(|d| d.confidence >= min),
         None => {
             eprintln!(
-                "{} invalid --min-confidence '{}'. Valid values: low, medium, high",
+                "{} invalid min_confidence '{}'. Valid values: low, medium, high",
                 "error:".red(),
-                args.min_confidence
+                min_confidence
             );
             return 1;
         }

@@ -62,7 +62,7 @@ pub fn format_sarif(manifest: &ScanManifest) -> Result<String, serde_json::Error
                     "driver": {
                         "name": "looper",
                         "version": &manifest.tool_version,
-                        "informationUri": "https://github.com/user/looper",
+                        "informationUri": "https://github.com/Danite/looper",
                         "rules": rules
                     }
                 },

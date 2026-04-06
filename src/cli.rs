@@ -24,7 +24,7 @@ pub(crate) enum Command {
     /// Compare scan results against a declared manifest
     Check(CheckArgs),
 
-    /// Generate config file and initial manifest
+    /// Generate config file for project setup
     Init(InitArgs),
 
     /// Compare two manifest files
@@ -62,9 +62,9 @@ pub(crate) struct ScanArgs {
     #[arg(long, value_delimiter = ',')]
     pub exclude: Option<Vec<String>>,
 
-    /// Minimum confidence level: low, medium, high
-    #[arg(long, default_value = "low")]
-    pub min_confidence: String,
+    /// Minimum confidence level: low, medium, high (default: from config or "low")
+    #[arg(long)]
+    pub min_confidence: Option<String>,
 
     /// Only show findings not in the baseline manifest
     #[arg(long)]
@@ -111,7 +111,7 @@ impl Default for ScanArgs {
             output: None,
             only: None,
             exclude: None,
-            min_confidence: "low".into(),
+            min_confidence: None,
             baseline: None,
             ignore: None,
             no_gitignore: false,
@@ -127,9 +127,9 @@ impl Default for ScanArgs {
 
 #[derive(Parser)]
 pub(crate) struct CheckArgs {
-    /// Path to declared manifest
-    #[arg(short, long, default_value = "shadow-deps.json")]
-    pub manifest: PathBuf,
+    /// Path to declared manifest (default: from config or "shadow-deps.json")
+    #[arg(short, long)]
+    pub manifest: Option<PathBuf>,
 
     /// Exit 1 if new undeclared deps found (default)
     #[arg(long, default_value_t = true)]
@@ -142,6 +142,10 @@ pub(crate) struct CheckArgs {
     /// Update the manifest file with current scan results
     #[arg(long)]
     pub update: bool,
+
+    /// Override scan paths (default: from config or '.')
+    #[arg(long, value_delimiter = ',')]
+    pub scan_paths: Option<Vec<PathBuf>>,
 
     /// Show per-file scanning progress
     #[arg(short, long)]

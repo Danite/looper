@@ -5,7 +5,16 @@ use crate::cli::CheckArgs;
 use crate::scan::{log_scan_errors, run_scan};
 
 pub(crate) fn cmd_check(args: CheckArgs) -> i32 {
-    let manifest = match looper::check::load_manifest(&args.manifest) {
+    let config = looper::config::load_config(args.config.as_deref());
+    let manifest_path = args.manifest.unwrap_or_else(|| {
+        config
+            .as_ref()
+            .and_then(|c| c.manifest.as_deref())
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("shadow-deps.json"))
+    });
+
+    let manifest = match looper::check::load_manifest(&manifest_path) {
         Ok(m) => m,
         Err(e) => {
             eprintln!("{} {e}", "error:".red());
@@ -13,8 +22,9 @@ pub(crate) fn cmd_check(args: CheckArgs) -> i32 {
         }
     };
 
+    let scan_paths = args.scan_paths.unwrap_or_else(|| vec![PathBuf::from(".")]);
     let scan = match run_scan(
-        &[PathBuf::from(".")],
+        &scan_paths,
         false,
         Vec::new(),
         args.verbose,
@@ -34,14 +44,14 @@ pub(crate) fn cmd_check(args: CheckArgs) -> i32 {
         );
         match looper::output::json::format_json(&new_manifest) {
             Ok(json) => {
-                if let Err(e) = std::fs::write(&args.manifest, &json) {
+                if let Err(e) = std::fs::write(&manifest_path, &json) {
                     eprintln!("{} failed to write manifest: {e}", "error:".red());
                     return 1;
                 }
                 eprintln!(
                     "  {} {} ({} deps)",
                     "updated".green(),
-                    args.manifest.display(),
+                    manifest_path.display(),
                     new_manifest.deps.len()
                 );
             }
