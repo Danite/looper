@@ -10,6 +10,8 @@ env:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -26,7 +28,7 @@ jobs:
           echo "value=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Patch Cargo.toml version
-        run: sed -i "s/^version = .*/version = \"${{ steps.version.outputs.value }}\"/" Cargo.toml
+        run: sed -i "0,/^version = /{s/^version = .*/version = \"${{ steps.version.outputs.value }}\"/}" Cargo.toml
 
       - name: Run tests
         run: cargo test
