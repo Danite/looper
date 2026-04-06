@@ -300,3 +300,65 @@ fn undici_request() {
     "#);
     assert_eq!(names(&deps), vec!["cdn.example.com"]);
 }
+
+// --- Template literal URL support ---
+
+#[test]
+fn fetch_template_literal_with_static_host() {
+    let deps = detect_net(r#"fetch(`https://api.example.com/${path}`);"#);
+    assert_eq!(names(&deps), vec!["api.example.com"]);
+    assert_eq!(deps[0].confidence, Confidence::Medium);
+}
+
+#[test]
+fn fetch_template_literal_dynamic_host_ignored() {
+    let deps = detect_net(r#"fetch(`${baseUrl}/api/users`);"#);
+    assert!(deps.is_empty());
+}
+
+#[test]
+fn fetch_template_literal_with_port() {
+    let deps = detect_net(r#"fetch(`https://api.example.com:8080/${path}`);"#);
+    assert_eq!(names(&deps), vec!["api.example.com:8080"]);
+    assert_eq!(deps[0].confidence, Confidence::Medium);
+}
+
+#[test]
+fn axios_template_literal() {
+    let deps = detect_net(r#"axios.get(`https://payments.stripe.com/${id}`);"#);
+    assert_eq!(names(&deps), vec!["payments.stripe.com"]);
+    assert_eq!(deps[0].confidence, Confidence::Medium);
+}
+
+#[test]
+fn new_url_template_literal() {
+    let deps = detect_net(r#"new URL(`https://cdn.example.com/${asset}`);"#);
+    assert_eq!(names(&deps), vec!["cdn.example.com"]);
+    assert_eq!(deps[0].confidence, Confidence::Medium);
+}
+
+#[test]
+fn new_websocket_template_literal() {
+    let deps = detect_net(r#"new WebSocket(`wss://realtime.example.com/${channel}`);"#);
+    assert_eq!(names(&deps), vec!["realtime.example.com"]);
+    assert_eq!(deps[0].confidence, Confidence::Medium);
+}
+
+#[test]
+fn fetch_pure_string_template_stays_high() {
+    let deps = detect_net(r#"fetch(`https://api.example.com/data`);"#);
+    assert_eq!(names(&deps), vec!["api.example.com"]);
+    assert_eq!(deps[0].confidence, Confidence::High);
+}
+
+#[test]
+fn http_client_template_literal() {
+    let deps = detect_net(
+        r#"
+        import got from 'got';
+        got.get(`https://registry.npmjs.org/${pkg}`);
+    "#,
+    );
+    assert_eq!(names(&deps), vec!["registry.npmjs.org"]);
+    assert_eq!(deps[0].confidence, Confidence::Medium);
+}

@@ -50,6 +50,34 @@ fn template_to_pattern(tpl: &TemplateLiteral<'_>) -> Option<StringOrTemplate> {
     })
 }
 
+/// Check if an expression is `require("module_name")`.
+pub(crate) fn is_require_of(expr: &Expression<'_>, module_name: &str) -> bool {
+    let Expression::CallExpression(call) = expr else {
+        return false;
+    };
+    let Expression::Identifier(id) = &call.callee else {
+        return false;
+    };
+    if id.name != "require" {
+        return false;
+    }
+    matches!(call.arguments.first(), Some(Argument::StringLiteral(lit)) if lit.value.as_str() == module_name)
+}
+
+/// Check if an identifier expression is bound to the given module via bindings.
+pub(crate) fn is_bound_to_module(
+    expr: &Expression<'_>,
+    bindings: &BindingMap,
+    module_name: &str,
+) -> bool {
+    let Expression::Identifier(id) = expr else {
+        return false;
+    };
+    bindings
+        .get(id.name.as_str())
+        .is_some_and(|b| b.module_source == module_name)
+}
+
 /// Context passed to each detector for a single file.
 pub struct DetectorContext<'a> {
     pub program: &'a Program<'a>,

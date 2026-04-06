@@ -1,9 +1,8 @@
-use super::{Detector, DetectorContext};
+use super::{extract_string_or_template_arg, Detector, DetectorContext, StringOrTemplate};
 use crate::resolver::BindingMap;
 use crate::types::{Category, Confidence, Location, Metadata, ShadowDep};
 use oxc_ast::ast::{
-    Argument, CallExpression, Expression, JSXAttribute, JSXAttributeValue, JSXOpeningElement,
-    NewExpression,
+    CallExpression, Expression, JSXAttribute, JSXAttributeValue, JSXOpeningElement, NewExpression,
 };
 use oxc_ast_visit::{walk, Visit};
 use oxc_span::GetSpan;
@@ -88,6 +87,15 @@ impl NetCollector<'_> {
         );
     }
 
+    fn record_url_or_template(&mut self, result: &StringOrTemplate, offset: u32) {
+        if result.has_expressions {
+            let static_prefix = result.value.split('*').next().unwrap_or(&result.value);
+            self.record_url(static_prefix, offset, Confidence::Medium);
+        } else {
+            self.record_url(&result.value, offset, Confidence::High);
+        }
+    }
+
     fn is_bound_to_http(&self, expr: &Expression<'_>) -> bool {
         if let Expression::Identifier(id) = expr {
             if let Some(binding) = self.bindings.get(id.name.as_str()) {
@@ -100,41 +108,31 @@ impl NetCollector<'_> {
     }
 
     fn handle_fetch(&mut self, call: &CallExpression<'_>) {
-        // fetch('https://...')
         let Expression::Identifier(id) = &call.callee else {
             return;
         };
         if id.name != "fetch" {
             return;
         }
-        if let Some(url_str) = first_string_arg(call) {
-            self.record_url(&url_str, call.span().start, Confidence::High);
+        if let Some(result) = call.arguments.first().and_then(extract_string_or_template_arg) {
+            self.record_url_or_template(&result, call.span().start);
         }
     }
 
     fn handle_axios(&mut self, call: &CallExpression<'_>) {
-        // axios.get('https://...'), axios.post(...), axios('https://...')
-        match &call.callee {
+        let is_axios_call = match &call.callee {
             Expression::StaticMemberExpression(m) => {
-                let Expression::Identifier(obj) = &m.object else {
-                    return;
-                };
-                if obj.name != "axios" {
-                    return;
-                }
-                if !AXIOS_METHODS.contains(&m.property.name.as_str()) {
-                    return;
-                }
-                if let Some(url_str) = first_string_arg(call) {
-                    self.record_url(&url_str, call.span().start, Confidence::High);
-                }
+                matches!(&m.object, Expression::Identifier(obj) if obj.name == "axios")
+                    && AXIOS_METHODS.contains(&m.property.name.as_str())
             }
-            Expression::Identifier(id) if id.name == "axios" => {
-                if let Some(url_str) = first_string_arg(call) {
-                    self.record_url(&url_str, call.span().start, Confidence::High);
-                }
-            }
-            _ => {}
+            Expression::Identifier(id) => id.name == "axios",
+            _ => false,
+        };
+        if !is_axios_call {
+            return;
+        }
+        if let Some(result) = call.arguments.first().and_then(extract_string_or_template_arg) {
+            self.record_url_or_template(&result, call.span().start);
         }
     }
 
@@ -146,33 +144,23 @@ impl NetCollector<'_> {
     }
 
     fn handle_http_client_call(&mut self, call: &CallExpression<'_>) {
-        match &call.callee {
+        let is_client_call = match &call.callee {
             Expression::StaticMemberExpression(m) => {
-                let Expression::Identifier(obj) = &m.object else {
-                    return;
-                };
-                if !self.is_bound_to_http_client(obj.name.as_str()) {
-                    return;
-                }
-                if !AXIOS_METHODS.contains(&m.property.name.as_str()) {
-                    return;
-                }
-                if let Some(url_str) = first_string_arg(call) {
-                    self.record_url(&url_str, call.span().start, Confidence::High);
-                }
+                matches!(&m.object, Expression::Identifier(obj) if self.is_bound_to_http_client(obj.name.as_str()))
+                    && AXIOS_METHODS.contains(&m.property.name.as_str())
             }
             Expression::Identifier(id) => {
-                if id.name == "fetch" || id.name == "axios" {
-                    return;
-                }
-                if !self.is_bound_to_http_client(id.name.as_str()) {
-                    return;
-                }
-                if let Some(url_str) = first_string_arg(call) {
-                    self.record_url(&url_str, call.span().start, Confidence::High);
-                }
+                id.name != "fetch"
+                    && id.name != "axios"
+                    && self.is_bound_to_http_client(id.name.as_str())
             }
-            _ => {}
+            _ => false,
+        };
+        if !is_client_call {
+            return;
+        }
+        if let Some(result) = call.arguments.first().and_then(extract_string_or_template_arg) {
+            self.record_url_or_template(&result, call.span().start);
         }
     }
 
@@ -232,36 +220,35 @@ impl NetCollector<'_> {
     }
 
     fn handle_new_url(&mut self, new_expr: &NewExpression<'_>) {
-        // new URL('https://...')
         let Expression::Identifier(id) = &new_expr.callee else {
             return;
         };
         if id.name != "URL" {
             return;
         }
-        if let Some(Argument::StringLiteral(lit)) = new_expr.arguments.first() {
-            self.record_url(lit.value.as_str(), new_expr.span().start, Confidence::High);
+        if let Some(result) = new_expr
+            .arguments
+            .first()
+            .and_then(extract_string_or_template_arg)
+        {
+            self.record_url_or_template(&result, new_expr.span().start);
         }
     }
 
     fn handle_new_websocket(&mut self, new_expr: &NewExpression<'_>) {
-        // new WebSocket('ws://...')
         let Expression::Identifier(id) = &new_expr.callee else {
             return;
         };
         if id.name != "WebSocket" {
             return;
         }
-        if let Some(Argument::StringLiteral(lit)) = new_expr.arguments.first() {
-            self.record_url(lit.value.as_str(), new_expr.span().start, Confidence::High);
+        if let Some(result) = new_expr
+            .arguments
+            .first()
+            .and_then(extract_string_or_template_arg)
+        {
+            self.record_url_or_template(&result, new_expr.span().start);
         }
-    }
-}
-
-fn first_string_arg(call: &CallExpression<'_>) -> Option<String> {
-    match call.arguments.first()? {
-        Argument::StringLiteral(lit) => Some(lit.value.to_string()),
-        _ => None,
     }
 }
 
