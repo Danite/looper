@@ -1,6 +1,6 @@
 [package]
 name = "looper-cli"
-version = "0.0.0-dev"
+version = "0.0.1"
 edition = "2021"
 description = "Static analysis tool that discovers implicit shadow dependencies in JavaScript/TypeScript codebases"
 license = "MIT"

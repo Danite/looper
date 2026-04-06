@@ -135,12 +135,11 @@ fn sarif_properties_include_metadata() {
 fn sarif_snapshot() {
     let manifest = build_manifest(".", 10, 5, sample_deps());
     let sarif_str = format_sarif(&manifest).unwrap();
-    let parsed: serde_json::Value = serde_json::from_str(&sarif_str).unwrap();
+    let mut parsed: serde_json::Value = serde_json::from_str(&sarif_str).unwrap();
 
-    let mut redacted = parsed.clone();
-    redacted["runs"][0]["tool"]["driver"]["version"] =
+    parsed["runs"][0]["tool"]["driver"]["version"] =
         serde_json::Value::String("[version]".into());
-    insta::assert_json_snapshot!("sarif_output", redacted);
+    insta::assert_json_snapshot!("sarif_output", parsed);
 }
 
 #[test]
