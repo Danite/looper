@@ -2,7 +2,7 @@
 
 Find the dependencies your package manager doesn't track.
 
-`looper` statically analyzes JavaScript/TypeScript code and extracts every implicit dependency: env vars, filesystem paths, network hosts, system binaries, ports, and platform assumptions. Results are output as a structured manifest that can be tracked in version control, diffed between releases, and gated in CI.
+`looper` statically analyzes JavaScript/TypeScript code and extracts implicit dependencies: env vars, filesystem paths, network hosts, system binaries, ports, and platform assumptions, into a structured JSON manifest.
 
 ```
 $ looper .
@@ -94,7 +94,7 @@ Update the manifest:  looper check --update
 
 ## Configuration
 
-`looper init` generates a `looper.config.json` in your project root. It controls include/exclude paths, ignored values per category, the default confidence threshold, and the manifest path. See `looper init --help` and [USAGE.md](USAGE.md) for details.
+`looper init` generates a `looper.config.json` in your project root. See `looper init --help` and [USAGE.md](USAGE.md) for details.
 
 ## License
 
