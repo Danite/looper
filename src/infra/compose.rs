@@ -31,7 +31,7 @@ pub fn parse_compose_file(path: &Path) -> Result<ComposeResult, String> {
     let content = std::fs::read_to_string(path)
         .map_err(|e| format!("could not read {}: {e}", path.display()))?;
 
-    let raw: RawCompose = serde_yaml::from_str(&content)
+    let raw: RawCompose = serde_yml::from_str(&content)
         .map_err(|e| format!("invalid YAML in {}: {e}", path.display()))?;
 
     let source_file = path.to_string_lossy().into_owned();
@@ -103,7 +103,7 @@ enum RawEnvFile {
 #[derive(Deserialize)]
 #[serde(untagged)]
 enum RawEnvironment {
-    Map(HashMap<String, serde_yaml::Value>),
+    Map(HashMap<String, serde_yml::Value>),
     List(Vec<String>),
 }
 

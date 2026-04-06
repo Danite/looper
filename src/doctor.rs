@@ -5,7 +5,19 @@ use std::net::{TcpListener, TcpStream, ToSocketAddrs};
 use std::path::Path;
 use std::time::Duration;
 
-const SECRET_KEYWORDS: &[&str] = &["SECRET", "KEY", "TOKEN", "PASSWORD", "CREDENTIAL", "AUTH"];
+const SECRET_KEYWORDS: &[&str] = &[
+    "SECRET",
+    "KEY",
+    "TOKEN",
+    "PASSWORD",
+    "CREDENTIAL",
+    "AUTH",
+    "PRIVATE",
+    "SIGNING",
+    "DATABASE_URL",
+    "DSN",
+    "CONNECTION_STRING",
+];
 
 #[derive(Debug, Serialize)]
 pub struct DoctorReport {
@@ -80,7 +92,8 @@ fn check_env_var(name: &str, metadata: &crate::types::Metadata) -> DoctorCheck {
             let display = if is_secret_name(name) {
                 "set (*****)".to_string()
             } else if val.len() > 30 {
-                format!("set ({}...)", &val[..27])
+                let truncated: String = val.chars().take(27).collect();
+                format!("set ({truncated}...)")
             } else {
                 format!("set ({val})")
             };
