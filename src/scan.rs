@@ -1,4 +1,5 @@
 use colored::Colorize;
+use looper::cache;
 use looper::detectors::{default_registry, DetectorContext};
 use looper::parser::parse_file;
 use looper::resolver::resolve_bindings;
@@ -246,6 +247,29 @@ pub(crate) fn cmd_scan(args: ScanArgs) -> i32 {
     let parse_errors: Mutex<Vec<String>> = Mutex::new(Vec::new());
     let skipped_large = std::sync::atomic::AtomicUsize::new(0);
     let skipped_read = std::sync::atomic::AtomicUsize::new(0);
+    let cache_hits = std::sync::atomic::AtomicUsize::new(0);
+
+    let project_root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    let current_version = env!("CARGO_PKG_VERSION");
+    let config_hash = {
+        let config_path = args
+            .config
+            .clone()
+            .unwrap_or_else(|| project_root.join("looper.config.json"));
+        if config_path.exists() {
+            cache::hash_file_or_empty(&config_path)
+        } else {
+            String::new()
+        }
+    };
+
+    let old_cache = if args.no_cache {
+        None
+    } else {
+        cache::load_cache(&project_root, current_version, &config_hash)
+    };
+
+    let new_cache_entries: Mutex<HashMap<String, cache::CacheEntry>> = Mutex::new(HashMap::new());
 
     walk_result.files.par_iter().for_each(|path| {
         if let Ok(meta) = std::fs::metadata(path) {
@@ -271,6 +295,28 @@ pub(crate) fn cmd_scan(args: ScanArgs) -> i32 {
 
         if source.is_empty() {
             return;
+        }
+
+        let file_key = path.to_string_lossy().into_owned();
+        let content_hash = cache::hash_content(&source);
+
+        if let Some(ref cache) = old_cache {
+            if let Some(entry) = cache.entries.get(&file_key) {
+                if entry.hash == content_hash {
+                    cache_hits.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                    if !entry.deps.is_empty() {
+                        all_deps
+                            .lock()
+                            .unwrap_or_else(|e| e.into_inner())
+                            .extend(entry.deps.clone());
+                    }
+                    new_cache_entries
+                        .lock()
+                        .unwrap_or_else(|e| e.into_inner())
+                        .insert(file_key, entry.clone());
+                    return;
+                }
+            }
         }
 
         let allocator = Allocator::new();
@@ -309,10 +355,40 @@ pub(crate) fn cmd_scan(args: ScanArgs) -> i32 {
         };
 
         let deps = registry.run_all(&ctx);
+
+        new_cache_entries
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .insert(
+                file_key,
+                cache::CacheEntry {
+                    hash: content_hash,
+                    deps: deps.clone(),
+                },
+            );
+
         if !deps.is_empty() {
-            all_deps.lock().unwrap_or_else(|e| e.into_inner()).extend(deps);
+            all_deps
+                .lock()
+                .unwrap_or_else(|e| e.into_inner())
+                .extend(deps);
         }
     });
+
+    let new_cache = cache::ScanCache {
+        version: current_version.to_string(),
+        config_hash,
+        entries: new_cache_entries.into_inner().unwrap_or_else(|e| e.into_inner()),
+    };
+    cache::save_cache(&project_root, &new_cache);
+
+    let n_hits = cache_hits.load(std::sync::atomic::Ordering::Relaxed);
+    if args.verbose && n_hits > 0 {
+        eprintln!(
+            "  {} {n_hits}/{file_count} files from cache",
+            "cache:".dimmed()
+        );
+    }
 
     let duration = start.elapsed();
     let duration_ms = duration.as_millis() as u64;

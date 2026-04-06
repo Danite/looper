@@ -27,6 +27,7 @@ url = "2"
 regex = "1"
 serde_yaml = "0.9"
 which = "8"
+xxhash-rust = { version = "0.8", features = ["xxh3"] }
 
 [dev-dependencies]
 insta = { version = "1", features = ["json", "redactions"] }

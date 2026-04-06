@@ -95,6 +95,10 @@ pub(crate) struct ScanArgs {
     /// Path to config file (default: auto-detect)
     #[arg(long)]
     pub config: Option<PathBuf>,
+
+    /// Disable the file-hash cache (force full rescan)
+    #[arg(long)]
+    pub no_cache: bool,
 }
 
 impl Default for ScanArgs {
@@ -114,6 +118,7 @@ impl Default for ScanArgs {
             verbose: false,
             threads: None,
             config: None,
+            no_cache: false,
         }
     }
 }
