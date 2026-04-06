@@ -35,40 +35,49 @@ pub(crate) fn cmd_drift(args: DriftArgs) -> i32 {
     }
 
     if let Some(ref compose_path) = args.compose {
-        if let Ok(result) = looper::infra::compose::parse_compose_file(compose_path) {
-            for svc in &result.services {
-                for pm in &svc.ports {
-                    infra.exposed_ports.push(looper::infra::InfraPort {
-                        port: pm.host,
-                        source: format!("{} service {}", compose_path.display(), svc.name),
-                    });
-                }
-                for env_name in &svc.environment {
-                    infra.env_vars.entry(env_name.clone()).or_insert_with(|| {
-                        format!("{} service {}", compose_path.display(), svc.name)
-                    });
+        match looper::infra::compose::parse_compose_file(compose_path) {
+            Ok(result) => {
+                for svc in &result.services {
+                    for pm in &svc.ports {
+                        infra.exposed_ports.push(looper::infra::InfraPort {
+                            port: pm.host,
+                            source: format!("{} service {}", compose_path.display(), svc.name),
+                        });
+                    }
+                    for env_name in &svc.environment {
+                        infra.env_vars.entry(env_name.clone()).or_insert_with(|| {
+                            format!("{} service {}", compose_path.display(), svc.name)
+                        });
+                    }
                 }
             }
+            Err(e) => eprintln!("  {} {e}", "warning:".yellow()),
         }
     }
     if let Some(ref env_path) = args.env {
-        if let Ok(result) = looper::infra::envfile::parse_env_file(env_path) {
-            for (name, entry) in &result.entries {
-                infra.env_vars.entry(name.clone()).or_insert_with(|| {
-                    format!("{} line {}", entry.source_file, entry.line)
-                });
+        match looper::infra::envfile::parse_env_file(env_path) {
+            Ok(result) => {
+                for (name, entry) in &result.entries {
+                    infra.env_vars.entry(name.clone()).or_insert_with(|| {
+                        format!("{} line {}", entry.source_file, entry.line)
+                    });
+                }
             }
+            Err(e) => eprintln!("  {} {e}", "warning:".yellow()),
         }
     }
     if let Some(ref df_path) = args.dockerfile {
-        if let Ok(result) = looper::infra::dockerfile::parse_dockerfile(df_path) {
-            infra.binaries.extend(result.binaries);
-            for port in result.exposed_ports {
-                infra.exposed_ports.push(looper::infra::InfraPort {
-                    port,
-                    source: format!("{} EXPOSE", df_path.display()),
-                });
+        match looper::infra::dockerfile::parse_dockerfile(df_path) {
+            Ok(result) => {
+                infra.binaries.extend(result.binaries);
+                for port in result.exposed_ports {
+                    infra.exposed_ports.push(looper::infra::InfraPort {
+                        port,
+                        source: format!("{} EXPOSE", df_path.display()),
+                    });
+                }
             }
+            Err(e) => eprintln!("  {} {e}", "warning:".yellow()),
         }
     }
     let report = looper::drift::compare(&scan.deps, &infra);
