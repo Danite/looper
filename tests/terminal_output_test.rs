@@ -177,3 +177,41 @@ fn summary_single_category() {
     assert!(output.contains("2 shadow deps"), "should count both deps");
     assert!(output.contains("1 categories"), "should show 1 category");
 }
+
+// --- Multi-location display ---
+
+#[test]
+fn terminal_shows_more_count_for_multi_location() {
+    let mut dep = ShadowDep::new(
+        Category::EnvVar,
+        "DB_URL",
+        Confidence::High,
+        Location::new("src/db.ts", 5, 1),
+    );
+    dep.locations.push(Location::new("src/config.ts", 10, 1));
+    dep.locations.push(Location::new("src/server.ts", 20, 1));
+
+    let output = format_terminal(&[dep], 3, 10);
+    assert!(
+        output.contains("(+2 more)"),
+        "should show (+2 more) for 3 locations"
+    );
+    assert!(
+        output.contains("src/db.ts:5"),
+        "should show first location"
+    );
+}
+
+#[test]
+fn terminal_no_more_suffix_for_single_location() {
+    let dep = ShadowDep::new(
+        Category::EnvVar,
+        "API_KEY",
+        Confidence::High,
+        Location::new("src/api.ts", 3, 1),
+    );
+
+    let output = format_terminal(&[dep], 1, 5);
+    assert!(!output.contains("more"), "should not show (+N more) for single location");
+    assert!(output.contains("src/api.ts:3"), "should show the location");
+}

@@ -55,7 +55,15 @@ pub fn format_terminal(deps: &[ShadowDep], file_count: usize, duration_ms: u64) 
             let loc = dep
                 .locations
                 .first()
-                .map(|l| format!("{}:{}", l.file, l.line))
+                .map(|l| {
+                    let base = format!("{}:{}", l.file, l.line);
+                    let extra = dep.locations.len() - 1;
+                    if extra > 0 {
+                        format!("{base} (+{extra} more)")
+                    } else {
+                        base
+                    }
+                })
                 .unwrap_or_default();
             let conf = format_confidence(dep.confidence);
             writeln!(out, "  {:<20} {:<25} {}", dep.name, loc.dimmed(), conf).unwrap();
