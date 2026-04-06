@@ -1,0 +1,44 @@
+{
+  "schema_version": "1",
+  "tool_version": "baseline",
+  "scanned_at": "approved",
+  "root": ".",
+  "files_scanned": 4,
+  "scan_duration_ms": 0,
+  "deps": [
+    {
+      "id": "env_var::SNAP",
+      "category": "env_var",
+      "name": "SNAP",
+      "confidence": "high",
+      "metadata": {
+        "required": true,
+        "source_pattern": "direct_access"
+      },
+      "locations": [
+        {
+          "file": "./source/index.ts",
+          "line": 459,
+          "col": 7
+        }
+      ]
+    },
+    {
+      "id": "platform::process.platform === \"darwin\"",
+      "category": "platform",
+      "name": "process.platform === \"darwin\"",
+      "confidence": "high",
+      "metadata": {
+        "assumed_platform": "unix",
+        "guarded": true
+      },
+      "locations": [
+        {
+          "file": "./test/index.ts",
+          "line": 866,
+          "col": 15
+        }
+      ]
+    }
+  ]
+}

@@ -17,6 +17,30 @@
       "repo": "https://github.com/sindresorhus/del-cli",
       "ref": "v7.0.0",
       "description": "File deletion CLI tool -- exercises filesystem, shell/binary, and platform detectors"
+    },
+    {
+      "name": "execa",
+      "repo": "https://github.com/sindresorhus/execa",
+      "ref": "v9.6.1",
+      "description": "Process execution library -- exercises binary/shell, platform, and env_var detectors"
+    },
+    {
+      "name": "conf",
+      "repo": "https://github.com/sindresorhus/conf",
+      "ref": "v9.0.2",
+      "description": "Electron/Node config store -- exercises platform (os.homedir) and filesystem detectors"
+    },
+    {
+      "name": "dotenv",
+      "repo": "https://github.com/motdotla/dotenv",
+      "ref": "v9.0.2",
+      "description": "Dotenv library -- meta-test for dotenv pattern detection and filesystem (.env reading)"
+    },
+    {
+      "name": "json-server",
+      "repo": "https://github.com/typicode/json-server",
+      "ref": "v1.0.0-beta.9",
+      "description": "Tiny REST API server -- exercises port, filesystem, and env_var detectors"
     }
   ]
 }

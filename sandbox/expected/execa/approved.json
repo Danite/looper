@@ -1,0 +1,1817 @@
+{
+  "schema_version": "1",
+  "tool_version": "baseline",
+  "scanned_at": "approved",
+  "root": ".",
+  "files_scanned": 581,
+  "scan_duration_ms": 0,
+  "deps": [
+    {
+      "id": "binary::*",
+      "category": "binary",
+      "name": "*",
+      "confidence": "medium",
+      "locations": [
+        {
+          "file": "./test-d/methods/command.test-d.ts",
+          "line": 27,
+          "col": 30
+        },
+        {
+          "file": "./test-d/methods/script.test-d.ts",
+          "line": 44,
+          "col": 30
+        },
+        {
+          "file": "./test/methods/command.js",
+          "line": 86,
+          "col": 25
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 42,
+          "col": 89
+        }
+      ]
+    },
+    {
+      "id": "binary::.",
+      "category": "binary",
+      "name": ".",
+      "confidence": "high",
+      "locations": [
+        {
+          "file": "./test/fixtures/graceful-listener.js",
+          "line": 12,
+          "col": 7
+        }
+      ]
+    },
+    {
+      "id": "binary::echo",
+      "category": "binary",
+      "name": "echo",
+      "confidence": "high",
+      "metadata": {
+        "args_pattern": "foo"
+      },
+      "locations": [
+        {
+          "file": "./test-d/methods/script.test-d.ts",
+          "line": 53,
+          "col": 49
+        },
+        {
+          "file": "./test-d/methods/script.test-d.ts",
+          "line": 55,
+          "col": 32
+        },
+        {
+          "file": "./test-d/methods/script.test-d.ts",
+          "line": 56,
+          "col": 50
+        },
+        {
+          "file": "./test-d/methods/script.test-d.ts",
+          "line": 57,
+          "col": 33
+        }
+      ]
+    },
+    {
+      "id": "binary::echo.js",
+      "category": "binary",
+      "name": "echo.js",
+      "confidence": "medium",
+      "metadata": {
+        "args_pattern": "1 *"
+      },
+      "locations": [
+        {
+          "file": "./test/methods/template.js",
+          "line": 19,
+          "col": 63
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 20,
+          "col": 67
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 21,
+          "col": 73
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 23,
+          "col": 75
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 25,
+          "col": 83
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 27,
+          "col": 88
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 29,
+          "col": 99
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 31,
+          "col": 91
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 35,
+          "col": 75
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 41,
+          "col": 77
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 43,
+          "col": 41
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 44,
+          "col": 62
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 45,
+          "col": 68
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 46,
+          "col": 86
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 47,
+          "col": 93
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 48,
+          "col": 95
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 49,
+          "col": 103
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 50,
+          "col": 60
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 52,
+          "col": 71
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 54,
+          "col": 78
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 56,
+          "col": 54
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 57,
+          "col": 59
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 58,
+          "col": 56
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 59,
+          "col": 61
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 60,
+          "col": 55
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 61,
+          "col": 60
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 62,
+          "col": 54
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 63,
+          "col": 59
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 64,
+          "col": 65
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 65,
+          "col": 56
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 66,
+          "col": 61
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 67,
+          "col": 55
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 68,
+          "col": 60
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 69,
+          "col": 61
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 70,
+          "col": 66
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 71,
+          "col": 68
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 72,
+          "col": 73
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 73,
+          "col": 67
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 74,
+          "col": 72
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 75,
+          "col": 73
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 76,
+          "col": 78
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 77,
+          "col": 69
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 78,
+          "col": 74
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 79,
+          "col": 67
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 80,
+          "col": 73
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 81,
+          "col": 74
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 82,
+          "col": 79
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 83,
+          "col": 68
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 84,
+          "col": 73
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 85,
+          "col": 67
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 86,
+          "col": 72
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 87,
+          "col": 73
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 88,
+          "col": 78
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 89,
+          "col": 65
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 90,
+          "col": 70
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 91,
+          "col": 64
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 92,
+          "col": 69
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 93,
+          "col": 70
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 94,
+          "col": 75
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 95,
+          "col": 68
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 97,
+          "col": 73
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 99,
+          "col": 67
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 101,
+          "col": 72
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 103,
+          "col": 73
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 106,
+          "col": 78
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 109,
+          "col": 65
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 110,
+          "col": 70
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 111,
+          "col": 64
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 112,
+          "col": 69
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 113,
+          "col": 70
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 114,
+          "col": 75
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 120,
+          "col": 64
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 121,
+          "col": 69
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 122,
+          "col": 70
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 123,
+          "col": 75
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 129,
+          "col": 68
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 130,
+          "col": 73
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 131,
+          "col": 67
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 132,
+          "col": 72
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 133,
+          "col": 73
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 134,
+          "col": 78
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 136,
+          "col": 73
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 137,
+          "col": 67
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 138,
+          "col": 72
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 139,
+          "col": 73
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 140,
+          "col": 78
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 142,
+          "col": 65
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 143,
+          "col": 70
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 144,
+          "col": 64
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 145,
+          "col": 69
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 146,
+          "col": 70
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 147,
+          "col": 75
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 148,
+          "col": 55
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 149,
+          "col": 60
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 150,
+          "col": 54
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 151,
+          "col": 59
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 152,
+          "col": 60
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 153,
+          "col": 65
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 154,
+          "col": 57
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 155,
+          "col": 62
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 156,
+          "col": 56
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 157,
+          "col": 61
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 158,
+          "col": 62
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 159,
+          "col": 67
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 160,
+          "col": 54
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 161,
+          "col": 59
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 162,
+          "col": 53
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 163,
+          "col": 58
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 164,
+          "col": 59
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 165,
+          "col": 64
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 166,
+          "col": 56
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 167,
+          "col": 61
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 168,
+          "col": 55
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 169,
+          "col": 60
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 170,
+          "col": 61
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 171,
+          "col": 66
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 172,
+          "col": 60
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 173,
+          "col": 65
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 174,
+          "col": 59
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 175,
+          "col": 64
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 176,
+          "col": 65
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 177,
+          "col": 70
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 178,
+          "col": 56
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 179,
+          "col": 55
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 180,
+          "col": 60
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 181,
+          "col": 61
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 182,
+          "col": 66
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 183,
+          "col": 57
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 184,
+          "col": 56
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 185,
+          "col": 61
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 186,
+          "col": 62
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 187,
+          "col": 67
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 188,
+          "col": 56
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 189,
+          "col": 55
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 190,
+          "col": 60
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 191,
+          "col": 61
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 192,
+          "col": 66
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 194,
+          "col": 58
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 195,
+          "col": 57
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 196,
+          "col": 62
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 197,
+          "col": 63
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 198,
+          "col": 68
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 200,
+          "col": 60
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 201,
+          "col": 59
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 202,
+          "col": 64
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 203,
+          "col": 65
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 204,
+          "col": 70
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 205,
+          "col": 59
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 206,
+          "col": 58
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 207,
+          "col": 63
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 208,
+          "col": 64
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 209,
+          "col": 69
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 210,
+          "col": 60
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 211,
+          "col": 59
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 212,
+          "col": 64
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 213,
+          "col": 65
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 214,
+          "col": 70
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 215,
+          "col": 61
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 216,
+          "col": 60
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 217,
+          "col": 65
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 218,
+          "col": 66
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 219,
+          "col": 71
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 220,
+          "col": 62
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 221,
+          "col": 61
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 222,
+          "col": 66
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 223,
+          "col": 67
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 224,
+          "col": 72
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 225,
+          "col": 63
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 226,
+          "col": 62
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 227,
+          "col": 67
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 228,
+          "col": 68
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 229,
+          "col": 73
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 230,
+          "col": 64
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 231,
+          "col": 63
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 232,
+          "col": 68
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 233,
+          "col": 69
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 234,
+          "col": 74
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 235,
+          "col": 65
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 236,
+          "col": 64
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 237,
+          "col": 69
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 238,
+          "col": 70
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 239,
+          "col": 75
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 240,
+          "col": 63
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 241,
+          "col": 62
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 242,
+          "col": 67
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 243,
+          "col": 68
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 244,
+          "col": 73
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 250,
+          "col": 61
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 251,
+          "col": 60
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 252,
+          "col": 65
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 253,
+          "col": 66
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 254,
+          "col": 71
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 262,
+          "col": 81
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 263,
+          "col": 88
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 264,
+          "col": 87
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 265,
+          "col": 94
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 282,
+          "col": 76
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 283,
+          "col": 76
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 284,
+          "col": 77
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 285,
+          "col": 78
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 286,
+          "col": 79
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 287,
+          "col": 77
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 288,
+          "col": 77
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 289,
+          "col": 81
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 290,
+          "col": 79
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 292,
+          "col": 76
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 293,
+          "col": 77
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 294,
+          "col": 78
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 310,
+          "col": 9
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 330,
+          "col": 9
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 342,
+          "col": 9
+        }
+      ]
+    },
+    {
+      "id": "binary::empty.js",
+      "category": "binary",
+      "name": "empty.js",
+      "confidence": "high",
+      "locations": [
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 249,
+          "col": 3
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 249,
+          "col": 38
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 256,
+          "col": 44
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 263,
+          "col": 3
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 277,
+          "col": 3
+        }
+      ]
+    },
+    {
+      "id": "binary::node",
+      "category": "binary",
+      "name": "node",
+      "confidence": "high",
+      "metadata": {
+        "args_pattern": "--version"
+      },
+      "locations": [
+        {
+          "file": "./test/arguments/fd-options.js",
+          "line": 94,
+          "col": 24
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 282,
+          "col": 59
+        }
+      ]
+    },
+    {
+      "id": "binary::noop-fd.js",
+      "category": "binary",
+      "name": "noop-fd.js",
+      "confidence": "medium",
+      "metadata": {
+        "args_pattern": "2 *"
+      },
+      "locations": [
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 95,
+          "col": 25
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 105,
+          "col": 25
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 112,
+          "col": 25
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 122,
+          "col": 25
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 129,
+          "col": 25
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 139,
+          "col": 25
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 180,
+          "col": 25
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 190,
+          "col": 25
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 197,
+          "col": 25
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 207,
+          "col": 25
+        }
+      ]
+    },
+    {
+      "id": "binary::noop.js",
+      "category": "binary",
+      "name": "noop.js",
+      "confidence": "medium",
+      "metadata": {
+        "args_pattern": "*"
+      },
+      "locations": [
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 12,
+          "col": 25
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 22,
+          "col": 25
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 29,
+          "col": 25
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 39,
+          "col": 25
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 46,
+          "col": 25
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 56,
+          "col": 25
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 68,
+          "col": 25
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 88,
+          "col": 25
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 146,
+          "col": 25
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 156,
+          "col": 25
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 163,
+          "col": 25
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 173,
+          "col": 25
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 214,
+          "col": 25
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 224,
+          "col": 25
+        },
+        {
+          "file": "./test/pipe/pipe-arguments.js",
+          "line": 231,
+          "col": 25
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 351,
+          "col": 70
+        },
+        {
+          "file": "./test/methods/template.js",
+          "line": 352,
+          "col": 73
+        }
+      ]
+    },
+    {
+      "id": "binary::unicorns",
+      "category": "binary",
+      "name": "unicorns",
+      "confidence": "high",
+      "locations": [
+        {
+          "file": "./test-d/methods/script.test-d.ts",
+          "line": 23,
+          "col": 33
+        },
+        {
+          "file": "./test-d/methods/script.test-d.ts",
+          "line": 25,
+          "col": 30
+        },
+        {
+          "file": "./test-d/methods/script.test-d.ts",
+          "line": 45,
+          "col": 30
+        },
+        {
+          "file": "./test-d/methods/script.test-d.ts",
+          "line": 46,
+          "col": 30
+        },
+        {
+          "file": "./test-d/methods/script.test-d.ts",
+          "line": 47,
+          "col": 30
+        },
+        {
+          "file": "./test-d/methods/script.test-d.ts",
+          "line": 48,
+          "col": 30
+        },
+        {
+          "file": "./test-d/methods/script.test-d.ts",
+          "line": 49,
+          "col": 30
+        },
+        {
+          "file": "./test-d/methods/script.test-d.ts",
+          "line": 50,
+          "col": 30
+        },
+        {
+          "file": "./test-d/methods/script.test-d.ts",
+          "line": 51,
+          "col": 19
+        },
+        {
+          "file": "./test-d/methods/script.test-d.ts",
+          "line": 53,
+          "col": 30
+        },
+        {
+          "file": "./test-d/methods/script.test-d.ts",
+          "line": 54,
+          "col": 30
+        },
+        {
+          "file": "./test-d/methods/script.test-d.ts",
+          "line": 55,
+          "col": 19
+        },
+        {
+          "file": "./test-d/methods/script.test-d.ts",
+          "line": 56,
+          "col": 30
+        },
+        {
+          "file": "./test-d/methods/script.test-d.ts",
+          "line": 57,
+          "col": 19
+        },
+        {
+          "file": "./test-d/pipe.test-d.ts",
+          "line": 16,
+          "col": 26
+        }
+      ]
+    },
+    {
+      "id": "env_var::<dynamic>",
+      "category": "env_var",
+      "name": "<dynamic>",
+      "confidence": "low",
+      "metadata": {
+        "required": true,
+        "source_pattern": "dynamic_access"
+      },
+      "locations": [
+        {
+          "file": "./test/helpers/fixtures-directory.js",
+          "line": 24,
+          "col": 2
+        },
+        {
+          "file": "./test/helpers/fixtures-directory.js",
+          "line": 24,
+          "col": 64
+        },
+        {
+          "file": "./test/arguments/env.js",
+          "line": 17,
+          "col": 84
+        },
+        {
+          "file": "./test/arguments/env.js",
+          "line": 22,
+          "col": 84
+        },
+        {
+          "file": "./test/arguments/local.js",
+          "line": 15,
+          "col": 18
+        }
+      ]
+    },
+    {
+      "id": "env_var::BAR",
+      "category": "env_var",
+      "name": "BAR",
+      "confidence": "high",
+      "metadata": {
+        "source_pattern": "direct_access",
+        "required": true
+      },
+      "locations": [
+        {
+          "file": "./test/fixtures/environment.js",
+          "line": 5,
+          "col": 13
+        }
+      ]
+    },
+    {
+      "id": "env_var::FOO",
+      "category": "env_var",
+      "name": "FOO",
+      "confidence": "high",
+      "metadata": {
+        "source_pattern": "direct_access",
+        "required": true
+      },
+      "locations": [
+        {
+          "file": "./test/arguments/env.js",
+          "line": 7,
+          "col": 1
+        },
+        {
+          "file": "./test/fixtures/environment.js",
+          "line": 4,
+          "col": 13
+        },
+        {
+          "file": "./test/arguments/local.js",
+          "line": 9,
+          "col": 1
+        },
+        {
+          "file": "./test/arguments/shell.js",
+          "line": 10,
+          "col": 1
+        }
+      ]
+    },
+    {
+      "id": "env_var::NODE_ENV",
+      "category": "env_var",
+      "name": "NODE_ENV",
+      "confidence": "high",
+      "metadata": {
+        "required": true,
+        "source_pattern": "direct_access"
+      },
+      "locations": [
+        {
+          "file": "./test-d/arguments/env.test-d.ts",
+          "line": 21,
+          "col": 21
+        }
+      ]
+    },
+    {
+      "id": "env_var::TEST",
+      "category": "env_var",
+      "name": "TEST",
+      "confidence": "high",
+      "metadata": {
+        "required": true,
+        "source_pattern": "direct_access"
+      },
+      "locations": [
+        {
+          "file": "./test/arguments/env.js",
+          "line": 27,
+          "col": 2
+        },
+        {
+          "file": "./test/arguments/env.js",
+          "line": 31,
+          "col": 9
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/environment.js",
+      "category": "filesystem",
+      "name": "*/environment.js",
+      "confidence": "medium",
+      "metadata": {
+        "is_absolute": false,
+        "operation": "read"
+      },
+      "locations": [
+        {
+          "file": "./test/methods/bind.js",
+          "line": 16,
+          "col": 24
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/noop.js",
+      "category": "filesystem",
+      "name": "*/noop.js",
+      "confidence": "medium",
+      "metadata": {
+        "is_absolute": false,
+        "operation": "read"
+      },
+      "locations": [
+        {
+          "file": "./test/methods/create.js",
+          "line": 14,
+          "col": 19
+        },
+        {
+          "file": "./test/methods/parameters-options.js",
+          "line": 15,
+          "col": 19
+        },
+        {
+          "file": "./test/methods/bind.js",
+          "line": 15,
+          "col": 19
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/stdin.js",
+      "category": "filesystem",
+      "name": "*/stdin.js",
+      "confidence": "medium",
+      "metadata": {
+        "operation": "read",
+        "is_absolute": false
+      },
+      "locations": [
+        {
+          "file": "./test/methods/command.js",
+          "line": 20,
+          "col": 23
+        }
+      ]
+    },
+    {
+      "id": "filesystem::../*/test/fixtures/noop.js",
+      "category": "filesystem",
+      "name": "../*/test/fixtures/noop.js",
+      "confidence": "medium",
+      "metadata": {
+        "is_absolute": false,
+        "operation": "read"
+      },
+      "locations": [
+        {
+          "file": "./test/methods/parameters-command.js",
+          "line": 77,
+          "col": 33
+        }
+      ]
+    },
+    {
+      "id": "filesystem::output.txt",
+      "category": "filesystem",
+      "name": "output.txt",
+      "confidence": "high",
+      "metadata": {
+        "operation": "open",
+        "is_absolute": false
+      },
+      "locations": [
+        {
+          "file": "./test-d/pipe.test-d.ts",
+          "line": 124,
+          "col": 29
+        },
+        {
+          "file": "./test-d/pipe.test-d.ts",
+          "line": 125,
+          "col": 35
+        }
+      ]
+    },
+    {
+      "id": "network::example.com",
+      "category": "network",
+      "name": "example.com",
+      "confidence": "high",
+      "metadata": {
+        "protocol": "https"
+      },
+      "locations": [
+        {
+          "file": "./test/stdio/file-path-error.js",
+          "line": 20,
+          "col": 20
+        }
+      ]
+    },
+    {
+      "id": "network::invalid.com",
+      "category": "network",
+      "name": "invalid.com",
+      "confidence": "high",
+      "metadata": {
+        "protocol": "https"
+      },
+      "locations": [
+        {
+          "file": "./test/methods/parameters-command.js",
+          "line": 32,
+          "col": 21
+        }
+      ]
+    },
+    {
+      "id": "platform::cmd",
+      "category": "platform",
+      "name": "cmd",
+      "confidence": "high",
+      "metadata": {
+        "assumed_platform": "windows",
+        "guarded": false
+      },
+      "locations": [
+        {
+          "file": "./test/methods/main-async.js",
+          "line": 17,
+          "col": 32
+        }
+      ]
+    },
+    {
+      "id": "platform::os.arch()",
+      "category": "platform",
+      "name": "os.arch()",
+      "confidence": "medium",
+      "metadata": {
+        "assumed_platform": "any",
+        "guarded": false
+      },
+      "locations": [
+        {
+          "file": "./test/return/early-error.js",
+          "line": 66,
+          "col": 6
+        }
+      ]
+    },
+    {
+      "id": "platform::process.platform === \"linux\"",
+      "category": "platform",
+      "name": "process.platform === \"linux\"",
+      "confidence": "high",
+      "metadata": {
+        "guarded": true,
+        "assumed_platform": "unix"
+      },
+      "locations": [
+        {
+          "file": "./test/pipe/sequence.js",
+          "line": 13,
+          "col": 17
+        }
+      ]
+    },
+    {
+      "id": "platform::process.platform === \"win32\"",
+      "category": "platform",
+      "name": "process.platform === \"win32\"",
+      "confidence": "high",
+      "metadata": {
+        "assumed_platform": "windows",
+        "guarded": true
+      },
+      "locations": [
+        {
+          "file": "./lib/arguments/options.js",
+          "line": 38,
+          "col": 6
+        },
+        {
+          "file": "./test/arguments/cwd.js",
+          "line": 13,
+          "col": 19
+        },
+        {
+          "file": "./test/arguments/env.js",
+          "line": 9,
+          "col": 19
+        },
+        {
+          "file": "./test/terminate/cleanup.js",
+          "line": 12,
+          "col": 19
+        },
+        {
+          "file": "./test/terminate/kill-force.js",
+          "line": 15,
+          "col": 19
+        },
+        {
+          "file": "./test/methods/main-async.js",
+          "line": 8,
+          "col": 19
+        },
+        {
+          "file": "./test/arguments/local.js",
+          "line": 11,
+          "col": 19
+        },
+        {
+          "file": "./test/arguments/shell.js",
+          "line": 12,
+          "col": 19
+        },
+        {
+          "file": "./test/resolve/exit.js",
+          "line": 6,
+          "col": 19
+        },
+        {
+          "file": "./test/return/early-error.js",
+          "line": 17,
+          "col": 19
+        },
+        {
+          "file": "./test/return/result.js",
+          "line": 7,
+          "col": 19
+        }
+      ]
+    }
+  ]
+}

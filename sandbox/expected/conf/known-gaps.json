@@ -1,0 +1,14 @@
+{
+  "project": "conf",
+  "gaps": [
+    {
+      "id": "platform::env-paths",
+      "category": "platform",
+      "name": "env-paths config directory",
+      "reason": "Platform-specific config paths resolved via env-paths module, not direct os.homedir() call",
+      "source_location": "source/index.ts:87",
+      "blocked_by": "data-flow-tracking",
+      "priority": "medium"
+    }
+  ]
+}

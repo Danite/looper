@@ -1,0 +1,14 @@
+{
+  "project": "json-server",
+  "gaps": [
+    {
+      "id": "port::3000::listen",
+      "category": "port",
+      "name": ":3000",
+      "reason": "app.listen(port) uses a variable, not a literal; port comes from process.env.PORT ?? '3000'",
+      "source_location": "src/bin.ts:163",
+      "blocked_by": "data-flow-tracking",
+      "priority": "high"
+    }
+  ]
+}

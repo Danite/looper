@@ -1,0 +1,304 @@
+{
+  "schema_version": "1",
+  "tool_version": "baseline",
+  "scanned_at": "approved",
+  "root": ".",
+  "files_scanned": 17,
+  "scan_duration_ms": 0,
+  "deps": [
+    {
+      "id": "env_var::<dynamic>",
+      "category": "env_var",
+      "name": "<dynamic>",
+      "confidence": "low",
+      "metadata": {
+        "source_pattern": "dynamic_access",
+        "required": true
+      },
+      "locations": [
+        {
+          "file": "./lib/main.js",
+          "line": 100,
+          "col": 9
+        },
+        {
+          "file": "./tests/test-env-options.js",
+          "line": 21,
+          "col": 10
+        },
+        {
+          "file": "./tests/test-env-options.js",
+          "line": 22,
+          "col": 3
+        },
+        {
+          "file": "./tests/test-env-options.js",
+          "line": 26,
+          "col": 10
+        }
+      ]
+    },
+    {
+      "id": "env_var::DOTENV_CONFIG_DEBUG",
+      "category": "env_var",
+      "name": "DOTENV_CONFIG_DEBUG",
+      "confidence": "high",
+      "metadata": {
+        "source_pattern": "direct_access",
+        "required": true
+      },
+      "locations": [
+        {
+          "file": "./lib/env-options.js",
+          "line": 14,
+          "col": 5
+        },
+        {
+          "file": "./lib/env-options.js",
+          "line": 15,
+          "col": 19
+        },
+        {
+          "file": "./tests/test-env-options.js",
+          "line": 12,
+          "col": 11
+        },
+        {
+          "file": "./tests/test-env-options.js",
+          "line": 34,
+          "col": 8
+        },
+        {
+          "file": "./tests/test-env-options.js",
+          "line": 50,
+          "col": 1
+        }
+      ]
+    },
+    {
+      "id": "env_var::DOTENV_CONFIG_ENCODING",
+      "category": "env_var",
+      "name": "DOTENV_CONFIG_ENCODING",
+      "confidence": "high",
+      "metadata": {
+        "required": true,
+        "source_pattern": "direct_access"
+      },
+      "locations": [
+        {
+          "file": "./lib/env-options.js",
+          "line": 6,
+          "col": 5
+        },
+        {
+          "file": "./lib/env-options.js",
+          "line": 7,
+          "col": 22
+        },
+        {
+          "file": "./tests/test-env-options.js",
+          "line": 10,
+          "col": 11
+        },
+        {
+          "file": "./tests/test-env-options.js",
+          "line": 32,
+          "col": 8
+        },
+        {
+          "file": "./tests/test-env-options.js",
+          "line": 48,
+          "col": 1
+        }
+      ]
+    },
+    {
+      "id": "env_var::DOTENV_CONFIG_PATH",
+      "category": "env_var",
+      "name": "DOTENV_CONFIG_PATH",
+      "confidence": "high",
+      "metadata": {
+        "required": true,
+        "source_pattern": "direct_access"
+      },
+      "locations": [
+        {
+          "file": "./lib/env-options.js",
+          "line": 10,
+          "col": 5
+        },
+        {
+          "file": "./lib/env-options.js",
+          "line": 11,
+          "col": 18
+        },
+        {
+          "file": "./tests/test-env-options.js",
+          "line": 11,
+          "col": 11
+        },
+        {
+          "file": "./tests/test-env-options.js",
+          "line": 33,
+          "col": 8
+        },
+        {
+          "file": "./tests/test-env-options.js",
+          "line": 49,
+          "col": 1
+        }
+      ]
+    },
+    {
+      "id": "env_var::ERR_API_KEY",
+      "category": "env_var",
+      "name": "ERR_API_KEY",
+      "confidence": "high",
+      "metadata": {
+        "required": true,
+        "source_pattern": "direct_access"
+      },
+      "locations": [
+        {
+          "file": "./examples/typescript/src/lib/errors.ts",
+          "line": 17,
+          "col": 34
+        }
+      ]
+    },
+    {
+      "id": "env_var::NODE_ENV",
+      "category": "env_var",
+      "name": "NODE_ENV",
+      "confidence": "high",
+      "metadata": {
+        "required": true,
+        "source_pattern": "direct_access"
+      },
+      "locations": [
+        {
+          "file": "./examples/typescript/src/index.ts",
+          "line": 4,
+          "col": 36
+        }
+      ]
+    },
+    {
+      "id": "env_var::SAMPLE_KEY",
+      "category": "env_var",
+      "name": "SAMPLE_KEY",
+      "confidence": "high",
+      "metadata": {
+        "required": true,
+        "source_pattern": "direct_access"
+      },
+      "locations": [
+        {
+          "file": "./examples/typescript/src/index.ts",
+          "line": 6,
+          "col": 30
+        }
+      ]
+    },
+    {
+      "id": "env_var::test",
+      "category": "env_var",
+      "name": "test",
+      "confidence": "high",
+      "metadata": {
+        "required": true,
+        "source_pattern": "direct_access"
+      },
+      "locations": [
+        {
+          "file": "./tests/test-config.js",
+          "line": 69,
+          "col": 3
+        },
+        {
+          "file": "./tests/test-config.js",
+          "line": 74,
+          "col": 12
+        },
+        {
+          "file": "./tests/test-config.js",
+          "line": 83,
+          "col": 5
+        },
+        {
+          "file": "./tests/test-config.js",
+          "line": 89,
+          "col": 14
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/..",
+      "category": "filesystem",
+      "name": "*/..",
+      "confidence": "medium",
+      "metadata": {
+        "operation": "read",
+        "is_absolute": false
+      },
+      "locations": [
+        {
+          "file": "./tests/test-config-cli.js",
+          "line": 15,
+          "col": 14
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/../../.env.example",
+      "category": "filesystem",
+      "name": "*/../../.env.example",
+      "confidence": "medium",
+      "metadata": {
+        "is_absolute": false,
+        "operation": "read"
+      },
+      "locations": [
+        {
+          "file": "./examples/typescript/src/lib/env.ts",
+          "line": 5,
+          "col": 16
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/.env",
+      "category": "filesystem",
+      "name": "*/.env",
+      "confidence": "medium",
+      "metadata": {
+        "operation": "read",
+        "is_absolute": false
+      },
+      "locations": [
+        {
+          "file": "./lib/main.js",
+          "line": 78,
+          "col": 20
+        }
+      ]
+    },
+    {
+      "id": "filesystem::tests/.env",
+      "category": "filesystem",
+      "name": "tests/.env",
+      "confidence": "high",
+      "metadata": {
+        "is_absolute": false,
+        "operation": "read"
+      },
+      "locations": [
+        {
+          "file": "./tests/test-parse.js",
+          "line": 10,
+          "col": 29
+        }
+      ]
+    }
+  ]
+}

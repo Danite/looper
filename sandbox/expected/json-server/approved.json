@@ -1,0 +1,111 @@
+{
+  "schema_version": "1",
+  "tool_version": "baseline",
+  "scanned_at": "approved",
+  "root": ".",
+  "files_scanned": 13,
+  "scan_duration_ms": 0,
+  "deps": [
+    {
+      "id": "env_var::HOST",
+      "category": "env_var",
+      "name": "HOST",
+      "confidence": "high",
+      "metadata": {
+        "required": false,
+        "source_pattern": "bracket_access",
+        "default_value": "localhost"
+      },
+      "locations": [
+        {
+          "file": "./src/bin.ts",
+          "line": 49,
+          "col": 20
+        }
+      ]
+    },
+    {
+      "id": "env_var::NODE_ENV",
+      "category": "env_var",
+      "name": "NODE_ENV",
+      "confidence": "high",
+      "metadata": {
+        "source_pattern": "bracket_access",
+        "required": true
+      },
+      "locations": [
+        {
+          "file": "./src/app.ts",
+          "line": 16,
+          "col": 22
+        },
+        {
+          "file": "./src/bin.ts",
+          "line": 184,
+          "col": 5
+        }
+      ]
+    },
+    {
+      "id": "env_var::PORT",
+      "category": "env_var",
+      "name": "PORT",
+      "confidence": "high",
+      "metadata": {
+        "source_pattern": "bracket_access",
+        "default_value": "3000",
+        "required": false
+      },
+      "locations": [
+        {
+          "file": "./src/bin.ts",
+          "line": 44,
+          "col": 20
+        }
+      ]
+    },
+    {
+      "id": "filesystem::*/../views",
+      "category": "filesystem",
+      "name": "*/../views",
+      "confidence": "medium",
+      "metadata": {
+        "is_absolute": false,
+        "operation": "read"
+      },
+      "locations": [
+        {
+          "file": "./src/app.ts",
+          "line": 24,
+          "col": 10
+        }
+      ]
+    },
+    {
+      "id": "network::localhost",
+      "category": "network",
+      "name": "localhost",
+      "confidence": "medium",
+      "metadata": {
+        "protocol": "http"
+      },
+      "locations": [
+        {
+          "file": "./src/app.test.ts",
+          "line": 111,
+          "col": 30
+        },
+        {
+          "file": "./src/app.test.ts",
+          "line": 130,
+          "col": 28
+        },
+        {
+          "file": "./src/app.test.ts",
+          "line": 138,
+          "col": 28
+        }
+      ]
+    }
+  ]
+}
