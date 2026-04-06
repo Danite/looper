@@ -43,7 +43,7 @@ colored = "2"
 rayon = "1.10"
 url = "2"
 regex = "1"
-serde_yml = "0.0.12"
+serde_yaml_ng = "0.10"
 which = "8"
 xxhash-rust = { version = "0.8", features = ["xxh3"] }
 
