@@ -30,6 +30,9 @@ pub(crate) fn cmd_drift(args: DriftArgs) -> i32 {
     log_scan_errors(&scan.errors, args.verbose);
 
     let mut infra = looper::infra::build_infra_manifest(&project_root);
+    for w in &infra.warnings {
+        eprintln!("  {} {w}", "warning:".yellow());
+    }
 
     if let Some(ref compose_path) = args.compose {
         if let Ok(result) = looper::infra::compose::parse_compose_file(compose_path) {

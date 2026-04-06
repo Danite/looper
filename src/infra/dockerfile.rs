@@ -85,12 +85,21 @@ pub fn parse_dockerfile(path: &Path) -> Result<DockerfileResult, String> {
 }
 
 /// Auto-detect Dockerfile in project root.
-pub fn find_and_parse_dockerfile(project_root: &Path) -> DockerfileResult {
-    for filename in &["Dockerfile", "dockerfile", "Dockerfile.dev", "Dockerfile.prod"] {
+pub fn find_and_parse_dockerfile(
+    project_root: &Path,
+    warnings: &mut Vec<String>,
+) -> DockerfileResult {
+    for filename in &[
+        "Dockerfile",
+        "dockerfile",
+        "Dockerfile.dev",
+        "Dockerfile.prod",
+    ] {
         let path = project_root.join(filename);
         if path.exists() {
-            if let Ok(result) = parse_dockerfile(&path) {
-                return result;
+            match parse_dockerfile(&path) {
+                Ok(result) => return result,
+                Err(e) => warnings.push(format!("failed to parse {}: {e}", path.display())),
             }
         }
     }

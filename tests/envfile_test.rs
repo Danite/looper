@@ -71,7 +71,7 @@ fn get_source_formats_correctly() {
 
 #[test]
 fn find_and_parse_merges_env_files() {
-    let result = find_and_parse_env(Path::new("tests/fixtures/infra"));
+    let result = find_and_parse_env(Path::new("tests/fixtures/infra"), &mut Vec::new());
     let names = result.var_names();
 
     // .env has REDIS_URL but .env.example doesn't — present via .env
@@ -89,14 +89,14 @@ fn find_and_parse_falls_back_to_example() {
     // No .env, only .env.example
     fs::write(dir.path().join(".env.example"), "FALLBACK_VAR=default\n").unwrap();
 
-    let result = find_and_parse_env(dir.path());
+    let result = find_and_parse_env(dir.path(), &mut Vec::new());
     assert!(result.var_names().contains("FALLBACK_VAR"));
 }
 
 #[test]
 fn find_and_parse_returns_empty_when_no_files() {
     let dir = TempDir::new().unwrap();
-    let result = find_and_parse_env(dir.path());
+    let result = find_and_parse_env(dir.path(), &mut Vec::new());
     assert!(result.entries.is_empty());
 }
 
@@ -106,7 +106,7 @@ fn find_and_parse_env_local_overrides_env() {
     fs::write(dir.path().join(".env"), "API_URL=https://prod.api.com\nSHARED=base\n").unwrap();
     fs::write(dir.path().join(".env.local"), "API_URL=http://localhost:3000\nLOCAL_ONLY=true\n").unwrap();
 
-    let result = find_and_parse_env(dir.path());
+    let result = find_and_parse_env(dir.path(), &mut Vec::new());
     let names = result.var_names();
 
     assert!(names.contains("API_URL"));
@@ -123,7 +123,7 @@ fn find_and_parse_development_env() {
     fs::write(dir.path().join(".env.example"), "DB_HOST=\nREDIS_HOST=\n").unwrap();
     fs::write(dir.path().join(".env.development"), "DB_HOST=localhost\n").unwrap();
 
-    let result = find_and_parse_env(dir.path());
+    let result = find_and_parse_env(dir.path(), &mut Vec::new());
     let names = result.var_names();
 
     assert!(names.contains("DB_HOST"));

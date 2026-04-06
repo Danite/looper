@@ -31,6 +31,7 @@ fn make_infra(
             })
             .collect(),
         volumes: vec!["./src".into(), "package.json".into()],
+        ..InfraManifest::default()
     }
 }
 

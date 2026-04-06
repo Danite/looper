@@ -48,12 +48,13 @@ pub fn parse_prisma_file(path: &Path) -> Result<PrismaResult, String> {
 
 const PRISMA_FILE_NAMES: &[&str] = &["prisma/schema.prisma", "schema.prisma"];
 
-pub fn find_and_parse_prisma(project_root: &Path) -> PrismaResult {
+pub fn find_and_parse_prisma(project_root: &Path, warnings: &mut Vec<String>) -> PrismaResult {
     for name in PRISMA_FILE_NAMES {
         let path = project_root.join(name);
         if path.exists() {
-            if let Ok(result) = parse_prisma_file(&path) {
-                return result;
+            match parse_prisma_file(&path) {
+                Ok(result) => return result,
+                Err(e) => warnings.push(format!("failed to parse {}: {e}", path.display())),
             }
         }
     }

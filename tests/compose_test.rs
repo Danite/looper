@@ -77,7 +77,7 @@ fn extracts_volumes() {
 
 #[test]
 fn find_and_parse_detects_yml() {
-    let result = find_and_parse_compose(Path::new("tests/fixtures/infra"));
+    let result = find_and_parse_compose(Path::new("tests/fixtures/infra"), &mut Vec::new());
     assert!(!result.services.is_empty());
 }
 
@@ -90,7 +90,7 @@ fn find_and_parse_detects_yaml_extension() {
     )
     .unwrap();
 
-    let result = find_and_parse_compose(dir.path());
+    let result = find_and_parse_compose(dir.path(), &mut Vec::new());
     assert_eq!(result.services.len(), 1);
     assert_eq!(result.services[0].name, "web");
 }
@@ -98,7 +98,7 @@ fn find_and_parse_detects_yaml_extension() {
 #[test]
 fn find_and_parse_returns_empty_when_missing() {
     let dir = TempDir::new().unwrap();
-    let result = find_and_parse_compose(dir.path());
+    let result = find_and_parse_compose(dir.path(), &mut Vec::new());
     assert!(result.services.is_empty());
 }
 

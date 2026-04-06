@@ -143,14 +143,14 @@ fn golang_image_provides_go() {
 
 #[test]
 fn find_and_parse_detects_dockerfile() {
-    let result = find_and_parse_dockerfile(Path::new("tests/fixtures/infra"));
+    let result = find_and_parse_dockerfile(Path::new("tests/fixtures/infra"), &mut Vec::new());
     assert!(result.base_image.is_some());
 }
 
 #[test]
 fn find_and_parse_returns_empty_when_missing() {
     let dir = TempDir::new().unwrap();
-    let result = find_and_parse_dockerfile(dir.path());
+    let result = find_and_parse_dockerfile(dir.path(), &mut Vec::new());
     assert!(result.base_image.is_none());
     assert!(result.binaries.is_empty());
 }

@@ -100,7 +100,7 @@ datasource db {
     )
     .unwrap();
 
-    let result = find_and_parse_prisma(dir.path());
+    let result = find_and_parse_prisma(dir.path(), &mut Vec::new());
     assert!(result.entries.contains_key("DB_URL"));
     assert!(result.source_file.is_some());
 }
@@ -118,14 +118,14 @@ datasource db {
     )
     .unwrap();
 
-    let result = find_and_parse_prisma(dir.path());
+    let result = find_and_parse_prisma(dir.path(), &mut Vec::new());
     assert!(result.entries.contains_key("ROOT_DB"));
 }
 
 #[test]
 fn find_returns_empty_when_no_prisma() {
     let dir = TempDir::new().unwrap();
-    let result = find_and_parse_prisma(dir.path());
+    let result = find_and_parse_prisma(dir.path(), &mut Vec::new());
     assert!(result.entries.is_empty());
     assert!(result.source_file.is_none());
 }

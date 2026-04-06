@@ -29,6 +29,7 @@ pub struct InfraManifest {
     pub binaries: HashSet<String>,
     pub exposed_ports: Vec<InfraPort>,
     pub volumes: Vec<String>,
+    pub warnings: Vec<String>,
 }
 
 /// A service provided by infrastructure (from docker-compose).
@@ -68,14 +69,14 @@ pub fn build_infra_manifest(project_root: &Path) -> InfraManifest {
     let mut manifest = InfraManifest::default();
 
     // 1. Parse .env files
-    let env_result = envfile::find_and_parse_env(project_root);
+    let env_result = envfile::find_and_parse_env(project_root, &mut manifest.warnings);
     for (name, entry) in &env_result.entries {
         let source = format!("{} line {}", entry.source_file, entry.line);
         manifest.env_vars.insert(name.clone(), source);
     }
 
     // 2. Parse docker-compose
-    let compose_result = compose::find_and_parse_compose(project_root);
+    let compose_result = compose::find_and_parse_compose(project_root, &mut manifest.warnings);
     let compose_source = compose_result
         .source_file
         .as_deref()
@@ -150,7 +151,7 @@ pub fn build_infra_manifest(project_root: &Path) -> InfraManifest {
     }
 
     // 3. Parse Dockerfile
-    let docker_result = dockerfile::find_and_parse_dockerfile(project_root);
+    let docker_result = dockerfile::find_and_parse_dockerfile(project_root, &mut manifest.warnings);
     manifest.binaries.extend(docker_result.binaries);
 
     let docker_source = docker_result
@@ -168,7 +169,7 @@ pub fn build_infra_manifest(project_root: &Path) -> InfraManifest {
     manifest.volumes.extend(docker_result.copy_sources);
 
     // 4. Parse Prisma schema
-    let prisma_result = prisma::find_and_parse_prisma(project_root);
+    let prisma_result = prisma::find_and_parse_prisma(project_root, &mut manifest.warnings);
     if let Some(ref prisma_source) = prisma_result.source_file {
         for (name, entry) in &prisma_result.entries {
             manifest.env_vars.entry(name.clone()).or_insert_with(|| {

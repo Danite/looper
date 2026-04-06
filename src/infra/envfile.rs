@@ -82,19 +82,22 @@ const ENV_FILE_PRIORITY: &[&str] = &[
 
 /// Auto-detect and parse .env files, merging entries from all found files.
 /// Lower-priority files are parsed first so higher-priority entries override.
-pub fn find_and_parse_env(project_root: &Path) -> EnvFileResult {
+pub fn find_and_parse_env(project_root: &Path, warnings: &mut Vec<String>) -> EnvFileResult {
     let mut merged = EnvFileResult::default();
 
     for name in ENV_FILE_PRIORITY {
         let path = project_root.join(name);
         if path.exists() {
-            if let Ok(result) = parse_env_file(&path) {
-                if merged.source_file.is_none() {
-                    merged.source_file = result.source_file;
+            match parse_env_file(&path) {
+                Ok(result) => {
+                    if merged.source_file.is_none() {
+                        merged.source_file = result.source_file;
+                    }
+                    for (key, entry) in result.entries {
+                        merged.entries.entry(key).or_insert(entry);
+                    }
                 }
-                for (key, entry) in result.entries {
-                    merged.entries.entry(key).or_insert(entry);
-                }
+                Err(e) => warnings.push(format!("failed to parse {}: {e}", path.display())),
             }
         }
     }

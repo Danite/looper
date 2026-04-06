@@ -59,12 +59,21 @@ pub fn parse_compose_file(path: &Path) -> Result<ComposeResult, String> {
 }
 
 /// Auto-detect and parse docker-compose.yml or docker-compose.yaml.
-pub fn find_and_parse_compose(project_root: &Path) -> ComposeResult {
-    for filename in &["docker-compose.yml", "docker-compose.yaml", "compose.yml", "compose.yaml"] {
+pub fn find_and_parse_compose(
+    project_root: &Path,
+    warnings: &mut Vec<String>,
+) -> ComposeResult {
+    for filename in &[
+        "docker-compose.yml",
+        "docker-compose.yaml",
+        "compose.yml",
+        "compose.yaml",
+    ] {
         let path = project_root.join(filename);
         if path.exists() {
-            if let Ok(result) = parse_compose_file(&path) {
-                return result;
+            match parse_compose_file(&path) {
+                Ok(result) => return result,
+                Err(e) => warnings.push(format!("failed to parse {}: {e}", path.display())),
             }
         }
     }
